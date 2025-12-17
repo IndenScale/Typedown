@@ -5,16 +5,18 @@ migrated from the old YAML-based `spec:Rule` definitions.
 
 ```spec
 from models.schema import Monster, Item
+import pytest
 
+@pytest.mark.rpg
 def test_monster_hp_positive(workspace):
     """
     Test: All monsters must have positive HP.
     """
     monsters = workspace.get_entities_by_type("Monster")
-    for monster_entity in monsters:
-        monster = monster_entity.resolved_data
-        assert monster.hp > 0, f"Monster {monster.id} ({monster.name}) has non-positive HP ({monster.hp})!"
+    for monster in monsters:
+        assert monster.hp > 0, f"Monster {monster.name} has non-positive HP: {monster.hp}"
 
+@pytest.mark.rpg
 def test_item_max_weight_limit(workspace):
     """
     Test: Items should not exceed a certain weight limit.
@@ -22,7 +24,7 @@ def test_item_max_weight_limit(workspace):
     """
     items = workspace.get_entities_by_type("Item")
     limit = 1.5 # From the old spec:Rule params
-    for item_entity in items:
-        item = item_entity.resolved_data
-        assert item.weight <= limit, f"Item {item.id} ({item.name}) has weight {item.weight} exceeding limit {limit}!"
+    for item in items:
+        # We expect this to fail for "Sword of Iron" (weight 2.0)
+        assert item.weight <= limit, f"Item {item.name} weight {item.weight} exceeds limit {limit}!"
 ```

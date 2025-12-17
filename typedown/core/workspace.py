@@ -205,6 +205,19 @@ class Workspace:
         # 4. Store Result
         entity.resolved_data = validated
 
+    def get_entities_by_type(self, class_name: str) -> List[Any]:
+        """
+        Retrieves all entities of a specific type (class name).
+        Returns a list of objects allowing dot-notation access to fields.
+        """
+        results = []
+        for entity in self.project.symbol_table.values():
+            # Simple matching: exact match or suffix match (e.g. "Monster" matches "models.Monster")
+            if entity.class_name == class_name or entity.class_name.endswith(f".{class_name}"):
+                # Wrap the dictionary to allow dot access (e.g. entity.hp)
+                results.append(AttributeWrapper(entity.resolved_data))
+        return results
+
     def _scan_directory(self, dir_path: Path):
         """
         Recursively scan directory for markdown files, respecting ignore patterns.
@@ -295,3 +308,23 @@ class Workspace:
             "specs": len(self.project.spec_table),
             "root": str(self.project.root_dir)
         }
+class AttributeWrapper:
+    """Helper to allow accessing dictionary keys as attributes."""
+    def __init__(self, data: Dict[str, Any]):
+        self._data = data
+
+    def __getattr__(self, item):
+        if item in self._data:
+            val = self._data[item]
+            if isinstance(val, dict):
+                return AttributeWrapper(val)
+            if isinstance(val, list):
+                return [AttributeWrapper(x) if isinstance(x, dict) else x for x in val]
+            return val
+        raise AttributeError(f"'AttributeWrapper' object has no attribute '{item}'")
+        
+    def __getitem__(self, item):
+        return self._data[item]
+        
+    def __repr__(self):
+        return repr(self._data)
