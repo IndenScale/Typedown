@@ -7,6 +7,12 @@
       "include": "#entity-block"
     },
     {
+      "include": "#config-python-block"
+    },
+    {
+      "include": "#spec-block"
+    },
+    {
       "include": "#reference-inline"
     }
   ],
@@ -25,6 +31,40 @@
       "patterns": [
         {
           "include": "source.yaml"
+        }
+      ]
+    },
+    "config-python-block": {
+      "begin": "^(\\s*)(```)(config:python)\\s*$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.python",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    "spec-block": {
+      "begin": "^(\\s*)(```)(spec)\\s*$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.python",
+      "patterns": [
+        {
+          "include": "source.python"
         }
       ]
     },

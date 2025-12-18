@@ -17,7 +17,9 @@ from typedown.core.spec_runner import SpecRunner
 from typedown.core.utils import find_project_root, IgnoreMatcher
 from typedown.core.context_manager import ContextManager, ClassRegistry # Import new components
 
-console = Console()
+# Use stderr for console output only in LSP mode to avoid breaking protocol
+use_stderr = os.getenv("TYPEDOWN_LSP_MODE") == "1"
+console = Console(stderr=use_stderr)
 
 class Workspace:
     def __init__(self, root: Path = Path(".")):
@@ -336,12 +338,12 @@ class Workspace:
                         pass
                         # console.print(f"[debug] Ignored {file_path}")
 
-    def _parse_single_file(self, file_path: Path):
+    def _parse_single_file(self, file_path: Path, content_override: str = None):
         """
         Parse a file and register it in the project.
         """
         try:
-            doc = self.parser.parse_file(file_path)
+            doc = self.parser.parse_file(file_path, content_override=content_override)
             
             # Store Document
             rel_path = str(file_path.relative_to(self.root))

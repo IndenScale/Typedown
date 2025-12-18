@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode",
+        "${workspaceFolder}/use_cases"
+      ],
+      "runtimeExecutable": "${execPath}",
+      "sourceMaps": true,
+      "outFiles": ["${workspaceFolder}/extensions/vscode/out/**/*.js"],
+      "preLaunchTask": "npm: watch"
+    }
+  ]
+}

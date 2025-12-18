@@ -27,10 +27,6 @@ Typedown 需要知道在当前 Markdown 文档中使用 `entity:ClassName` 时�
 ````markdown
 # config.td
 
----
-
----
-
 ```config:python
 import sys
 from pathlib import Path
@@ -55,10 +51,6 @@ from models.order import Order
 ````markdown
 # config.td
 
----
-
----
-
 ```config:python
 from pydantic import BaseModel
 
@@ -78,10 +70,6 @@ class MeetingNote(BaseModel):
 
 ````markdown
 # use_cases/finance/config.td
-
----
-
----
 
 ```config:python
 from common.models import Project as BaseProject

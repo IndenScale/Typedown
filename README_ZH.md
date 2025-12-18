@@ -4,6 +4,8 @@
 
 ## 愿景
 
+> **You don't know it until you model it.** (直到你建立了模型，你才真正了解它。) — [**阅读完整的 Typedown 宣言**](docs_zh/manifesto.md)
+
 在软件工程和复杂系统设计中，知识通常从模糊的概念演变为严格的规范。当前的工具迫使我们在非结构化文本（Markdown/Google Docs）和僵硬的结构（数据库/JSON/代码）之间做出二元选择。
 
 Typedown 允许您将 Markdown 作为主要界面，同时通过 Python 的生态系统逐步施加约束：

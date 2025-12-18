@@ -4,6 +4,8 @@
 
 ## The Vision
 
+> **You don't know it until you model it.** — [**Read the full Typedown Manifesto**](docs/manifesto.md)
+
 In software engineering and complex system design, knowledge often evolves from vague concepts to strict specifications. Current tools force a binary choice: unstructured text (Markdown/Google Docs) or rigid structures (Database/JSON/Code).
 
 Typedown allows you to treat Markdown as the primary interface while gradually imposing constraints via Python's ecosystem:
@@ -22,23 +24,25 @@ Typedown allows you to treat Markdown as the primary interface while gradually i
 
 ### 2. Configuration & Inheritance
 
-- **Front Matter**: Used for file metadata and **class imports**.
-- **Scoped Configuration**: Each directory can contain a `config.td`. Front matter in `config.td` is inherited by subdirectories.
-- **Override Rule**: Deepest (most specific) definition wins. This allows for clean package imports and default settings per module.
+- **Front Matter**: Used for file metadata (e.g., title, author, status).
+- **Scoped Configuration**: Each directory can contain a `config.td`. Code blocks tagged with `config:python` in `config.td` are executed to build context (e.g. importing models) and are inherited by subdirectories.
+- **Override Rule**: Deepest (most specific) definition wins.
 
 ### 3. Entities & Data Blocks
 
 Variables are expressed using code blocks with a specific language identifier: `entity:<class_name>`.
 
 ````markdown
----
-imports:
-  - from: models.user import User
----
-
 # User Definition
 
 Here we define the admin user.
+
+```model
+class User(BaseModel):
+    id: str
+    name: str
+    role: str
+```
 
 ```entity:User
 id: "u_001"

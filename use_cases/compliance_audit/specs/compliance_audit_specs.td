@@ -1,7 +1,6 @@
 # Compliance Audit Specifications
 
 This file contains the Python-based spec blocks for the compliance audit use case,
-migrated from the old YAML-based `spec:Rule` definitions.
 
 ```spec
 from models.audit_schema import Status, RiskLevel # Import necessary enums
@@ -12,7 +11,7 @@ def test_mitigation_plan_required_for_high_critical_risks(workspace):
     """
     # Assuming the workspace has loaded entities of type 'Control'
     controls = workspace.get_entities_by_type("Control")
-    
+
     for ctrl_entity in controls:
         ctrl = ctrl_entity.resolved_data # Get the Pydantic model instance
         if ctrl.risk_level in [RiskLevel.HIGH, RiskLevel.CRITICAL]:

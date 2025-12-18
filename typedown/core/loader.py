@@ -67,7 +67,7 @@ class Loader:
                 
             except ImportError as e:
                 # TODO: Log error properly
-                print(f"Failed to import module {module_name}: {e}")
+                sys.stderr.write(f"Failed to import module {module_name}: {e}\n")
 
     def _register_class(self, module, class_name: str, alias: str):
         try:
@@ -75,6 +75,6 @@ class Loader:
             if isinstance(cls, type):
                  self.registry.register(alias, cls)
             else:
-                 print(f"Warning: {class_name} is not a class.")
+                 sys.stderr.write(f"Warning: {class_name} is not a class.\n")
         except AttributeError:
-            print(f"Class {class_name} not found in module {module.__name__}")
+            sys.stderr.write(f"Class {class_name} not found in module {module.__name__}\n")

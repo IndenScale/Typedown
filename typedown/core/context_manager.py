@@ -1,5 +1,6 @@
 import sys
 import os
+import logging
 import importlib
 from pathlib import Path
 from typing import Dict, Any, Type, List, Optional
@@ -28,6 +29,10 @@ class ClassRegistry:
         return self._classes.get(name)
 
     def all_classes(self) -> Dict[str, Type[BaseModel]]:
+        return self._classes
+
+    @property
+    def models(self) -> Dict[str, Type[BaseModel]]:
         return self._classes
 
 class ContextManager:
@@ -66,9 +71,14 @@ class ContextManager:
         script_locals = script_globals.copy()
 
         try:
-            exec(script_code, script_globals, script_locals)
+            # Capture output to prevent polluting stdout (which breaks LSP)
+            import contextlib
+            import io
+            with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
+                exec(script_code, script_globals, script_locals)
         except Exception as e:
-            console.print(f"[bold red]Error executing config script in {script_path}:[/bold red] {e}")
+            # console.print(f"[bold red]Error executing config script in {script_path}:[/bold red] {e}")
+            logging.error(f"Error executing config script in {script_path}: {e}")
             raise
 
         finally:

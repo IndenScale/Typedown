@@ -20,15 +20,18 @@
   "contributes": {
     "languages": [
       {
-        "id": "typedown",
-        "aliases": [
-          "Typedown",
-          "td"
-        ],
+        "id": "markdown",
         "extensions": [
+          ".md",
+          ".markdown",
+          ".mdown",
+          ".mkdn",
+          ".mkd",
+          ".mdwn",
+          ".mdtxt",
+          ".mdtext",
           ".td"
-        ],
-        "configuration": "./language-configuration.json"
+        ]
       }
     ],
     "grammars": [
@@ -39,11 +42,6 @@
         "injectTo": [
           "text.html.markdown"
         ]
-      },
-      {
-        "language": "typedown",
-        "scopeName": "source.typedown",
-        "path": "./syntaxes/typedown.tmLanguage.json"
       }
     ],
     "commands": [

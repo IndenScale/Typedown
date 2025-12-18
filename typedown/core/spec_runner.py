@@ -2,12 +2,15 @@ from typing import Dict, List, Any, Callable
 from pathlib import Path
 import importlib.util
 import sys
+import os
 from rich.console import Console
 
 from typedown.core.ast import Project, SpecBlock, EntityBlock
 from typedown.core.errors import TypedownError, print_diagnostic
 
-console = Console()
+# Use stderr for console output only in LSP mode
+use_stderr = os.getenv("TYPEDOWN_LSP_MODE") == "1"
+console = Console(stderr=use_stderr)
 
 class WrapperContext:
     """Context object passed to spec check functions."""

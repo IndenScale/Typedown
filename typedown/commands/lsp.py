@@ -18,11 +18,22 @@ def lsp(
         raise typer.Exit(code=1)
 
     # Setup basic logging to stderr so it doesn't interfere with stdio communication
-    logging.basicConfig(stream=sys.stderr, level=logging.INFO)
+    # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
     if port:
         typer.echo(f"Starting LSP server on {host}:{port}...", err=True)
         server.start_tcp(host, port)
     else:
-        typer.echo("Starting LSP server over stdio...", err=True)
-        server.start_io()
+        # Prevent any accidental print() from corrupting LSP stdout
+        original_stdout = sys.stdout
+        
+        class StderrWriter:
+            def write(self, message):
+                sys.stderr.write(message)
+            def flush(self):
+                sys.stderr.flush()
+                
+        sys.stdout = StderrWriter()
+        
+        # Pass the binary streams to pygls to ensure correct protocol handling (bytes vs string)
+        server.start_io(stdin=sys.stdin.buffer, stdout=original_stdout.buffer)

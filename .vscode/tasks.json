@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "compile",
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/extensions/vscode"
+      },
+      "problemMatcher": "$tsc",
+      "label": "npm: compile",
+      "detail": "compile the extension"
+    },
+    {
+      "type": "npm",
+      "script": "watch",
+      "isBackground": true,
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/extensions/vscode"
+      },
+      "problemMatcher": "$tsc-watch",
+      "label": "npm: watch",
+      "detail": "compile and watch the extension"
+    }
+  ]
+}

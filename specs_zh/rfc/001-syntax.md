@@ -48,7 +48,7 @@ role: "admin"
 
 ## 3. 上下文配置 (Context Configuration)
 
-Typedown 废弃了基于 Front Matter 的 YAML `imports` 语法，转而使用更灵活的**可执行配置脚本**。
+Typedown 使用更灵活的**可执行配置脚本**来管理上下文配置。
 
 在 `config.td` 文件（或任意文档）中，使用 `config:python` 标记代码块。该脚本将在加载文档前执行，用于注入环境变量或导入模型。
 

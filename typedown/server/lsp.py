@@ -1,16 +1,31 @@
+import logging
 import re
 from pathlib import Path
 from urllib.parse import urlparse, unquote, unquote_plus
 from typing import Optional, List, Dict
 import os
 import sys
+import tempfile
 
-from pygls.server import LanguageServer
+# Configure logging to file (in temp dir to avoid permission issues)
+log_file = Path(tempfile.gettempdir()) / 'typedown_server.log'
+try:
+    logging.basicConfig(filename=str(log_file), level=logging.DEBUG, filemode='a')
+except Exception:
+    # Fallback to stderr if temp file is not writable
+    logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
+
+# Silence noisy libraries
+logging.getLogger("markdown_it").setLevel(logging.WARNING)
+# logging.getLogger("pygls").setLevel(logging.WARNING) # Enable pygls logs for debugging startup
+
+from pygls.lsp.server import LanguageServer
 from lsprotocol.types import (
     TEXT_DOCUMENT_DID_OPEN,
     TEXT_DOCUMENT_DID_CHANGE,
     TEXT_DOCUMENT_DID_SAVE,
     TEXT_DOCUMENT_COMPLETION,
+    TEXT_DOCUMENT_HOVER,
     TEXT_DOCUMENT_DEFINITION,
     DidOpenTextDocumentParams,
     DidChangeTextDocumentParams,
@@ -20,12 +35,17 @@ from lsprotocol.types import (
     CompletionList,
     CompletionOptions,
     CompletionParams,
+    HoverParams,
+    Hover,
     DefinitionParams,
     Location,
     Diagnostic,
     DiagnosticSeverity,
     Range,
     Position,
+    MessageType,
+    ShowMessageParams,
+    PublishDiagnosticsParams,
 )
 
 from typedown.core.workspace import Workspace
@@ -85,7 +105,7 @@ def validate(ls: TypedownLanguageServer, uri: str):
     try:
         # 1. Update the document in workspace with current content from LSP
         # We rely on pygls managing the document text via `ls.workspace.get_document(uri)`
-        doc = ls.workspace.get_document(uri)
+        doc = ls.workspace.get_text_document(uri)
         path = uri_to_path(uri)
         content = doc.source
         
@@ -117,17 +137,17 @@ def validate(ls: TypedownLanguageServer, uri: str):
         for file_path_str, diagnostics in file_diagnostics.items():
             # Convert path to URI
             file_uri = Path(file_path_str).as_uri()
-            # ls.show_message_log(f"Publishing {len(diagnostics)} diagnostics for {file_uri}")
-            ls.publish_diagnostics(file_uri, diagnostics)
+            # ls.window_show_message(ShowMessageParams(message=f"Publishing {len(diagnostics)} diagnostics for {file_uri}", type=MessageType.Log))
+            ls.text_document_publish_diagnostics(PublishDiagnosticsParams(uri=file_uri, diagnostics=diagnostics))
             
     except Exception as e:
-        ls.show_message_log(f"Validation Error: {e}")
+        ls.window_show_message(ShowMessageParams(message=f"Validation Error: {e}", type=MessageType.Error))
         import traceback
         traceback.print_exc()
 
 @server.feature("initialize")
 def initialize(ls: TypedownLanguageServer, params):
-    ls.show_message_log("Typedown LSP Server Initializing...")
+    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Initializing...", type=MessageType.Log))
     
     root_uri = params.root_uri or params.root_path
     if root_uri:
@@ -136,23 +156,30 @@ def initialize(ls: TypedownLanguageServer, params):
         else:
              root_path = uri_to_path(root_uri)
              
-        ls.show_message_log(f"Loading workspace from: {root_path}")
+        # ls.window_show_message(ShowMessageParams(message=f"Loading workspace from: {root_path}", type=MessageType.Log))
         
         try:
             ls.workspace_instance = Workspace(root=root_path)
             # Initial load
             ls.workspace_instance.load(root_path)
-            ls.show_message_log("Initial load complete.")
+            ls.window_show_message(ShowMessageParams(message="Typedown Engine Ready.", type=MessageType.Info))
         except Exception as e:
-            ls.show_message_log(f"Failed to initialize workspace: {e}")
+            ls.window_show_message(ShowMessageParams(message=f"Failed to initialize workspace: {e}", type=MessageType.Error))
 
 @server.feature("shutdown")
 def shutdown(ls: TypedownLanguageServer, params):
-    ls.show_message_log("Typedown LSP Server Shutting down...")
+    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Shutting down...", type=MessageType.Log))
+    pass
+
+@server.feature("exit")
+def on_exit(ls: TypedownLanguageServer, params):
+    # Force kill the process to prevent timeouts
+    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Exiting...", type=MessageType.Log))
+    os._exit(0)
 
 @server.feature(TEXT_DOCUMENT_DID_OPEN)
 async def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
-    ls.show_message_log(f"Document opened: {params.text_document.uri}")
+    # ls.window_show_message(ShowMessageParams(message=f"Document opened: {params.text_document.uri}", type=MessageType.Log))
     validate(ls, params.text_document.uri)
 
 @server.feature(TEXT_DOCUMENT_DID_CHANGE)
@@ -161,14 +188,15 @@ async def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentPa
 
 @server.feature(TEXT_DOCUMENT_DID_SAVE)
 async def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
-    ls.show_message_log(f"Document saved: {params.text_document.uri}")
+    # ls.window_show_message(ShowMessageParams(message=f"Document saved: {params.text_document.uri}", type=MessageType.Log))
+    pass
 
 @server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=["[", " ", "\"", ":"]))
 def completions(ls: TypedownLanguageServer, params: CompletionParams):
     if not ls.workspace_instance:
         return []
 
-    doc = ls.workspace.get_document(params.text_document.uri)
+    doc = ls.workspace.get_text_document(params.text_document.uri)
     lines = doc.source.splitlines()
     if params.position.line >= len(lines):
         return []
@@ -217,12 +245,75 @@ def completions(ls: TypedownLanguageServer, params: CompletionParams):
 
     return []
 
+@server.feature(TEXT_DOCUMENT_HOVER)
+def hover(ls: TypedownLanguageServer, params: HoverParams):
+    if not ls.workspace_instance:
+        return None
+
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    lines = doc.source.splitlines()
+    if params.position.line >= len(lines):
+        return None
+    
+    line_content = lines[params.position.line]
+    col = params.position.character
+
+    # 1. Hover on [[ID]]
+    for match in re.finditer(r'\[\[(.*?)\]\]', line_content):
+        start = match.start()
+        end = match.end()
+        if start <= col <= end:
+            target_id = match.group(1).strip()
+            if target_id in ls.workspace_instance.project.symbol_table:
+                entity = ls.workspace_instance.project.symbol_table[target_id]
+                md_text = f"**Entity**: `{target_id}`\n\n"
+                md_text += f"**Class**: `{entity.class_name}`\n\n"
+                
+                if entity.resolved_data:
+                    # Simple YAML-like dump or description
+                    import json
+                    # Try to get description if exists
+                    desc = entity.resolved_data.get('description') or entity.resolved_data.get('desc')
+                    if desc:
+                        md_text += f"{desc}\n\n"
+                    
+                md_text += f"*Defined in {Path(entity.location.file_path).name}*"
+                return Hover(contents=md_text)
+    
+    # 2. Hover on Config/Class Name
+    # Check if we are in an entity block like ```entity: ClassName
+    entity_block_match = re.match(r'^(\s*)```entity:\s*([a-zA-Z0-9_\.]+)\s*$', line_content)
+    if entity_block_match:
+        class_name = entity_block_match.group(2)
+        # Try to find class info in the document registry
+        # We need the registry for the current document
+        path = uri_to_path(params.text_document.uri)
+        registry = ls.workspace_instance.document_registries.get(path)
+        
+        md_text = f"**Typedown Class**: `{class_name}`\n\n"
+        
+        if registry and class_name in registry.models:
+             model = registry.models[class_name]
+             md_text += f"**Python**: `{model.__name__}`\n\n"
+             if model.__doc__:
+                 md_text += f"{model.__doc__}\n\n"
+             
+             # Fields
+             md_text += "**Fields**:\n"
+             for name, field in model.model_fields.items():
+                 required = " (Required)" if field.is_required() else ""
+                 md_text += f"- `{name}`: `{field.annotation}`{required}\n"
+
+        return Hover(contents=md_text)
+
+    return None
+
 @server.feature(TEXT_DOCUMENT_DEFINITION)
 def definition(ls: TypedownLanguageServer, params: DefinitionParams):
     if not ls.workspace_instance:
         return None
 
-    doc = ls.workspace.get_document(params.text_document.uri)
+    doc = ls.workspace.get_text_document(params.text_document.uri)
     lines = doc.source.splitlines()
     if params.position.line >= len(lines):
         return None
@@ -266,4 +357,33 @@ def definition(ls: TypedownLanguageServer, params: DefinitionParams):
                  )
              )
     
+    # 3. Definition for Entity Block Class
+    entity_block_match = re.match(r'^(\s*)```entity:\s*([a-zA-Z0-9_\.]+)\s*$', line_content)
+    if entity_block_match:
+        class_name = entity_block_match.group(2)
+        try:
+            path = uri_to_path(params.text_document.uri)
+            registry = ls.workspace_instance.document_registries.get(path)
+            if registry and class_name in registry.models:
+                model = registry.models[class_name]
+                import inspect
+                # inspect.getsourcefile might fail for dynamic types, but work for imported ones
+                try:
+                    src_file = inspect.getsourcefile(model)
+                    if src_file:
+                         src_lines, start_line = inspect.getsourcelines(model)
+                         uri = Path(src_file).as_uri()
+                         return Location(
+                             uri=uri,
+                             range=Range(
+                                 start=Position(line=max(0, start_line - 1), character=0),
+                                 end=Position(line=max(0, start_line + len(src_lines)), character=0)
+                             )
+                         )
+                except Exception:
+                    pass
+        except Exception:
+            pass
+            
     return None
+
