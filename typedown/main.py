@@ -3,6 +3,7 @@ from pathlib import Path
 from typedown.commands import debug
 from typedown.commands.test import test as test_cmd
 from typedown.commands.build import build as build_cmd
+from typedown.commands.lsp import lsp as lsp_cmd
 
 app = typer.Typer(help="Typedown CLI: Progressive Formalization for Markdown")
 
@@ -11,6 +12,9 @@ app.add_typer(debug.app, name="debug")
 
 # Register 'test' command
 app.command(name="test")(test_cmd)
+
+# Register 'lsp' command
+app.command(name="lsp")(lsp_cmd)
 
 @app.command()
 def init(name: str):

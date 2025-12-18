@@ -1,0 +1,41 @@
+{
+  "scopeName": "markdown.typedown.injection",
+  "name": "Typedown Injection",
+  "injectionSelector": "L:text.html.markdown",
+  "patterns": [
+    {
+      "include": "#entity-block"
+    },
+    {
+      "include": "#reference-inline"
+    }
+  ],
+  "repository": {
+    "entity-block": {
+      "begin": "^(\\s*)(```)(entity:\\s*[a-zA-Z0-9_\\.]+)\\s*$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "entity.name.class.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.typedown",
+      "patterns": [
+        {
+          "include": "source.yaml"
+        }
+      ]
+    },
+    "reference-inline": {
+      "match": "(\\[\\[)(.*?)(\\]\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.link.begin.typedown" },
+        "2": { "name": "entity.name.reference.typedown" },
+        "3": { "name": "punctuation.definition.link.end.typedown" }
+      },
+      "name": "markup.underline.link.typedown"
+    }
+  }
+}

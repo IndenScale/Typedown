@@ -6,9 +6,9 @@
 
 **目标**:
 
-1.  构建 `typedown-server`: 基于 `pygls` 的 LSP 实现。
-2.  构建 `typedown-vscode`: VS Code 客户端插件（仅负责启动 Server 和通信）。
-3.  改造 `typedown-core`: 支持增量更新和有状态的工作区。
+1. 构建 `typedown-server`: 基于 `pygls` 的 LSP 实现。
+2. 构建 `typedown-vscode`: VS Code 客户端插件（仅负责启动 Server 和通信）。
+3. 改造 `typedown-core`: 支持增量更新和有状态的工作区。
 
 ## 2. 功能特性矩阵 (Feature Matrix)
 

@@ -16,12 +16,16 @@ class Parser:
     def __init__(self):
         self.md = MarkdownIt()
 
-    def parse_file(self, file_path: Path) -> Document:
+    def parse_file(self, file_path: Path, content_override: str = None) -> Document:
         """
         Parse a single Markdown file into a Document AST node.
+        If content_override is provided, it is used instead of reading from disk.
         """
         try:
-            content = file_path.read_text(encoding="utf-8")
+            if content_override is not None:
+                content = content_override
+            else:
+                content = file_path.read_text(encoding="utf-8")
         except FileNotFoundError:
             raise FileNotFoundError(f"File not found: {file_path}")
 

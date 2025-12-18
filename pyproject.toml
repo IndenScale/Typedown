@@ -13,6 +13,11 @@ dependencies = [
     "rich>=13.0.0",
 ]
 
+[project.optional-dependencies]
+server = [
+    "pygls>=1.0.0",
+]
+
 [project.scripts]
 td = "typedown.main:app"
 

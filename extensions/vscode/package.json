@@ -1,0 +1,94 @@
+{
+  "name": "typedown-vscode",
+  "displayName": "Typedown",
+  "description": "Progressive Formalization for Markdown",
+  "version": "0.1.0",
+  "publisher": "Typedown",
+  "engines": {
+    "vscode": "^1.75.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Linters"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown",
+    "onLanguage:typedown"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "typedown",
+        "aliases": [
+          "Typedown",
+          "td"
+        ],
+        "extensions": [
+          ".td"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "markdown",
+        "scopeName": "markdown.typedown.injection",
+        "path": "./syntaxes/typedown.tmLanguage.json",
+        "injectTo": [
+          "text.html.markdown"
+        ]
+      },
+      {
+        "language": "typedown",
+        "scopeName": "source.typedown",
+        "path": "./syntaxes/typedown.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "typedown.restartLsp",
+        "title": "Typedown: Restart Language Server",
+        "category": "Typedown"
+      }
+    ],
+    "configuration": {
+      "title": "Typedown",
+      "properties": {
+        "typedown.server.command": {
+          "type": "string",
+          "default": "uv",
+          "description": "The command to run the Typedown language server (e.g. 'uv', 'python')."
+        },
+        "typedown.server.args": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "run",
+            "--extra",
+            "server",
+            "td",
+            "lsp"
+          ],
+          "description": "Arguments passed to the server command."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -b",
+    "watch": "tsc -b -w"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.75.0",
+    "@types/node": "^16.11.7",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "vscode-languageclient": "^8.1.0"
+  }
+}

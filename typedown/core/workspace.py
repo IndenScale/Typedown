@@ -95,65 +95,148 @@ class Workspace:
             self.document_registries[abs_path] = registry
 
 
-    def resolve(self, tags: List[str] = []):
+    def reindex_file(self, file_path: Path, content: str = None):
         """
-        Run the Desugar and Validation pipeline.
+        Re-parse a single file and update the project symbol tables.
+        Used for incremental updates (LSP).
         """
+        # 1. Remove existing symbols belonging to this file
+        self._remove_symbols_for_file(file_path)
+        
+        # 2. Re-parse
+        try:
+            # We must handle new files that might not be in self.project.documents yet
+            self._parse_single_file(file_path, content_override=content)
+            
+            # 3. Update Registry if needed (ContextManager handles cache, but we might need to refresh)
+            # For now, just re-building for this document is safe enough
+            abs_path = file_path.resolve()
+            # We need to re-scan for config.td docs just in case, or assume they haven't changed much?
+            # For strict correctness we re-build context.
+            # Reuse the existing config_td logic from _build_all_document_contexts would be costly?
+            # Let's simple try to get registry again.
+            # NOTE: If this file IS a config.td, we should ideally reload context for its directory.
+            # This is complex. MVP: simple re-parse.
+            
+            # Since _parse_single_file adds symbols to the table, we are good.
+            
+        except Exception as e:
+            # If parsing fails (e.g. syntax error), we should probably record that as a diagnostic
+            # But _parse_single_file currently catches some and prints warnings.
+            # We might want to let it propagate or catch here.
+            # modifying _parse_single_file to raise might be better for LSP.
+            # For now, let's rely on it completing or raising.
+            raise e
+
+    def _remove_symbols_for_file(self, file_path: Path):
+        """
+        Remove all entities and specs defined in the given file from the global tables.
+        """
+        str_path = str(file_path)
+        rel_path = str(file_path.relative_to(self.root))
+        
+        # Remove Document
+        if rel_path in self.project.documents:
+            del self.project.documents[rel_path]
+            
+        # Remove Entities
+        ids_to_remove = []
+        for entity_id, entity in self.project.symbol_table.items():
+            if Path(entity.location.file_path).resolve() == file_path.resolve():
+                ids_to_remove.append(entity_id)
+        
+        for eid in ids_to_remove:
+            del self.project.symbol_table[eid]
+            
+        # Remove Specs
+        spec_ids_to_remove = []
+        for spec_id, spec in self.project.spec_table.items():
+            if Path(spec.location.file_path).resolve() == file_path.resolve():
+                spec_ids_to_remove.append(spec_id)
+                
+        for sid in spec_ids_to_remove:
+            del self.project.spec_table[sid]
+
+    def validate_project(self, tags: List[str] = []) -> List[TypedownError]:
+        """
+        Run the full validation pipeline and return a list of errors/diagnostics.
+        Does NOT exit the process.
+        """
+        diagnostics: List[TypedownError] = []
+        
         try:
             # 1. Build Dependency Graph
-            console.print("[blue]Building dependency graph...[/blue]")
             self.resolver.build_graph()
             
             # 2. Topological Sort
             sorted_ids = self.resolver.topological_sort()
             
-            # console.print(f"[blue]Instantiation order:[/blue] {sorted_ids}")
-
-            # 3. Materialize Entities (Merge -> Evaluate -> Validate)
-            success_count = 0
-            
+            # 3. Materialize Entities
             for entity_id in sorted_ids:
                 try:
                     self._materialize_entity(entity_id)
-                    success_count += 1
                 except TypedownError as e:
-                    print_diagnostic(console, e)
-                    # Stop on first semantic error to allow user to fix it
-                    raise typer.Exit(code=1) 
+                    diagnostics.append(e)
                 except EvaluationError as e:
-                    # Promote to TypedownError
                     loc = self.project.symbol_table[entity_id].location if entity_id in self.project.symbol_table else None
-                    print_diagnostic(console, TypedownError(str(e), location=loc))
-                    raise typer.Exit(code=1)
+                    diagnostics.append(TypedownError(str(e), location=loc))
                 except ValidationError as e:
-                    # TODO: Wrap Pydantic Validation Error into TypedownError for better formatting
-                    console.print(f"[bold red]Validation Failed for '{entity_id}':[/bold red]")
-                    console.print(e)
-                    raise typer.Exit(code=1)
+                    # Convert Pydantic error to TypedownError (simplified for now)
+                    loc = self.project.symbol_table[entity_id].location
+                    diagnostics.append(TypedownError(str(e), location=loc))
+                except Exception as e:
+                     loc = self.project.symbol_table[entity_id].location
+                     diagnostics.append(TypedownError(f"Unexpected error: {e}", location=loc))
 
-            console.print(f"[green]Successfully processed {success_count} entities.[/green]")
-
-            # 4. Run Specs (Global Constraints)
+            # 4. Run Specs
             if self.project.spec_table:
-                console.print(f"[blue]Running specs (tags={tags})...[/blue]")
-                runner = SpecRunner(self.project, self.root)
-                specs_passed = runner.run(tags=tags)
-                if not specs_passed:
-                    console.print(f"[bold red]Spec validation failed.[/bold red]")
-                    raise typer.Exit(code=1)
-                else:
-                    console.print(f"[green]All specs passed.[/green]")
+                # Runner prints to console currently, we need to adapt checking logic
+                # For LSP, maybe we skip specs if they rely on pytest runner output?
+                # Or we wrap runner to capture failures?
+                # MVP: Skip spec runner in LSP fast-path or just catch global errors?
+                # The prompt asks for "Code Lens (Run Specs)" in P2.
+                # In P0 Diagnostics: "syntax error, validation error, invalid reference". 
+                # Specs are P2. So we can skip SpecRunner for now in this function used by LSP.
+                pass
 
         except CircularDependencyError as e:
-             console.print(f"[bold red]Circular Dependency Error:[/bold red] {e}")
-             raise typer.Exit(code=1)
-        except typer.Exit:
-            raise
+             # This is a global error
+             diagnostics.append(TypedownError(f"Circular Dependency: {e}", severity="error"))
         except Exception as e:
-            console.print(f"[bold red]Unexpected Error:[/bold red] {e}")
-            import traceback
-            traceback.print_exc()
+            diagnostics.append(TypedownError(f"Global Validation Error: {e}", severity="error"))
+            
+        return diagnostics
+
+    def resolve(self, tags: List[str] = []):
+        """
+        CLI Entry point: Run validation and exit on error.
+        """
+        console.print("[blue]Building dependency graph...[/blue]")
+        
+        diagnostics = self.validate_project(tags)
+        
+        # Check for errors
+        has_error = False
+        for diag in diagnostics:
+            print_diagnostic(console, diag)
+            if diag.severity == "error":
+                has_error = True
+        
+        if has_error:
             raise typer.Exit(code=1)
+            
+        console.print(f"[green]Successfully processed entities.[/green]")
+        
+        # Run specs only in CLI mode for now
+        if self.project.spec_table:
+            console.print(f"[blue]Running specs (tags={tags})...[/blue]")
+            runner = SpecRunner(self.project, self.root)
+            specs_passed = runner.run(tags=tags)
+            if not specs_passed:
+                console.print(f"[bold red]Spec validation failed.[/bold red]")
+                raise typer.Exit(code=1)
+            else:
+                console.print(f"[green]All specs passed.[/green]")
 
     def _materialize_entity(self, entity_id: str):
         """

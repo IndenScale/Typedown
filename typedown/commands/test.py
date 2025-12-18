@@ -77,7 +77,10 @@ def workspace():
         console.print(f"Created temporary conftest.py in {tmp_path}")
 
         # Discover markdown files in the workspace
-        for md_file in workspace.root.glob("**/*.md"):
+        # Support both .md and .td
+        from itertools import chain
+        files = chain(workspace.root.glob("**/*.md"), workspace.root.glob("**/*.td"))
+        for md_file in files:
             extracted_specs = extract_spec_blocks(md_file)
             if extracted_specs:
                 console.print(f"  Found {len(extracted_specs)} spec blocks in {md_file.relative_to(workspace.root)}")

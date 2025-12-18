@@ -22,9 +22,13 @@ htmlcov/
 .mypy_cache/
 
 # IDEs
-.vscode/
 .idea/
 
 # Logs
 *.log
 
+
+# Node / VS Code Extension
+node_modules/
+extensions/vscode/node_modules/
+extensions/vscode/out/
