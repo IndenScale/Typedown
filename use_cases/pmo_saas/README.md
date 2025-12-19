@@ -13,11 +13,11 @@ This is a comprehensive demonstration of using Typedown as the backend for a Pro
 
 ## Workflow
 
-1.  **Define Org Structure**: See `docs/org/staff.md`.
-2.  **Define Policies**: See `docs/org/policies.md`.
-3.  **Plan Projects**: See `docs/projects/portfolio.md`.
-4.  **Log Time**: See `docs/timesheets/2024_03.md`.
-5.  **Log Expenses**: See `docs/expenses/2024_03.md`.
+1. **Define Org Structure**: See `docs/org/staff.md`.
+2. **Define Policies**: See `docs/org/policies.md`.
+3. **Plan Projects**: See `docs/projects/portfolio.md`.
+4. **Log Time**: See `docs/timesheets/2024_03.md`.
+5. **Log Expenses**: See `docs/expenses/2024_03.md`.
 
 ## Automation
 
