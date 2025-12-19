@@ -11,7 +11,14 @@ export default defineConfig({
     siteTitle: "Typedown",
     socialLinks: [
       { icon: 'github', link: 'https://github.com/indenscale/typedown' }
-    ]
+    ],
+    localeLinks: {
+      text: 'Language',
+      items: [
+        { text: 'English', link: '/' },
+        { text: '简体中文', link: '/zh/' }
+      ]
+    }
   },
 
   ignoreDeadLinks: true,
@@ -19,7 +26,7 @@ export default defineConfig({
   vite: {
     server: {
       fs: {
-        allow: [".."],
+        allow: [".."], // Allow parent directory access if needed
       },
     },
   },
@@ -30,27 +37,27 @@ export default defineConfig({
       lang: 'en',
       themeConfig: {
         nav: [
-          { text: 'Manifesto', link: '/docs/manifesto' },
-          { text: 'Guide', link: '/docs/guide/01_syntax' },
-          { text: 'Reference', link: '/docs/reference/cli' }
+          { text: 'Manifesto', link: '/manifesto' },
+          { text: 'Guide', link: '/guide/01_syntax' },
+          { text: 'Reference', link: '/reference/cli' }
         ],
         sidebar: {
-          '/docs/guide/': [
+          '/guide/': [
             {
               text: 'User Guide',
               items: [
-                { text: '1. Syntax Guide', link: '/docs/guide/01_syntax' },
-                { text: '2. Testing & Validation', link: '/docs/guide/02_testing' },
-                { text: '3. Project Structure', link: '/docs/guide/03_project_structure' }
+                { text: '1. Syntax Guide', link: '/guide/01_syntax' },
+                { text: '2. Testing & Validation', link: '/guide/02_testing' },
+                { text: '3. Project Structure', link: '/guide/03_project_structure' }
               ]
             }
           ],
-          '/docs/reference/': [
+          '/reference/': [
             {
               text: 'Reference',
               items: [
-                { text: 'CLI Reference', link: '/docs/reference/cli' },
-                { text: 'Architecture', link: '/docs/reference/architecture' }
+                { text: 'CLI Reference', link: '/reference/cli' },
+                { text: 'Architecture', link: '/reference/architecture' }
               ]
             }
           ]
@@ -63,27 +70,27 @@ export default defineConfig({
       link: '/zh/',
       themeConfig: {
         nav: [
-          { text: '宣言', link: '/docs/zh/manifesto' },
-          { text: '指南', link: '/docs/zh/guide/01_syntax' },
-          { text: '参考', link: '/docs/zh/reference/cli' }
+          { text: '宣言', link: '/zh/manifesto' },
+          { text: '指南', link: '/zh/guide/01_syntax' },
+          { text: '参考', link: '/zh/reference/cli' }
         ],
         sidebar: {
-          '/docs/zh/guide/': [
+          '/zh/guide/': [
             {
               text: '用户指南',
               items: [
-                { text: '1. 语法指南', link: '/docs/zh/guide/01_syntax' },
-                { text: '2. 测试与验证', link: '/docs/zh/guide/02_testing' },
-                { text: '3. 项目结构', link: '/docs/zh/guide/03_project_structure' }
+                { text: '1. 语法指南', link: '/zh/guide/01_syntax' },
+                { text: '2. 测试与验证', link: '/zh/guide/02_testing' },
+                { text: '3. 项目结构', link: '/zh/guide/03_project_structure' }
               ]
             }
           ],
-          '/docs/zh/reference/': [
+          '/zh/reference/': [
             {
               text: '参考手册',
               items: [
-                { text: 'CLI 参考', link: '/docs/zh/reference/cli' },
-                { text: '架构', link: '/docs/zh/reference/architecture' }
+                { text: 'CLI 参考', link: '/zh/reference/cli' },
+                { text: '架构', link: '/zh/reference/architecture' }
               ]
             }
           ]

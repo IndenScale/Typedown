@@ -1,18 +1,26 @@
-# 文档
+---
+layout: home
 
-欢迎阅读 Typedown 文档。
+hero:
+  name: "Typedown"
+  text: "渐进式形式化"
+  tagline: "直到你建立模型，你才真正了解它。"
+  actions:
+    - theme: brand
+      text: "阅读宣言"
+      link: "/zh/manifesto"
+    - theme: alt
+      text: "了解核心概念"
+      link: "/zh/guide/"
+    - theme: alt
+      text: "查看 GitHub"
+      link: "https://github.com/indenscale/typedown"
 
-## 概览
-
-*   [**宣言 (Manifesto)**](manifesto.md): “渐进式形式化”的哲学。
-
-## 用户指南
-
-*   [**1. 语法指南**](guide/01_syntax.md): 学习 `model`, `entity` 和引用。
-*   [**2. 测试与验证**](guide/02_testing.md): 如何编写 `spec` 代码块并运行测试。
-*   [**3. 项目结构**](guide/03_project_structure.md): 文件组织与配置。
-
-## 参考
-
-*   [**CLI 参考**](reference/cli.md): 命令行工具用法 (`td test`)。
-*   [**架构**](reference/architecture.md): 编译器工作原理。
+features:
+  - title: "三位一体"
+    details: "Markdown 负责人机界面，Pydantic 定义数据模式，Pytest 处理业务逻辑。三者合一，构建知识的坚实基座。"
+  - title: "文档即代码"
+    details: "像管理代码一样管理你的文档。拥有完整的校验、测试和重构能力，告别文档腐烂。"
+  - title: "心流体验"
+    details: "不再需要在 Word、XMind 和 IDE 之间来回切换。在一个统一的 Markdown 环境中完成从创意到落地的全过程。"
+---

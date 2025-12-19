@@ -32,3 +32,11 @@ htmlcov/
 node_modules/
 extensions/vscode/node_modules/
 extensions/vscode/out/
+
+# VitePress
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+docs/.vitepress/.temp/
+
+# Private Strategy Docs
+_strategy/

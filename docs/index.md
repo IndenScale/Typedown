@@ -1,18 +1,27 @@
-# Documentation
+---
+# https://vitepress.dev/reference/default-theme-home-page
+layout: home
 
-Welcome to the Typedown documentation.
+hero:
+  name: "Typedown"
+  text: "Progressive Formalization"
+  tagline: "You don't know it until you model it."
+  actions:
+    - theme: brand
+      text: "Read Manifesto"
+      link: "/manifesto"
+    - theme: alt
+      text: "Core Concepts"
+      link: "/guide/"
+    - theme: alt
+      text: "View on GitHub"
+      link: "https://github.com/indenscale/typedown"
 
-## Overview
-
-*   [**Manifesto**](manifesto.md): The philosophy of "Progressive Formalization".
-
-## User Guide
-
-*   [**1. Syntax Guide**](guide/01_syntax.md): Learn about `model`, `entity`, and references.
-*   [**2. Testing & Validation**](guide/02_testing.md): How to write `spec` blocks and run tests.
-*   [**3. Project Structure**](guide/03_project_structure.md): Organizing files and configuration.
-
-## Reference
-
-*   [**CLI Reference**](reference/cli.md): Command-line tool usage (`td test`).
-*   [**Architecture**](reference/architecture.md): How the compiler works.
+features:
+  - title: "The Trinity"
+    details: "Markdown for humans, Pydantic for schema, Pytest for logic. A cohesive toolchain for complex knowledge."
+  - title: "Docs as Code"
+    details: "Treat your documentation like code. Validate, test, and refactor your knowledge base with confidence."
+  - title: "Flow State"
+    details: "Stop switching between Word, XMind, and IDE. Do it all in one markdown-based environment."
+---
