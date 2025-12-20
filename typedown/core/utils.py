@@ -103,6 +103,8 @@ def find_project_root(path: Path) -> Path:
     current = path
     # Stop at system root
     while current != current.parent:
+        if (current / "typedown.toml").exists():
+            return current
         if (current / ".tdignore").exists():
             return current
         if (current / "pyproject.toml").exists():

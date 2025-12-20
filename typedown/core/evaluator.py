@@ -11,7 +11,7 @@ class EvaluationError(Exception):
 
 class Evaluator:
     @staticmethod
-    def evaluate_data(data: Any, symbol_table: Dict[str, EntityBlock]) -> Any:
+    def evaluate_data(data: Any, symbol_table: Dict[str, Any]) -> Any:
         """
         Recursively traverse `data` and replace string references [[query]] 
         with their resolved values from the symbol table.
@@ -26,7 +26,7 @@ class Evaluator:
             return data
 
     @staticmethod
-    def resolve_string(text: str, symbol_table: Dict[str, EntityBlock]) -> Any:
+    def resolve_string(text: str, symbol_table: Dict[str, Any]) -> Any:
         # Check if the whole string is a reference
         # We only support direct replacement if the string is EXACTLY [[...]]
         # If it's "Hello [[User]]", we might support interpolation later, 
@@ -45,62 +45,79 @@ class Evaluator:
         # We use re.sub with a callback
         if REF_PATTERN.search(text):
             def replacer(m):
-                val = Evaluator.resolve_query(m.group(1), symbol_table)
-                return str(val) # Force string conversion for interpolation
+                try:
+                    val = Evaluator.resolve_query(m.group(1), symbol_table)
+                    return str(val)
+                except EvaluationError:
+                    return m.group(0) # Keep as is if failed? Or raise?
             
             return REF_PATTERN.sub(replacer, text)
             
         return text
 
     @staticmethod
-    def resolve_query(query: str, symbol_table: Dict[str, EntityBlock]) -> Any:
-        """
-        Resolve 'EntityID.attr.subattr' to a value.
-        """
-        parts = query.split('.')
-        entity_id = parts[0]
-        
-        if entity_id not in symbol_table:
-            # Fallback for now: return original string or raise?
-            # Raising is better to catch errors.
-            raise EvaluationError(f"Reference to unknown Entity ID: '{entity_id}'")
-            
-        entity = symbol_table[entity_id]
-        
-        # Determine the root data to look into.
-        # It must be the resolved_data.
-        # BUT: Dependency order guarantees parents are processed.
-        # But if 'EntityID' refers to a sibling or unrelated entity?
-        # If they are not in dependency chain, they might NOT be resolved yet if they come later in topological sort.
-        # However, if I reference something, surely I depend on it?
-        # Ah, the current Dependency Graph ONLY tracks `former/derived_from`.
-        # It does NOT track `[[references]]` in the body.
-        
-        # CRITICAL ARCHITECTURAL ISSUE:
-        # Implicit dependencies via `[[ ]]` are not in the DAG. 
-        # So we might reference an entity that hasn't been materialized yet.
-        
-        # Logic:
-        # Check if entity.resolved_data is populated.
-        # If not, we have a problem.
-        # For now, let's check `resolved_data`.
-        
-        current_data = entity.resolved_data
-        if not current_data:
-             # If referenced entity is not resolved, we can't get attributes.
-             # This means we need to update the Resolver to include body references in the DAG.
-             # But for P0, let's assume the user manually ordered things correctly or valid references are mostly upstream.
-             # Or, maybe we can access `raw_data` if `resolved_data` is missing? 
-             # No, `raw_data` is incomplete (missing parent data).
-             
-             # Let's check if the referenced entity IS the current entity (self-reference).
-             pass
+    def resolve_query(query: str, symbol_table: Dict[str, Any]) -> Any:
+        # 1. Single segment: ID string
+        if "." not in query:
+            if query not in symbol_table:
+                raise EvaluationError(f"Reference to unknown ID: '{query}'")
+            return query
 
-        # Traverse attributes
-        for part in parts[1:]:
-            if isinstance(current_data, dict) and part in current_data:
-                current_data = current_data[part]
-            else:
-                raise EvaluationError(f"Attribute '{part}' not found in '{query}' (stopped at '{current_data}')")
-                
+        parts = query.split(".")
+        root_id = parts[0]
+        if root_id not in symbol_table:
+            raise EvaluationError(f"Reference to unknown ID: '{root_id}'")
+
+        current_data = symbol_table[root_id]
+        
+        # Regex for "name" or "name[index]"
+        PART_PATTERN = re.compile(r"^(\w+)(?:\[(\d+)\])?$")
+
+        for i, part in enumerate(parts[1:]):
+            # Final '*' logic: Return current data (serialized)
+            if part == "*":
+                if i == len(parts) - 2: # It IS the last part
+                    if hasattr(current_data, "data"):
+                        return getattr(current_data, "data")
+                    return current_data
+                else:
+                    raise EvaluationError(f"Invalid query: '*' must be the final segment in '{query}'")
+
+            # Parse name and index
+            match = PART_PATTERN.match(part)
+            if not match:
+                raise EvaluationError(f"Invalid path segment: '{part}' in '{query}'")
+            
+            name, index = match.groups()
+            
+            # Resolve Name
+            found = False
+            # Check .data transparency for Nodes at first step or subsequent
+            if i == 0 and hasattr(current_data, "data") and isinstance(getattr(current_data, "data"), dict):
+                if name in getattr(current_data, "data"):
+                    current_data = getattr(current_data, "data")[name]
+                    found = True
+            
+            if not found:
+                if isinstance(current_data, dict) and name in current_data:
+                    current_data = current_data[name]
+                    found = True
+                elif hasattr(current_data, name):
+                    current_data = getattr(current_data, name)
+                    found = True
+            
+            if not found:
+                 raise EvaluationError(f"Segment '{name}' not found in '{query}'")
+
+            # Resolve Index if present
+            if index is not None:
+                idx = int(index)
+                if isinstance(current_data, list):
+                    if idx < len(current_data):
+                        current_data = current_data[idx]
+                    else:
+                        raise EvaluationError(f"Index {idx} out of range in segment '{part}'")
+                else:
+                    raise EvaluationError(f"Segment '{name}' is not a list, cannot index in '{query}'")
+
         return current_data

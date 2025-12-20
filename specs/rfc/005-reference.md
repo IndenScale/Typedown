@@ -1,73 +1,54 @@
-# Entity Reference & Linking
+# Entity Reference & Linkage
 
-Typedown supports powerful entity reference functionality via `[[]]` syntax, which is the core of building a connected documentation network. It treats references as a **`query`**.
+Typedown supports powerful entity reference functionality via `[[]]` syntax. References are resolved during the **Validate (Stage 3)** phase of the compiler pipeline using topological sorting to ensure all dependencies are materialized.
 
-## Basic Reference Syntax (`[[query]]`)
+## 1. Reference Modes
 
-Use double brackets `[[query]]` to reference other Entities. This `query` can be an ID, name, or a more complex condition expression.
-This is not just a hyperlink, but a semantically **strong association**. The compiler verifies the validity of the `query`.
+Depending on the query structure, a reference resolves to different types of data:
 
-*   **Reference Entity**: `[[Query Condition]]`
-*   **Reference Entity Field**: `[[Query Condition.Field Name]]`
+### 1.1 Symbolic Link (`[[ID]]`)
 
-```markdown
-# Reference Example
+- **Behavior**: Returns the **ID string** of the target symbol.
+- **Usage**: Used to establish relations/pointers without duplicating data.
+- **Example**: `owner: [[Alice]]` resolves to `owner: "Alice"`.
 
-Here references admin [[Alice]].
-Admin [[Alice]].name's name is [[Alice.name]].
-```
+### 1.2 Value Lookup (`[[ID.path]]`)
 
-## Reference Resolution Mechanism
+- **Behavior**: Navigates through the target's data and returns the **specific value**.
+- **Indexing**: Supports list indexing via `[n]`.
+- **Example**:
+  - `[[Project.version]]` -> `"1.0.0"`
+  - `[[Farm.apples[0].weight]]` -> `0.5`
 
-### 1. Fuzzy Matching
+### 1.3 Data Inlining (`[[ID.path.*]]`)
 
-Typedown's powerful reference resolution engine supports fuzzy matching. When `[[query]]` is not completely precise, the compiler and LSP will attempt to search for the most likely match in the symbol table.
+- **Behavior**: Serializes the target object (or sub-object) into a **full dictionary/object**.
+- **Example**: `config: [[GlobalConfig.*]]` deep-copies the entire configuration object.
 
-*   **ID Fuzzy Matching**: `[[feat_login]]` can match `feat_login_v3`.
-*   **Name Fuzzy Matching**: `[[Alice]]` can match an Entity with `id: u_001` and `name: "Alice"`.
-*   **Field Fuzzy Matching**: `[[hero.hp]]` can intelligently match the `hit_points` field of the `hero` Entity, if aliases or fuzzy matching settings exist.
+## 2. Reference Resolution
 
-This mechanism greatly facilitates writers, reducing the need for hardcoded IDs.
+### 2.1 ID-Based Precision
 
-### 2. Ambiguity Check & Reporting
+References must match a unique `id` defined in the global symbol table. IDs can be defined in:
 
-Due to fuzzy matching, a `[[query]]` may match zero, one, or multiple entities.
-*   **Zero Matches**: Compiler reports `ReferenceNotFound` error.
-*   **Multiple Matches**: Compiler reports `AmbiguousReferenceError` error.
-    *   The LSP plugin will display squiggly lines and error hints in the editor to guide the user to fix the `query`.
-    *   `extension` and `compiler` work together to ensure all references have a unique and clear resolution path.
+- Entity block headers or bodies.
+- Model block headers (`model id=X`).
+- Spec block headers (`spec id=Y`).
 
-## Reference Version Strategy
+### 2.2 Compilation Pipeline
 
-In evolution chains using the `former` mechanism, references to the same concept (e.g., `[[feat_login]]`) may correspond to multiple historical versions.
+1. **Scanner (Stage 1)**: Collects all symbols and builds the initial symbol table.
+2. **Linker (Stage 2)**: Resolves types and executes models.
+3. **Validator (Stage 3)**:
+   - Builds a **Dependency Graph** of all `[[ ]]` references.
+   - Performs **Topological Sort**.
+   - Detects and reports **Circular Dependencies**.
+   - Materializes data in order.
 
-**Default Behavior: Resolve to Latest**
-*   When a `[[query]]` matches multiple versions of an entity family, the Typedown compiler defaults to resolving to the **Tip of the Chain** of that entity family.
-*   **Pros**:
-    *   **Semantic Consistency**: Ensures documentation validation logic is always based on the latest facts. If documentation logic becomes inconsistent due to latest data, this usually means the documentation itself needs updating or `spec` needs adjustment, promoting "progressive formalization".
-    *   **Simplified Writing**: Authors don't need to manually update all references to point to the latest `_v3`, `_v4`.
-*   **Cons**:
-    *   Historical documents, when read, may have their reference content change with the latest version if not version-locked.
+## 3. Toolchain Support
 
-### Explicitly Referencing Specific Versions
+The LSP (Language Server Protocol) implementation provides:
 
-If you must reference a specific snapshot in history, use a `query` that uniquely identifies that version.
-*   `[[feat_login_v1]]`: Explicitly points to version V1.
-*   `[[User where id="u_001_v2"]]`: Uses a more precise query condition.
-
-## Complex Reference Maintenance
-
-As the project scales, reference relationships become complex. Typedown suggests and supports the following maintenance strategies:
-
-### Version Suffix Naming Convention
-
-It is recommended to use the `_v<Version Number>` suffix format to manage Entity ID evolution to improve readability and traceability.
-
-*   `u_001_v1`
-*   `u_001_v2`
-*   `u_001_v2.1`
-
-### Historical Query & Refactoring
-
-IDE plugins should support `Find All References` and `Rename Symbol`.
-When an Entity ID changes (e.g., fixing spelling), the toolchain should be able to automatically update all `[[query]]` references pointing to that Entity via LSP, keeping semantics invariant as much as possible.
+- **Go to Definition**: Jump from `[[ID]]` to the source code block.
+- **Find All References**: See where a symbol is being used.
+- **Autocomplete**: Suggest IDs from the symbol table while typing `[[`.

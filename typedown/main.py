@@ -5,13 +5,30 @@ from typedown.commands.test import test as test_cmd
 from typedown.commands.build import build as build_cmd
 from typedown.commands.lsp import lsp as lsp_cmd
 
+def version_callback(value: bool):
+    if value:
+        import importlib.metadata
+        try:
+            version = importlib.metadata.version("typedown")
+        except importlib.metadata.PackageNotFoundError:
+            version = "0.1.0" # Fallback for development
+        typer.echo(f"Typedown version: {version}")
+        raise typer.Exit()
+
 app = typer.Typer(help="Typedown CLI: Progressive Formalization for Markdown")
+
+@app.callback()
+def main(
+    version: bool = typer.Option(None, "--version", callback=version_callback, is_eager=True, help="Show version and exit.")
+):
+    pass
 
 # Register 'debug' group
 app.add_typer(debug.app, name="debug")
 
-# Register 'test' command
+# Register 'test' command (and 'check' alias)
 app.command(name="test")(test_cmd)
+app.command(name="check")(test_cmd)
 
 # Register 'lsp' command
 app.command(name="lsp")(lsp_cmd)
@@ -63,6 +80,17 @@ def build_cli(
     Build the project into a self-contained distribution package.
     """
     build_cmd(path, output, force)
+
+@app.command()
+def materialize(
+    path: Path = typer.Argument(Path("."), help="Path to materialize")
+):
+    """
+    Update source files to expand 'sugared' blocks (e.g. former, derived_from).
+    (Planned Feature)
+    """
+    typer.echo("[yellow]Materialize command is under development.[/yellow]")
+    typer.echo("Currently, compilation resolves everything in-memory.")
 
 if __name__ == "__main__":
     app()

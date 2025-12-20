@@ -4,6 +4,10 @@ import sys
 
 from typedown.core.config import TypedownConfig
 
+class CircularDependencyError(Exception):
+    """Raised when a circular dependency is detected in the model/entity graph."""
+    pass
+
 class Resolver:
     """
     Compiler Component: Path Resolver & Dependency Manager.

@@ -10,6 +10,7 @@ class SourceLocation(BaseModel):
     line_end: int
 
 class Node(BaseModel):
+    id: Optional[str] = None
     location: Optional[SourceLocation] = None
 
 # --- Semantic Nodes ---
@@ -43,6 +44,7 @@ class SpecDef(Node):
     """
     name: str # extracted from function name or block info
     code: str
+    data: Dict[str, Any] = Field(default_factory=dict) # Metadata for the spec
 
 class Reference(Node):
     """

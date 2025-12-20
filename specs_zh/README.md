@@ -15,4 +15,4 @@
 
 ## 架构 (Architecture)
 
-- [001-data-model.md](architecture/001-data-model.md): 内部编译器数据模型。
+- [001-ir.md](architecture/001-ir.md): 内部编译器表示 (IR) 与符号。

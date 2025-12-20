@@ -6,43 +6,41 @@ Typedown uses standard Markdown syntax and extends its functionality through spe
 
 To support "Progressive Formalization," Typedown allows defining data models directly within Markdown documents. This is typically used during the initial or testing phases (Inception Phase).
 
-Use the `model` tag on code blocks. The content supports standard Python syntax but is enhanced with pre-loaded common type definitions.
+Use the `model` tag on code blocks. The content supports standard Python syntax. You can optionally provide an `id`.
 
 ````markdown
-```model
-# No need to manually import BaseModel, Field, List, etc.
-class Address(BaseModel):
-    city: str
-    zip_code: str
-
+```model id=UserAccount
 class User(BaseModel):
     name: str
     age: int = Field(..., ge=0)
-    role: str = "guest"
-    address: Optional[Address] = None
 ```
 ````
 
 ### Features
 
-1.  **Multi-Class Definition**: You can define multiple related classes within a single `model` block.
-2.  **Auto-imports**: To reduce boilerplate, the execution environment pre-loads the following symbols by default:
-    - **Pydantic**: `BaseModel`, `Field`, `validator`, `model_validator`, `PrivateAttr`
-    - **Typing**: `List`, `Dict`, `Optional`, `Union`, `Any`, `ClassVar`
-    - **Enum**: `Enum`
-3.  **Override Mechanism**: Classes defined here are automatically registered to the current document's context. If a name conflicts with an existing model, the new definition overrides the old one.
+1. **Multi-Class Definition**: You can define multiple related classes within a single `model` block.
+2. **Auto-imports**: To reduce boilerplate, the execution environment pre-loads the following symbols by default:
+   - **Pydantic**: `BaseModel`, `Field`, `validator`, `model_validator`, `PrivateAttr`
+   - **Typing**: `List`, `Dict`, `Optional`, `Union`, `Any`, `ClassVar`
+   - **Enum**: `Enum`
+3. **Override Mechanism**: Classes defined here are automatically registered to the current document's context. If a name conflicts with an existing model, the new definition overrides the old one.
 
-## 2. Entity Instantiation
-
-Use the `entity:<ClassName>` tag on code blocks to declare an instance of that class (data).
+Use the `entity:<ClassName>` tag. You can specify an `id` in the header or within the body.
 
 ````markdown
-# This is an Entity code block, instantiating the User class above
+# ID specified in header
 
-```entity:User
+```entity:User id=alice
 name: "Alice"
 age: 30
-role: "admin"
+```
+
+# ID specified in body (YAML)
+
+```entity:User
+id: "bob"
+name: "Bob"
+age: 25
 ```
 ````
 

@@ -61,11 +61,18 @@ class CompilerContext:
         self.finder = TypedownMetaFinder(self.resolver)
         
     def __enter__(self):
-        # Install the hook at the front of sys.meta_path
+        # 1. Install the hook at the front of sys.meta_path
         sys.meta_path.insert(0, self.finder)
+        
+        # 2. Add project root to sys.path to support standard local imports
+        # during runtime execution of models/preludes.
+        self._old_path = list(sys.path)
+        sys.path.insert(0, str(self.resolver.project_root))
+        
         return self
         
     def __exit__(self, exc_type, exc_val, exc_tb):
-        # Clean up: remove our hook
+        # Clean up
         if self.finder in sys.meta_path:
             sys.meta_path.remove(self.finder)
+        sys.path = self._old_path

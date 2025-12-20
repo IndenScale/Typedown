@@ -35,12 +35,30 @@ class WorkspaceConfig(BaseModel):
     """
     members: List[str] = ["."]
 
+class ScriptConfig(BaseModel):
+    """
+    [scripts] section: Compilation presets.
+    """
+    include: List[str] = Field(default_factory=lambda: ["**"])
+    exclude: List[str] = Field(default_factory=list)
+    strict: bool = False
+    tags: List[str] = Field(default_factory=list)
+    tags_exclude: List[str] = Field(default_factory=list)
+
+class LinkerConfig(BaseModel):
+    """
+    [linker] section: Configuration for the linkage stage.
+    """
+    prelude: List[str] = Field(default_factory=list, description="Symbols to pre-load into the global namespace.")
+
 class TypedownConfig(BaseModel):
     """
     Root of typedown.toml
     """
     package: Optional[PackageConfig] = None
     workspace: Optional[WorkspaceConfig] = None
+    scripts: Dict[str, ScriptConfig] = Field(default_factory=dict)
+    linker: LinkerConfig = Field(default_factory=LinkerConfig)
     dependencies: Dict[str, Dependency] = Field(default_factory=dict)
 
     @classmethod

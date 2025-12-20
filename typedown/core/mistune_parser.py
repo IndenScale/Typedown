@@ -63,25 +63,37 @@ class TypedownParser:
     def _handle_code_block(self, node: Dict[str, Any], doc: Document, file_path: str):
         # Mistune v3 stores info string in attrs['info']
         attrs = node.get('attrs', {})
-        info = attrs.get('info', '') if attrs else ''
+        info_str = attrs.get('info', '') if attrs else ''
         
-        # Fallback for old structure just in case or if no attrs
-        if not info:
-             info = node.get('info', '') or ''
+        if not info_str:
+             info_str = node.get('info', '') or ''
         
-        code = node.get('text', '') or node.get('raw', '') # Mistune v3 uses 'raw' for code content often
+        code = node.get('text', '') or node.get('raw', '')
         
-        # Determine location (Mistune might not strictly provide line numbers in basic AST)
-        # TODO: Enhance Mistune configuration to ensure 'loc' is present.
-        loc = SourceLocation(file_path=file_path, line_start=0, line_end=0) 
+        # Parse info string: "type:name id=foo key=val"
+        parts = info_str.split()
+        if not parts:
+            return
+            
+        type_part = parts[0] # e.g. "entity:User" or "model" or "spec"
+        
+        # Extract additional attributes like id=xxx
+        meta = {}
+        for p in parts[1:]:
+            if '=' in p:
+                k, v = p.split('=', 1)
+                meta[k] = v.strip('"\'')
 
-        if info.startswith("entity:"):
-            # Entity Block
-            type_name = info[len("entity:") :].strip()
+        loc = SourceLocation(file_path=file_path, line_start=0, line_end=0) 
+        node_id = meta.get('id')
+
+        if type_part.startswith("entity:"):
+            type_name = type_part[len("entity:") :].strip()
             try:
                 data = yaml.safe_load(code)
                 if isinstance(data, dict):
-                    entity_id = data.get("id")
+                    # Use ID from info string if present, else fallback to YAML 'id'
+                    entity_id = node_id or data.get("id")
                     if entity_id:
                         doc.entities.append(EntityDef(
                             id=entity_id,
@@ -90,23 +102,31 @@ class TypedownParser:
                             location=loc
                         ))
             except yaml.YAMLError:
-                pass # Log error
+                pass 
 
-        elif info.startswith("model"):
-            # Model Block
-            doc.models.append(ModelDef(code=code, location=loc))
+        elif type_part == "model":
+            doc.models.append(ModelDef(id=node_id, code=code, location=loc))
 
-        elif info.startswith("spec"):
-            # Spec Block
-            doc.specs.append(SpecDef(name="spec_block", code=code, location=loc))
+        elif type_part == "spec":
+            # Spec Block (Python/Pytest)
+            doc.specs.append(SpecDef(id=node_id, name=node_id or "spec_block", code=code, location=loc))
+        
+        elif type_part.startswith("spec:"):
+            # YAML Spec
+            try:
+                data = yaml.safe_load(code)
+                if isinstance(data, dict):
+                    spec_id = node_id or data.get("id")
+                    if spec_id:
+                        doc.specs.append(SpecDef(id=spec_id, name=spec_id, code=code, data=data, location=loc))
+            except yaml.YAMLError:
+                pass
 
-        elif info == "config:python":
-            # Config Block - Extract imports
-            # We are manually parsing python imports here to feed the 'ImportStmt'
-            # This is the key for the Resolver to work!
+        elif type_part == "config:python":
+            # ... (existing imports logic)
             for match in IMPORT_REGEX.finditer(code):
-                source = match.group(1) # e.g., @lib.math
-                names_str = match.group(2) # e.g., MathConfig, Other
+                source = match.group(1) 
+                names_str = match.group(2) 
                 names = [n.strip() for n in names_str.split(',')]
                 
                 doc.imports.append(ImportStmt(
@@ -114,6 +134,9 @@ class TypedownParser:
                     names=names,
                     location=loc
                 ))
+        
+        # Scan for inline references [[...]] in all code blocks
+        self._scan_references(code, doc, file_path)
 
     def _scan_references(self, text: str, doc: Document, file_path: str):
         for match in self.wiki_link_pattern.finditer(text):
