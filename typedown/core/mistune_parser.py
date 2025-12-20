@@ -6,11 +6,8 @@ from typing import Dict, Any, List
 from mistune.plugins.def_list import def_list
 
 from typedown.core.ir import (
-    Document, EntityDef, ModelDef, SpecDef, ImportStmt, Reference, SourceLocation
+    Document, EntityDef, ModelDef, SpecDef, Reference, SourceLocation, ConfigDef
 )
-
-# Regex for finding imports in python code (simple heuristic)
-IMPORT_REGEX = re.compile(r"^\s*from\s+([@\w\.]+)\s+import\s+(.+)$", re.MULTILINE)
 
 class TypedownParser:
     def __init__(self):
@@ -124,18 +121,12 @@ class TypedownParser:
             except yaml.YAMLError:
                 pass
 
-        elif type_part == "config:python":
-            # ... (existing imports logic)
-            for match in IMPORT_REGEX.finditer(code):
-                source = match.group(1) 
-                names_str = match.group(2) 
-                names = [n.strip() for n in names_str.split(',')]
-                
-                doc.imports.append(ImportStmt(
-                    source=source,
-                    names=names,
-                    location=loc
-                ))
+        elif type_part.startswith("config:python"):
+            doc.configs.append(ConfigDef(
+                id=node_id,
+                code=code,
+                location=loc
+            ))
         
         # Scan for inline references [[...]] in all code blocks
         self._scan_references(code, doc, file_path)

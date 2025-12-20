@@ -5,8 +5,5 @@
 import sys
 from pathlib import Path
 
-# Add project root to sys.path
-sys.path.append(str(Path(__file__).parent.parent))
-
-from models.schema import Character, Item, Monster
+from use_cases.rpg_campaign.models.schema import Character, Item, Monster
 ```

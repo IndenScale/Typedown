@@ -18,10 +18,11 @@
   ],
   "repository": {
     "entity-block": {
-      "begin": "^(\\s*)(```)(entity:\\s*[a-zA-Z0-9_\\.]+)\\s*$",
+      "begin": "^(\\s*)(```)(entity:\\s*[a-zA-Z0-9_\\.]+)(.*)$",
       "beginCaptures": {
         "2": { "name": "markup.fenced_code.block.markdown" },
-        "3": { "name": "entity.name.class.typedown" }
+        "3": { "name": "entity.name.class.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
       },
       "end": "^(\\s*)(```)$",
       "endCaptures": {
@@ -35,10 +36,11 @@
       ]
     },
     "config-python-block": {
-      "begin": "^(\\s*)(```)(config:python)\\s*$",
+      "begin": "^(\\s*)(```)(config:python)(.*)$",
       "beginCaptures": {
         "2": { "name": "markup.fenced_code.block.markdown" },
-        "3": { "name": "keyword.control.directive.typedown" }
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
       },
       "end": "^(\\s*)(```)$",
       "endCaptures": {
@@ -52,10 +54,11 @@
       ]
     },
     "spec-block": {
-      "begin": "^(\\s*)(```)(spec)\\s*$",
+      "begin": "^(\\s*)(```)(spec)(.*)$",
       "beginCaptures": {
         "2": { "name": "markup.fenced_code.block.markdown" },
-        "3": { "name": "keyword.control.directive.typedown" }
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
       },
       "end": "^(\\s*)(```)$",
       "endCaptures": {

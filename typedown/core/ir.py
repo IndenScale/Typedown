@@ -15,15 +15,6 @@ class Node(BaseModel):
 
 # --- Semantic Nodes ---
 
-class ImportStmt(Node):
-    """
-    Represents an import from `config:python` or `import:` block (future).
-    e.g. `from @lib.math import MathConfig`
-    """
-    source: str # "@lib.math"
-    names: List[str] # ["MathConfig"]
-    alias: Optional[str] = None
-
 class ModelDef(Node):
     """
     Represents a `model` block (Python/Pydantic code).
@@ -52,12 +43,18 @@ class Reference(Node):
     """
     target: str
 
+class ConfigDef(Node):
+    """
+    Represents a `config:python` block (Arbitrary Python code for context injection).
+    """
+    code: str
+
 class Document(Node):
     """
     Represents a parsed file.
     """
     path: Path
-    imports: List[ImportStmt] = Field(default_factory=list)
+    configs: List[ConfigDef] = Field(default_factory=list)
     models: List[ModelDef] = Field(default_factory=list)
     entities: List[EntityDef] = Field(default_factory=list)
     specs: List[SpecDef] = Field(default_factory=list)

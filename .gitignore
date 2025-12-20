@@ -36,6 +36,7 @@ htmlcov/
 node_modules/
 extensions/vscode/node_modules/
 extensions/vscode/out/
+*.vsix
 
 # VitePress
 docs/.vitepress/cache/

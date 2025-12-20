@@ -1,23 +1,20 @@
 import logging
 import re
 from pathlib import Path
-from urllib.parse import urlparse, unquote, unquote_plus
+from urllib.parse import urlparse, unquote
 from typing import Optional, List, Dict
 import os
 import sys
 import tempfile
 
-# Configure logging to file (in temp dir to avoid permission issues)
+# Configure logging to file
 log_file = Path(tempfile.gettempdir()) / 'typedown_server.log'
 try:
     logging.basicConfig(filename=str(log_file), level=logging.DEBUG, filemode='a')
 except Exception:
-    # Fallback to stderr if temp file is not writable
     logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 
-# Silence noisy libraries
 logging.getLogger("markdown_it").setLevel(logging.WARNING)
-# logging.getLogger("pygls").setLevel(logging.WARNING) # Enable pygls logs for debugging startup
 
 from pygls.lsp.server import LanguageServer
 from lsprotocol.types import (
@@ -27,6 +24,7 @@ from lsprotocol.types import (
     TEXT_DOCUMENT_COMPLETION,
     TEXT_DOCUMENT_HOVER,
     TEXT_DOCUMENT_DEFINITION,
+    TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL,
     DidOpenTextDocumentParams,
     DidChangeTextDocumentParams,
     DidSaveTextDocumentParams,
@@ -46,47 +44,50 @@ from lsprotocol.types import (
     MessageType,
     ShowMessageParams,
     PublishDiagnosticsParams,
+    SemanticTokensLegend,
+    SemanticTokens,
+    SemanticTokensParams,
 )
 
-from typedown.core.workspace import Workspace
+from typedown.core.compiler import Compiler
 from typedown.core.errors import TypedownError
 
 class TypedownLanguageServer(LanguageServer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.workspace_instance: Optional[Workspace] = None
+        self.compiler: Optional[Compiler] = None
 
 server = TypedownLanguageServer("typedown-server", "0.1.0")
 
+# Semantic Tokens Legend
+SEMANTIC_LEGEND = SemanticTokensLegend(
+    token_types=["class", "variable", "property", "struct"],
+    token_modifiers=["declaration", "definition"]
+)
+
 def uri_to_path(uri: str) -> Path:
     parsed = urlparse(uri)
-    # unquote helps with %20 spaces etc
     path_str = unquote(parsed.path)
-    # On Windows, urlparse might leave a leading slash for C:/...
     if os.name == 'nt' and path_str.startswith('/'):
         path_str = path_str[1:]
     return Path(path_str).resolve()
 
 def to_lsp_diagnostic(error: TypedownError) -> Diagnostic:
-    # Default range (entire file if unknown)
-    start_line = 0
-    start_col = 0
-    end_line = 0
-    end_col = 0
+    start_line, start_col = 0, 0
+    end_line, end_col = 0, 0
     
     if error.location:
-        # Pydantic/Validator line numbers are usually 1-indexed
-        # LSP uses 0-indexed
-        start_line = max(0, error.location.line_start - 1)
-        end_line = max(0, error.location.line_end - 1)
+        # Mistune/Typedown lines are 1-based usually
+        # LSP is 0-based
+        sl = getattr(error.location, 'line_start', 1)
+        el = getattr(error.location, 'line_end', 1)
+        sc = getattr(error.location, 'col_start', 1)
+        ec = getattr(error.location, 'col_end', 1) # Optional?
         
-        # Columns
-        start_col = max(0, error.location.col_start - 1)
-        if error.location.col_end:
-            end_col = max(0, error.location.col_end - 1)
-        else:
-            # If no end column, try to make it visible
-            end_col = 1000 
+        start_line = max(0, sl - 1) if sl else 0
+        end_line = max(0, el - 1) if el else 0
+        start_col = max(0, sc - 1) if sc else 0
+        end_col = max(0, ec - 1) if ec else 100
         
     return Diagnostic(
         range=Range(
@@ -98,57 +99,49 @@ def to_lsp_diagnostic(error: TypedownError) -> Diagnostic:
         source="typedown"
     )
 
-def validate(ls: TypedownLanguageServer, uri: str):
-    if not ls.workspace_instance:
+def validate_workspace(ls: TypedownLanguageServer):
+    if not ls.compiler:
         return
 
     try:
-        # 1. Update the document in workspace with current content from LSP
-        # We rely on pygls managing the document text via `ls.workspace.get_document(uri)`
-        doc = ls.workspace.get_text_document(uri)
-        path = uri_to_path(uri)
-        content = doc.source
+        # Trigger full compilation
+        # Note: In a real incremental implementation, we would update specific files in compiler.documents
+        # For now, we rely on disk coherence (assuming file is saved or we update it)
+        # However, LSP sends 'did_change', file might not be saved.
+        # MVP: We only fully support validation on SAVE or if we implement memory-vfs in compiler.
+        # Let's assume we validate what's on disk for now, or just run compile() 
+        # which reads from disk in current implementation.
         
-        # ls.show_message_log(f"Validating {path}...")
+        ls.compiler.compile()
         
-        # Update/Reindex this specific file using the in-memory content
-        ls.workspace_instance.reindex_file(path, content=content)
-        
-        # 2. Run full validation
-        # TODO: Optimize to only validate affected files
-        errors = ls.workspace_instance.validate_project()
-        
-        # 3. Group errors by file
+        # Group diagnostics by file
         file_diagnostics: Dict[str, List[Diagnostic]] = {}
         
-        for e in errors:
-            if not e.location: continue
-            p = str(Path(e.location.file_path).resolve())
+        for err in ls.compiler.diagnostics:
+            if not err.location or not err.location.file_path:
+                continue
+            
+            p = str(Path(err.location.file_path).resolve())
             if p not in file_diagnostics:
                 file_diagnostics[p] = []
-            file_diagnostics[p].append(to_lsp_diagnostic(e))
+            file_diagnostics[p].append(to_lsp_diagnostic(err))
             
-        # 4. Publish
-        # Publish for current file (to ensure clearing)
-        current_path_str = str(path)
-        if current_path_str not in file_diagnostics:
-            file_diagnostics[current_path_str] = []
-            
-        for file_path_str, diagnostics in file_diagnostics.items():
-            # Convert path to URI
-            file_uri = Path(file_path_str).as_uri()
-            # ls.window_show_message(ShowMessageParams(message=f"Publishing {len(diagnostics)} diagnostics for {file_uri}", type=MessageType.Log))
-            ls.text_document_publish_diagnostics(PublishDiagnosticsParams(uri=file_uri, diagnostics=diagnostics))
-            
+        # Publish
+        # We should ideally clear diagnostics for files that are now clean.
+        # A simple strategy is to broadcast to all known files in compiler.documents
+        for doc_path in ls.compiler.documents.keys():
+            p_str = str(doc_path.resolve())
+            diags = file_diagnostics.get(p_str, [])
+            ls.text_document_publish_diagnostics(
+                PublishDiagnosticsParams(uri=Path(p_str).as_uri(), diagnostics=diags)
+            )
+
     except Exception as e:
-        ls.window_show_message(ShowMessageParams(message=f"Validation Error: {e}", type=MessageType.Error))
-        import traceback
-        traceback.print_exc()
+        # ls.show_message(f"Validation Error: {e}", MessageType.Error)
+        logging.error(f"Validation Error: {e}")
 
 @server.feature("initialize")
 def initialize(ls: TypedownLanguageServer, params):
-    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Initializing...", type=MessageType.Log))
-    
     root_uri = params.root_uri or params.root_path
     if root_uri:
         if not root_uri.startswith('file://') and not root_uri.startswith('/'):
@@ -156,234 +149,198 @@ def initialize(ls: TypedownLanguageServer, params):
         else:
              root_path = uri_to_path(root_uri)
              
-        # ls.window_show_message(ShowMessageParams(message=f"Loading workspace from: {root_path}", type=MessageType.Log))
-        
         try:
-            ls.workspace_instance = Workspace(root=root_path)
-            # Initial load
-            ls.workspace_instance.load(root_path)
-            ls.window_show_message(ShowMessageParams(message="Typedown Engine Ready.", type=MessageType.Info))
+            from rich.console import Console
+            # Use stderr for Compiler output to avoid polluting stdout (LSP protocol)
+            stderr_console = Console(stderr=True)
+            ls.compiler = Compiler(target=root_path, console=stderr_console)
+            # Pre-compile to warm up symbols
+            ls.compiler.compile()
+            # ls.show_message("Typedown Engine Ready.", MessageType.Info)
+            logging.info("Typedown Engine Ready.")
         except Exception as e:
-            ls.window_show_message(ShowMessageParams(message=f"Failed to initialize workspace: {e}", type=MessageType.Error))
-
-@server.feature("shutdown")
-def shutdown(ls: TypedownLanguageServer, params):
-    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Shutting down...", type=MessageType.Log))
-    pass
-
-@server.feature("exit")
-def on_exit(ls: TypedownLanguageServer, params):
-    # Force kill the process to prevent timeouts
-    # ls.window_show_message(ShowMessageParams(message="Typedown LSP Server Exiting...", type=MessageType.Log))
-    os._exit(0)
+            # ls.show_message(f"Failed to initialize compiler: {e}", MessageType.Error)
+            logging.error(f"Failed to initialize compiler: {e}")
 
 @server.feature(TEXT_DOCUMENT_DID_OPEN)
 async def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
-    # ls.window_show_message(ShowMessageParams(message=f"Document opened: {params.text_document.uri}", type=MessageType.Log))
-    validate(ls, params.text_document.uri)
+    validate_workspace(ls)
 
 @server.feature(TEXT_DOCUMENT_DID_CHANGE)
 async def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentParams):
-    validate(ls, params.text_document.uri)
+    # Compiler strictly reads from disk in current impl.
+    # So we don't validate on change unless we implement VFS.
+    # To avoid confusion, we skip validation here or do it only if we trust disk is sync?
+    # Better to wait for Save for current Architecture P0.
+    pass 
 
 @server.feature(TEXT_DOCUMENT_DID_SAVE)
 async def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
-    # ls.window_show_message(ShowMessageParams(message=f"Document saved: {params.text_document.uri}", type=MessageType.Log))
-    pass
+    # Disk updated, safe to compile
+    validate_workspace(ls)
 
-@server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=["[", " ", "\"", ":"]))
+@server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=["[", " "]))
 def completions(ls: TypedownLanguageServer, params: CompletionParams):
-    if not ls.workspace_instance:
-        return []
-
-    doc = ls.workspace.get_text_document(params.text_document.uri)
-    lines = doc.source.splitlines()
-    if params.position.line >= len(lines):
-        return []
+    if not ls.compiler: return []
     
-    line_content = lines[params.position.line]
-    col = params.position.character
-    
-    # 1. Trigger for Reference: [[
-    # Check if we are inside [[...]]
-    # Simple check: Look backwards from cursor for [[
-    prefix = line_content[:col]
-    
-    is_ref_trigger = False
-    
-    # Check for direct [[
-    if prefix.endswith("[["):
-        is_ref_trigger = True
-    else:
-        # Check if we are inside, e.g. [[Use|
-        last_open = prefix.rfind("[[")
-        last_close = prefix.rfind("]]")
-        if last_open != -1:
-            if last_close == -1 or last_close < last_open:
-                # We are likely inside a reference
-                is_ref_trigger = True
-    
-    # Check for 'former: "..."' or 'derived_from: "..."'
-    # This is rough, but effective
-    # Check if we are inside quotes?
-    # For MVP, let's just dump ALL IDs if we think we might be in a place referencing an ID.
-    
-    if is_ref_trigger:
-        items = []
-        for entity_id, entity in ls.workspace_instance.project.symbol_table.items():
-            kind = CompletionItemKind.Class
-            detail = f"{entity.class_name}"
-            
-            item = CompletionItem(
-                label=entity_id,
-                kind=kind,
-                detail=detail,
-                documentation=f"Defined in {Path(entity.location.file_path).name}"
-            )
-            items.append(item)
-        return CompletionList(is_incomplete=False, items=items)
-
-    return []
+    # Simple heuristic: Always provide IDs if we suspect a value context
+    # Refinement needed later
+    items = []
+    for entity_id, entity in ls.compiler.symbol_table.items():
+        items.append(CompletionItem(
+            label=entity_id,
+            kind=CompletionItemKind.Class,
+            detail=entity.type_name or "Entity",
+            documentation=f"Defined in {Path(entity.location.file_path).name}"
+        ))
+    return CompletionList(is_incomplete=False, items=items)
 
 @server.feature(TEXT_DOCUMENT_HOVER)
 def hover(ls: TypedownLanguageServer, params: HoverParams):
-    if not ls.workspace_instance:
-        return None
-
+    if not ls.compiler: return None
+    
+    # We need to read the document line to find what is under cursor
     doc = ls.workspace.get_text_document(params.text_document.uri)
     lines = doc.source.splitlines()
-    if params.position.line >= len(lines):
-        return None
-    
-    line_content = lines[params.position.line]
+    if params.position.line >= len(lines): return None
+    line = lines[params.position.line]
     col = params.position.character
-
-    # 1. Hover on [[ID]]
-    for match in re.finditer(r'\[\[(.*?)\]\]', line_content):
-        start = match.start()
-        end = match.end()
-        if start <= col <= end:
-            target_id = match.group(1).strip()
-            if target_id in ls.workspace_instance.project.symbol_table:
-                entity = ls.workspace_instance.project.symbol_table[target_id]
-                md_text = f"**Entity**: `{target_id}`\n\n"
-                md_text += f"**Class**: `{entity.class_name}`\n\n"
-                
-                if entity.resolved_data:
-                    # Simple YAML-like dump or description
-                    import json
-                    # Try to get description if exists
-                    desc = entity.resolved_data.get('description') or entity.resolved_data.get('desc')
-                    if desc:
-                        md_text += f"{desc}\n\n"
-                    
-                md_text += f"*Defined in {Path(entity.location.file_path).name}*"
-                return Hover(contents=md_text)
     
-    # 2. Hover on Config/Class Name
-    # Check if we are in an entity block like ```entity: ClassName
-    entity_block_match = re.match(r'^(\s*)```entity:\s*([a-zA-Z0-9_\.]+)\s*$', line_content)
-    if entity_block_match:
-        class_name = entity_block_match.group(2)
-        # Try to find class info in the document registry
-        # We need the registry for the current document
-        path = uri_to_path(params.text_document.uri)
-        registry = ls.workspace_instance.document_registries.get(path)
-        
-        md_text = f"**Typedown Class**: `{class_name}`\n\n"
-        
-        if registry and class_name in registry.models:
-             model = registry.models[class_name]
-             md_text += f"**Python**: `{model.__name__}`\n\n"
-             if model.__doc__:
-                 md_text += f"{model.__doc__}\n\n"
-             
-             # Fields
-             md_text += "**Fields**:\n"
-             for name, field in model.model_fields.items():
-                 required = " (Required)" if field.is_required() else ""
-                 md_text += f"- `{name}`: `{field.annotation}`{required}\n"
-
-        return Hover(contents=md_text)
+    # 1. Check for [[ID]]
+    for match in re.finditer(r'\[\[(.*?)\]\]', line):
+        if match.start() <= col <= match.end():
+            ref_id = match.group(1).strip()
+            if ref_id in ls.compiler.symbol_table:
+                entity = ls.compiler.symbol_table[ref_id]
+                md = f"**Entity**: `{ref_id}`\n\n**Type**: `{entity.type_name}`"
+                return Hover(contents=md)
+    
+    # 2. Check for Entity Block Header: ```entity:Type
+    match = re.match(r'^(\s*)(```)(entity):([a-zA-Z0-9_\.]+)', line)
+    if match:
+        # Check if cursor is on Type name
+        type_start = match.start(4)
+        type_end = match.end(4)
+        if type_start <= col <= type_end:
+            type_name = match.group(4)
+            
+            # Lookup in compiler's model registry
+            if hasattr(ls.compiler, 'model_registry') and type_name in ls.compiler.model_registry:
+                model_cls = ls.compiler.model_registry[type_name]
+                
+                md = f"**Type**: `{type_name}`\n\n"
+                md += f"**Python**: `{model_cls.__name__}`\n\n"
+                
+                if model_cls.__doc__:
+                    md += f"{model_cls.__doc__}\n\n"
+                
+                md += "**Fields**:\n"
+                for name, field in model_cls.model_fields.items():
+                    req = " (Required)" if field.is_required() else ""
+                    # annot = str(field.annotation).replace("typing.", "")
+                    md += f"- `{name}`{req}\n"
+                
+                return Hover(contents=md)
+            else:
+                 return Hover(contents=f"**Type**: `{type_name}` (Not Found in Registry)")
 
     return None
 
 @server.feature(TEXT_DOCUMENT_DEFINITION)
 def definition(ls: TypedownLanguageServer, params: DefinitionParams):
-    if not ls.workspace_instance:
-        return None
+    if not ls.compiler: return None
 
     doc = ls.workspace.get_text_document(params.text_document.uri)
     lines = doc.source.splitlines()
-    if params.position.line >= len(lines):
-        return None
-    
-    line_content = lines[params.position.line]
+    if params.position.line >= len(lines): return None
+    line = lines[params.position.line]
     col = params.position.character
     
-    # Find word at cursor or reference structure
-    # Try to find [[ID]] matches
-    target_id = None
+    # 1. Check for [[ID]]
+    for match in re.finditer(r'\[\[(.*?)\]\]', line):
+        if match.start() <= col <= match.end():
+            ref_id = match.group(1).strip()
+            if ref_id in ls.compiler.symbol_table:
+                entity = ls.compiler.symbol_table[ref_id]
+                if entity.location:
+                    return Location(
+                        uri=Path(entity.location.file_path).as_uri(),
+                        range=Range(
+                            start=Position(line=max(0, entity.location.line_start-1), character=0),
+                            end=Position(line=max(0, entity.location.line_end), character=0)
+                        )
+                    )
     
-    # 1. Search for [[ID]]
-    for match in re.finditer(r'\[\[(.*?)\]\]', line_content):
-        # Allow clicking anywhere inside [[...]] including brackets
-        start = match.start()
-        end = match.end()
-        if start <= col <= end:
-            target_id = match.group(1).strip()
-            break
+    # 2. Check for Entity Block Header: ```entity:Type
+    match = re.match(r'^(\s*)(```)(entity):([a-zA-Z0-9_\.]+)', line)
+    if match:
+        type_start = match.start(4)
+        type_end = match.end(4)
+        if type_start <= col <= type_end:
+            type_name = match.group(4)
             
-    # 2. Search for YAML key-value pairs like former: "ID"
-    # This is harder to regex cleanly without tokenizer.
-    # Let's try to grab the string literal at cursor.
-    if not target_id:
-        # Look for "ID" or 'ID'
-        # Simple heuristic: Expand from cursor until quotes
-        # Not robust but P0 sufficient
-        pass # Skip for now, focus on [[...]]
-        
-    if target_id and target_id in ls.workspace_instance.project.symbol_table:
-        entity = ls.workspace_instance.project.symbol_table[target_id]
-        if entity.location:
-             file_path = Path(entity.location.file_path)
-             uri = file_path.as_uri()
-             
-             return Location(
-                 uri=uri,
-                 range=Range(
-                     start=Position(line=max(0, entity.location.line_start - 1), character=0),
-                     end=Position(line=max(0, entity.location.line_end - 1), character=100) # Select full line
-                 )
-             )
-    
-    # 3. Definition for Entity Block Class
-    entity_block_match = re.match(r'^(\s*)```entity:\s*([a-zA-Z0-9_\.]+)\s*$', line_content)
-    if entity_block_match:
-        class_name = entity_block_match.group(2)
-        try:
-            path = uri_to_path(params.text_document.uri)
-            registry = ls.workspace_instance.document_registries.get(path)
-            if registry and class_name in registry.models:
-                model = registry.models[class_name]
+            if hasattr(ls.compiler, 'model_registry') and type_name in ls.compiler.model_registry:
+                model_cls = ls.compiler.model_registry[type_name]
                 import inspect
-                # inspect.getsourcefile might fail for dynamic types, but work for imported ones
                 try:
-                    src_file = inspect.getsourcefile(model)
+                    src_file = inspect.getsourcefile(model_cls)
                     if src_file:
-                         src_lines, start_line = inspect.getsourcelines(model)
-                         uri = Path(src_file).as_uri()
-                         return Location(
-                             uri=uri,
-                             range=Range(
-                                 start=Position(line=max(0, start_line - 1), character=0),
-                                 end=Position(line=max(0, start_line + len(src_lines)), character=0)
-                             )
-                         )
+                        src_lines, start_line = inspect.getsourcelines(model_cls)
+                        uri = Path(src_file).as_uri()
+                        return Location(
+                            uri=uri,
+                            range=Range(
+                                start=Position(line=max(0, start_line - 1), character=0),
+                                end=Position(line=max(0, start_line + len(src_lines)), character=0)
+                            )
+                        )
                 except Exception:
                     pass
-        except Exception:
-            pass
-            
+
     return None
+
+
+@server.feature(TEXT_DOCUMENT_SEMANTIC_TOKENS_FULL, SEMANTIC_LEGEND)
+def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
+    """
+    Provide semantic tokens for syntax highlighting.
+    We specifically want to highlight the 'ClassName' in ```entity:ClassName as a Class.
+    """
+    doc = ls.workspace.get_text_document(params.text_document.uri)
+    lines = doc.source.splitlines()
+    
+    data = []
+    last_line = 0
+    last_start = 0
+
+    for line_num, line in enumerate(lines):
+        # Regex for entity block header: ```entity:Type ...
+        # Capture: 1=indent, 2=entity:, 3=Type
+        match = re.match(r'^(\s*)(```)(entity):([a-zA-Z0-9_\.]+)', line)
+        if match:
+            # We want to highlight the Type (group 4)
+            # Calculate absolute start col of Type
+            indent_len = len(match.group(1))
+            # backticks=3
+            # entity=6
+            # colon=1
+            # But regex groups help. start of group 4 is what we want.
+            type_start_col = match.start(4)
+            type_len = len(match.group(4))
+            
+            # Semantic Tokens are Delta-encoded relative to previous token
+            delta_line = line_num - last_line
+            if delta_line > 0:
+                delta_start = type_start_col
+            else:
+                delta_start = type_start_col - last_start
+                
+            # Emit Token: [deltaLine, deltaStart, length, tokenType, tokenModifiers]
+            # tokenType index in LEGEND: "class" is 0
+            data.extend([delta_line, delta_start, type_len, 0, 0])
+            
+            last_line = line_num
+            last_start = type_start_col
+
+    return SemanticTokens(data=data)
 
