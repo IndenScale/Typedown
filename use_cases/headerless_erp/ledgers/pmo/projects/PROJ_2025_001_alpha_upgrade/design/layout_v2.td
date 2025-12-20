@@ -19,8 +19,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import DesignDocument
 ```
 
-```entity:DesignDocument
-id: "design_alpha_layout_v2"
+```entity:DesignDocument id=design_alpha_layout_v2
 project_code: "PROJ-2025-001"
 title: "Alpha Line Layout Plan V2"
 version: "2.0"

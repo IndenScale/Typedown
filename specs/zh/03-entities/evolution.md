@@ -12,24 +12,21 @@ Typedown 允许以增量的方式描述数据的变化，这是其核心特性�
 ````markdown
 # V1.0: 初始状态
 
-```entity:Feature
-id: "feat_login_v1"
+```entity:Feature id=feat_login_v1
 status: "planned"
 priority: "high"
 ```
 
 # V1.1: 状态变更 - 优先级调整
 
-```entity:Feature
-id: "feat_login_v2" # 新 ID
+```entity:Feature id=feat_login_v2
 former: "feat_login_v1"
 priority: "medium" # 仅需列出变化的字段
 ```
 
 # V1.2: 状态变更 - 状态更新
 
-```entity:Feature
-id: "feat_login_v3" # 新 ID
+```entity:Feature id=feat_login_v3
 former: "feat_login_v2"
 status: "implemented"
 ```
@@ -54,8 +51,7 @@ status: "implemented"
 `derived_from` 的语义更接近面向对象编程中的继承。派生实体会继承基实体的所有字段，并可以覆盖或添加新字段。
 
 ````markdown
-```entity:Enemy
-id: "goblin_base"
+```entity:Enemy id=goblin_base
 name: "哥布林"
 hp: 100
 attack: 10
@@ -64,8 +60,7 @@ type: "normal"
 
 # 变体 1: 普通哥布林
 
-```entity:Enemy
-id: "goblin_grunt" # 新 ID
+```entity:Enemy id=goblin_grunt
 derived_from: "goblin_base"
 name: "普通哥布林"
 # hp, attack 继承自 goblin_base
@@ -73,8 +68,7 @@ name: "普通哥布林"
 
 # 变体 2: 哥布林首领 (覆盖属性并新增)
 
-```entity:Enemy
-id: "goblin_boss" # 新 ID
+```entity:Enemy id=goblin_boss
 derived_from: "goblin_base"
 name: "哥布林首领"
 hp: 500  # 覆盖基类属性

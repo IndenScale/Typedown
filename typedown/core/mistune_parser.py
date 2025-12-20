@@ -92,9 +92,11 @@ class TypedownParser:
             try:
                 data = yaml.safe_load(code)
                 if isinstance(data, dict):
-                    # Use ID from info string if present, else fallback to YAML 'id'
-                    entity_id = node_id or data.get("id")
+                    # Use ID from info string ONLY
+                    entity_id = node_id
                     if entity_id:
+                        # Inject ID into data for backward compatibility (lazy access in specs)
+                        data['id'] = entity_id
                         doc.entities.append(EntityDef(
                             id=entity_id,
                             type_name=type_name,

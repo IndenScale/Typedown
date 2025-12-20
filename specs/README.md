@@ -4,15 +4,22 @@
 
 - [000-concept.md](meta/000-concept.md): Core concepts and philosophy.
 
-## RFCs (Request for Comments)
+## 1. Symbols & Scanning
 
-- [001-syntax.md](rfc/001-syntax.md): Basic syntax and extensions.
-- [002-evolution.md](rfc/002-evolution.md): Data evolution mechanisms.
-- [003-structure.md](rfc/003-structure.md): Project directory structure.
-- [004-import.md](rfc/004-import.md): Import and configuration inheritance.
-- [005-reference.md](rfc/005-reference.md): Reference and linking mechanisms.
-- [006-testing.md](rfc/006-testing.md): Testing and specification validation mechanisms.
+- [syntax.md](01-symbols/syntax.md): Basic syntax and extensions.
+- [structure.md](01-symbols/structure.md): Project directory structure.
+- [ir.md](01-symbols/ir.md): Internal Compiler Representation (IR).
 
-## Architecture
+## 2. Linkage & Context
 
-- [001-ir.md](architecture/001-ir.md): Internal compiler representation (IR) and symbols.
+- [import.md](02-linkage/import.md): Import and configuration inheritance.
+- [scripts.md](02-linkage/scripts.md): Scripts and configuration.
+
+## 3. Entities & Validation
+
+- [evolution.md](03-entities/evolution.md): Data evolution mechanisms.
+- [reference.md](03-entities/reference.md): Reference and linking mechanisms.
+
+## 4. Execution & Testing
+
+- [testing.md](04-execution/testing.md): Testing and specification validation mechanisms.

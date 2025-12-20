@@ -29,8 +29,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import FeasibilityStudy
 ```
 
-```entity:FeasibilityStudy
-id: "feas_archive_cloud_vs_tape"
+```entity:FeasibilityStudy id=feas_archive_cloud_vs_tape
 project_code: "PROJ-2023-012"
 title: "Cold Storage Technology Selection"
 author: "Infra Team"

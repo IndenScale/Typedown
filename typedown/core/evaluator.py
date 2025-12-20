@@ -2,6 +2,7 @@ import re
 from typing import Any, Dict, List, Optional
 from rich.console import Console
 from typedown.core.ast import EntityBlock
+from typedown.core.errors import ReferenceError
 
 console = Console()
 REF_PATTERN = re.compile(r'\[\[(.*?)\]\]')
@@ -60,13 +61,13 @@ class Evaluator:
         # 1. Single segment: ID string
         if "." not in query:
             if query not in symbol_table:
-                raise EvaluationError(f"Reference to unknown ID: '{query}'")
+                raise ReferenceError(f"Reference to unknown ID: '{query}'")
             return query
 
         parts = query.split(".")
         root_id = parts[0]
         if root_id not in symbol_table:
-            raise EvaluationError(f"Reference to unknown ID: '{root_id}'")
+            raise ReferenceError(f"Reference to unknown ID: '{root_id}'")
 
         current_data = symbol_table[root_id]
         

@@ -12,7 +12,13 @@ Typedown 将验证分为两个层级：
    - **实现**: 直接在 `model` 定义中使用 Pydantic 的 `field_validator` 或 `model_validator`。
    - **执行时机**: 在编译期（解析 Entity 时）自动执行。
 
-2. **规格验证 (Specification)**:
+2. **一致性校验 (Consistency)**:
+
+   - **关注点**: 引用完整性（存在性、无环性）、类型匹配。
+   - **实现**: 编译器核心逻辑（Stage 3）。
+   - **执行时机**: 在所有 Entity 解析后，Spec 执行前。
+
+3. **规格验证 (Specification)**:
    - **关注点**: 跨实体的一致性、复杂的业务规则、系统级约束（如：外键存在性、数值平衡）。
    - **实现**: 使用 `spec` 代码块编写标准的 Pytest 测试用例。
    - **执行时机**: 使用 `td test` 命令时执行。
@@ -69,8 +75,7 @@ def test_boss_difficulty(session):
 对于针对特定 Entity 的快速断言，可以使用 `check` 块。它会自动转化为针对紧邻的上一个 Entity 的测试用例。
 
 ````markdown
-```entity:User
-id: "admin"
+```entity:User id=admin
 age: 30
 ```
 

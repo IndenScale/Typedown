@@ -26,22 +26,12 @@ class User(BaseModel):
 
 ## 2. 实体实例化 (Entity)
 
-使用 `entity:<ClassName>` 标签。你可以在 Header 中指定 `id`，也可以在 YAML 主体中指定。
+使用 `entity:<ClassName>` 标签。必须在 Header 中显式指定 `id`。
 
 ````markdown
-# 在 Header 中指定 ID
-
 ```entity:User id=alice
 name: "Alice"
 age: 30
-```
-
-# 在主体中指定 ID (YAML)
-
-```entity:User
-id: "bob"
-name: "Bob"
-age: 25
 ```
 ````
 

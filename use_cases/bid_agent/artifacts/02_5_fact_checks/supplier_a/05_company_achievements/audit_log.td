@@ -9,8 +9,7 @@ from use_cases.bid_agent.models.verification import FactCheckRecord
 
 ## 1. 智慧城市一期项目
 
-```entity:FactCheckRecord
-id: "CHECK-SUP-A-ACH-01"
+```entity:FactCheckRecord id=CHECK-SUP-A-ACH-01
 target_evidence_id: "ACHIEVEMENT-01"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-007"

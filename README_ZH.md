@@ -46,8 +46,7 @@ class User(BaseModel):
     role: str
 ```
 
-```entity:User
-id: "u_001"
+```entity:User id=u_001
 name: "Alice"
 role: "admin"
 ```

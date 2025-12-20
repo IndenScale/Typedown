@@ -2,8 +2,7 @@
 
 ## Project Alpha (Beijing)
 
-```entity:Project
-id: "proj_alpha"
+```entity:Project id=proj_alpha
 name: "Alpha Cloud Migration"
 region: "CN-BJ"
 status: "ACTIVE"
@@ -14,8 +13,7 @@ description: "Core banking migration to private cloud."
 
 ## Project Beta (Shanghai)
 
-```entity:Project
-id: "proj_beta"
+```entity:Project id=proj_beta
 name: "Beta Mobile App"
 region: "CN-SH"
 status: "ACTIVE"

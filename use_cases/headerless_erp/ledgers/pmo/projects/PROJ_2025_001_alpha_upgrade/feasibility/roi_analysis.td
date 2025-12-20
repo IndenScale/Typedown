@@ -24,8 +24,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import FeasibilityStudy
 ```
 
-```entity:FeasibilityStudy
-id: "feas_alpha_roi_v1"
+```entity:FeasibilityStudy id=feas_alpha_roi_v1
 project_code: "PROJ-2025-001"
 title: "Alpha Line Automation ROI Analysis"
 author: "Finance Dept (Sarah Lee)"

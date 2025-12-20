@@ -11,8 +11,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import RFI
 ```
 
-```entity:RFI
-id: "rfi_2023_data_migration"
+```entity:RFI id=rfi_2023_data_migration
 project_code: "PROJ-2024-088"
 title: "Legacy Salesforce Data Migration Service"
 issued_date: "2023-12-01"

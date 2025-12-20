@@ -34,8 +34,7 @@ class RPGCharacter(BaseModel):
 *   **ID：** 每个实体都需要一个唯一的 `id`。
 
 ````markdown
-```entity:RPGCharacter
-id: "hero_01"
+```entity:RPGCharacter id=hero_01
 name: "Aragorn"
 level: 10
 tags: ["ranger", "human"]
@@ -49,8 +48,7 @@ Typedown 支持追踪数据的演变过程。
 *   `derived_from`: 表示当前实体是由另一个实体变换而来的。
 
 ````markdown
-```entity:RPGCharacter
-id: "hero_01_v2"
+```entity:RPGCharacter id=hero_01_v2
 former: "hero_01"  # 此块取代了 "hero_01"
 name: "King Aragorn"
 level: 50

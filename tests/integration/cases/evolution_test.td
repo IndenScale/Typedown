@@ -13,14 +13,12 @@ class Feature(BaseModel):
     notes: Optional[str] = None
 ```
 
-```entity:Feature
-id: "feat_v1"
+```entity:Feature id=feat_v1
 status: "planned"
 priority: "high"
 ```
 
-```entity:Feature
-id: "feat_v2"
+```entity:Feature id=feat_v2
 former: "feat_v1"
 status: "done"
 # priority should be inherited as "high"

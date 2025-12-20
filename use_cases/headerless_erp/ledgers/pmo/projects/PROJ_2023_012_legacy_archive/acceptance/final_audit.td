@@ -22,8 +22,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import AcceptanceReport
 ```
 
-```entity:AcceptanceReport
-id: "accept_archive_final_audit"
+```entity:AcceptanceReport id=accept_archive_final_audit
 project_code: "PROJ-2023-012"
 title: "AS/400 Decommissioning Compliance Audit"
 inspector_id: "ext_auditor_pwc_009"

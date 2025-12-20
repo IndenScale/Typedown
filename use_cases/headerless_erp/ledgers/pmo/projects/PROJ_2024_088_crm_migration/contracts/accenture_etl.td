@@ -18,8 +18,7 @@ from use_cases.headerless_erp.models.pmo.documents import Contract
 from use_cases.headerless_erp.models.core.primitives import Money
 ```
 
-```entity:Contract
-id: "ctr_acn_etl_001"
+```entity:Contract id=ctr_acn_etl_001
 project_code: "PROJ-2024-088"
 vendor_name: "Accenture"
 title: "Salesforce Data ETL Service"

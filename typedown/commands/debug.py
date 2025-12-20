@@ -4,7 +4,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.syntax import Syntax
 
-from typedown.core.parser import Parser
+from typedown.core.mistune_parser import TypedownParser
 
 app = typer.Typer(help="Debug internal states and ASTs.")
 console = Console()
@@ -17,9 +17,9 @@ def debug_parse(
     """
     Parse a single file and dump its AST (Document Node).
     """
-    parser = Parser()
+    parser = TypedownParser()
     try:
-        doc = parser.parse_file(file_path)
+        doc = parser.parse(file_path)
         
         # Pydantic v2 dump (model_dump_json)
         # Assuming pydantic v2. If v1, use .json()

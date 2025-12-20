@@ -21,8 +21,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.project import Project
 ```
 
-```entity:Project
-id: "proj_2024_crm_migration"
+```entity:Project id=proj_2024_crm_migration
 name: "Global CRM Migration"
 code: "PROJ-2024-088"
 manager_id: "emp_pmo_head_001"

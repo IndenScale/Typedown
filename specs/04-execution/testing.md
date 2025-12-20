@@ -22,7 +22,7 @@ When you run `td test`, Typedown executes a rigorous 4-stage process:
 **Goal**: Context Construction.
 
 - **Config Loading**: Executes `typedown.toml` and project-level Python configurations.
-- **Import Hooks**: Activates the custom Import Hook to allow virtual imports (e.g., `from typedown.entities import ...`).
+- **Prelude Loading**: Loads global symbols defined in `linker.prelude`.
 - **Model Execution**: Runs all `model` blocks to register Pydantic classes and validators in the memory space.
 - **Graph Construction**: Scans all `entity` data for `[[Reference]]` syntax and builds a **Dependency Graph**.
 
@@ -41,7 +41,7 @@ When you run `td test`, Typedown executes a rigorous 4-stage process:
 
 - Only if the previous 3 phases pass does Typedown proceed to this stage.
 - Extracts `spec` blocks into temporary Python files.
-- Injects the fully compiled **Compiler Context** (often called `session` or `compiler` in fixtures).
+- Injects the fully compiled **Compiler Context** (referred to as `compiler` or `workspace` in fixtures).
 - Invokes **Pytest** to run these files.
 
 ---
@@ -50,17 +50,21 @@ When you run `td test`, Typedown executes a rigorous 4-stage process:
 
 Specs are Python code blocks tagged with `spec`. They are the place for cross-entity logic and complex business rule verification.
 
-### The `session` Fixture
+### The `workspace` Fixture
 
-The test runner automatically injects a `session` fixture (or `compiler`), which provides access to the fully resolved Symbol Table and Entity Graph.
+The test runner automatically injects a `workspace` fixture (or `compiler`), which provides access to the fully resolved Symbol Table and Entity Graph.
+
+### Entity Attribute Access
+
+Entities returned by `get_entities_by_type` are wrapped in a helper that allows **Dot Notation** access to dictionary fields (e.g., `entity.name` instead of `entity['name']`).
 
 ```python
-# The 'session' object is the Compiler instance from the pipeline above
-def test_all_monsters_have_valid_drops(session):
+# The 'workspace' object is the Compiler/Workspace instance
+def test_all_monsters_have_valid_drops(workspace):
     # Query the resolved data
     # .get_entities_by_type() returns a list of attribute-accessible objects
-    items = session.get_entities_by_type("Item")
-    monsters = session.get_entities_by_type("Monster")
+    items = workspace.get_entities_by_type("Item")
+    monsters = workspace.get_entities_by_type("Monster")
 
     item_ids = {item.id for item in items}
 
@@ -83,8 +87,7 @@ The environment is pre-configured with standard testing libraries.
 For simple, single-entity assertions, you can use the `check` block. This is syntactic sugar that compiles down to a test case running in Phase 4.
 
 ````markdown
-```entity:User
-id: "admin"
+```entity:User id=admin
 age: 30
 ```
 
@@ -133,19 +136,20 @@ isolated = { include = ["src/utils"], strict = true }
 
 ### Reference Resolution Strategy
 
-You might ask: *If I limit scope to `src/core`, but it references `[[User]]` in `src/auth`, does the build fail?*
+You might ask: _If I limit scope to `src/core`, but it references `[[User]]` in `src/auth`, does the build fail?_
 
 Typedown handles this via a **Hybrid Scanning Strategy**:
 
-1.  **Global Shallow Scan (Default)**: 
-    *   The compiler performs a fast, lightweight scan of the *entire project* to build the **Symbol Index**. 
-    *   It knows where `[[User]]` exists but does not validate `src/auth` or run its tests.
-    *   **Result**: References work seamlessly. `src/core` is fully validated, while `src/auth` serves as read-only context.
+1.  **Global Shallow Scan (Default)**:
+
+    - The compiler performs a fast, lightweight scan of the _entire project_ to build the **Symbol Index**.
+    - It knows where `[[User]]` exists but does not validate `src/auth` or run its tests.
+    - **Result**: References work seamlessly. `src/core` is fully validated, while `src/auth` serves as read-only context.
 
 2.  **Strict Mode (`strict = true`)**:
-    *   The compiler *only* looks at files in `include`.
-    *   References to outside entities become **Dangling Reference Errors**.
-    *   Use this for isolated modules that must be self-contained.
+    - The compiler _only_ looks at files in `include`.
+    - References to outside entities become **Dangling Reference Errors**.
+    - Use this for isolated modules that must be self-contained.
 
 ### Usage
 

@@ -14,16 +14,14 @@ from use_cases.bid_agent.models.review import (
 
 > 请专家在开标现场核对以下实物细节。
 
-```entity:ComplianceItem
-id: "REQ-PHY-01"
+```entity:ComplianceItem id=REQ-PHY-01
 content: "投标文件须密封完好，封口处加盖骑缝章。"
 stage: "PRELIMINARY_FORMAL"
 criticality: "CRITICAL"
 rejection_reason_template: "密封破损或未盖骑缝章"
 ```
 
-```entity:ComplianceItem
-id: "REQ-PHY-02"
+```entity:ComplianceItem id=REQ-PHY-02
 content: "纸质标书正本 1 份，副本 4 份。"
 stage: "PRELIMINARY_FORMAL"
 criticality: "CRITICAL"
@@ -34,16 +32,14 @@ rejection_reason_template: "副本数量不足"
 
 > 对应招标文件第三章“评标办法”。
 
-```entity:ComplianceItem
-id: "REQ-QUAL-01"
+```entity:ComplianceItem id=REQ-QUAL-01
 content: "投标保证金 50 万元人民币，须在截标前到账。"
 stage: "PRELIMINARY_QUALIFICATION"
 criticality: "CRITICAL"
 keywords: ["保证金", "50万", "到账"]
 ```
 
-```entity:ComplianceItem
-id: "REQ-QUAL-02"
+```entity:ComplianceItem id=REQ-QUAL-02
 content: "投标人须具备 ISO9001 质量管理体系认证。"
 stage: "PRELIMINARY_QUALIFICATION"
 criticality: "CRITICAL"
@@ -54,8 +50,7 @@ keywords: ["ISO9001", "质量管理"]
 
 ### 技术部分
 
-```entity:ScoringItem
-id: "SCORE-TECH-01"
+```entity:ScoringItem id=SCORE-TECH-01
 content: "总体设计方案架构合理，具有高可用性设计。"
 stage: "DETAILED_EVALUATION"
 component: "TECHNICAL"
@@ -66,8 +61,7 @@ scoring_criteria: "优(8-10分): 架构先进，有完善的双活设计；良(5
 
 ### 商务部分
 
-```entity:ScoringItem
-id: "SCORE-BIZ-01"
+```entity:ScoringItem id=SCORE-BIZ-01
 content: "近三年类似项目业绩（单项合同额 > 1000万）。"
 stage: "DETAILED_EVALUATION"
 component: "BUSINESS"

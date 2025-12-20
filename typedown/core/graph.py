@@ -1,4 +1,5 @@
 from typing import Any, Dict, List, Optional, Set
+from typedown.core.errors import CycleError
 
 class DependencyGraph:
     def __init__(self):
@@ -8,31 +9,45 @@ class DependencyGraph:
         if node not in self.adj:
             self.adj[node] = set()
         self.adj[node].add(dependency)
+        # Ensure dependency exists in graph structure too
         if dependency not in self.adj:
             self.adj[dependency] = set()
 
     def topological_sort(self) -> List[str]:
+        """
+        Returns a list of nodes in topological order (dependencies first).
+        Raises CycleError if a cycle is detected.
+        """
         visited = set()
         temp_visited = set()
         order = []
+        path_stack = [] # For nice error reporting
 
         def visit(node):
             if node in temp_visited:
-                raise ValueError(f"Circular dependency detected involving: {node}")
+                # Cycle detected!
+                # Reconstruct path for error message
+                cycle_path = " -> ".join(path_stack + [node])
+                raise CycleError(f"Circular dependency detected: {cycle_path}")
+            
             if node not in visited:
                 temp_visited.add(node)
-                for neighbor in self.adj.get(node, []):
+                path_stack.append(node)
+                
+                # Visit neighbors (dependencies)
+                # Sort for deterministic output
+                for neighbor in sorted(self.adj.get(node, [])):
                     visit(neighbor)
+                
+                path_stack.pop()
                 temp_visited.remove(node)
                 visited.add(node)
                 order.append(node)
 
-        for node in list(self.adj.keys()):
+        # Visit all nodes
+        # Sort keys for deterministic behavior
+        for node in sorted(list(self.adj.keys())):
             if node not in visited:
-                try:
-                    visit(node)
-                except ValueError as e:
-                    # Log but continue to allow other independent components to be sorted
-                    pass
+                visit(node)
         
         return order

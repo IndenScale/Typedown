@@ -9,8 +9,7 @@ from use_cases.bid_agent.models.verification import FactCheckRecord
 
 ## 高级职称核查
 
-```entity:FactCheckRecord
-id: "CHECK-TITLE-PM-ZHANG"
+```entity:FactCheckRecord id=CHECK-TITLE-PM-ZHANG
 target_evidence_id: "PER-PM-ZHANG"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-TECH-02"
@@ -22,8 +21,7 @@ screenshot:
   type: "SUPPORTING_DOC"
 ```
 
-```entity:FactCheckRecord
-id: "CHECK-TITLE-TD-LI"
+```entity:FactCheckRecord id=CHECK-TITLE-TD-LI
 target_evidence_id: "PER-TD-LI"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-TECH-02"

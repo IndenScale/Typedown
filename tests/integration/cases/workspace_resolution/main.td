@@ -9,8 +9,7 @@ from @lib.math import MathConfig
 
 Defining an entity using the imported type.
 
-```entity:MathConfig
-id: main_config
+```entity:MathConfig id=main_config
 precision: 2
 mode: "decimal"
 ```

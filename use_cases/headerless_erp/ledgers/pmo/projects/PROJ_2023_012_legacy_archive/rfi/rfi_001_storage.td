@@ -11,8 +11,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import RFI
 ```
 
-```entity:RFI
-id: "rfi_2023_cold_storage"
+```entity:RFI id=rfi_2023_cold_storage
 project_code: "PROJ-2023-012"
 title: "Long-term Immutable Cold Storage Solution"
 issued_date: "2023-05-15"

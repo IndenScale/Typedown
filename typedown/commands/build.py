@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 from rich.console import Console
 
-from typedown.core.workspace import Workspace
+from typedown.core.compiler import Compiler
 
 console = Console()
 
@@ -79,12 +79,9 @@ def build(
     _check_output_safety(output_dir, path, force)
 
     # 1. Validation Phase
-    workspace = Workspace(root=path if path.is_dir() else path.parent)
-    try:
-        workspace.load(path)
-        workspace.resolve() # This will raise typer.Exit(1) on validation failure
-    except Exception as e:
-        console.print(f"[bold red]Build Failed during Validation:[/bold red] {e}")
+    compiler = Compiler(path)
+    if not compiler.compile():
+        console.print(f"[bold red]Build Failed during Validation.[/bold red]")
         raise typer.Exit(code=1)
 
     # 2. Artifact Generation Phase
@@ -95,9 +92,11 @@ def build(
 
     # 2.1 Generate data.json (The Giant Blob)
     data_map = {}
-    for entity_id, entity in workspace.project.symbol_table.items():
-        # We export the Resolved Data
-        data_map[entity_id] = entity.resolved_data
+    for entity_id, entity in compiler.symbol_table.items():
+        # We export the Resolved Data (data is modified in-place by Validator)
+        # Assuming entity.data is the resolved dictionary after compile()
+        if hasattr(entity, 'data'):
+             data_map[entity_id] = entity.data
     
     data_file = output_dir / "data.json"
     data_file.write_text(json.dumps(data_map, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -109,9 +108,14 @@ def build(
     if not content_dir.exists():
         content_dir.mkdir()
         
-    for rel_path, doc in workspace.project.documents.items():
-        # Source Absolute Path
-        src = doc.path
+    for doc_path, doc in compiler.documents.items():
+        # Calculate relative path from project root
+        try:
+            rel_path = doc_path.relative_to(compiler.project_root)
+        except ValueError:
+            # Fallback if doc is outside root (unlikely with walk)
+            rel_path = doc_path.name
+            
         # Dest Absolute Path
         dest = content_dir / rel_path
         
@@ -119,17 +123,14 @@ def build(
         dest.parent.mkdir(parents=True, exist_ok=True)
         
         # Copy file
-        shutil.copy2(src, dest)
+        shutil.copy2(doc_path, dest)
         
-    console.print(f"  [green]✓[/green] Copied {len(workspace.project.documents)} markdown files to content/")
+    console.print(f"  [green]✓[/green] Copied {len(compiler.documents)} markdown files to content/")
 
     # 2.3 Copy Assets
-    assets_src = workspace.root / "assets"
+    assets_src = compiler.project_root / "assets"
     if assets_src.exists() and assets_src.is_dir():
          assets_dest = output_dir / "assets"
-         # shutil.copytree requires dest to usually not exist or be empty depending on python version
-         # We already cleaned output_dir, so if assets_dest exists it means it was created in this run? 
-         # Unlikely. But copytree dirs_exist_ok verified in python 3.8+
          shutil.copytree(assets_src, assets_dest, dirs_exist_ok=True)
          console.print(f"  [green]✓[/green] Copied assets directory")
 

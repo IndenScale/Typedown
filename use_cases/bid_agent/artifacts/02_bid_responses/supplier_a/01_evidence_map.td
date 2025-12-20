@@ -7,15 +7,13 @@ from use_cases.bid_agent.models.evidence import DocLocation, Certificate
 
 ## 1. 形式与资格响应
 
-```entity:BidResponseItem
-id: "RESP-SUP-A-PHY-01"
+```entity:BidResponseItem id=RESP-SUP-A-PHY-01
 supplier_id: "SUP-A"
 review_item_id: "REQ-PHY-01"
 response_text: "（现场实物检查，此处无电子证据）"
 ```
 
-```entity:BidResponseItem
-id: "RESP-SUP-A-QUAL-02"
+```entity:BidResponseItem id=RESP-SUP-A-QUAL-02
 supplier_id: "SUP-A"
 review_item_id: "REQ-QUAL-02"
 evidences:
@@ -32,8 +30,7 @@ evidences:
 
 ### [SCORE-TECH-01] 架构设计
 
-```entity:BidResponseItem
-id: "RESP-SUP-A-TECH-01"
+```entity:BidResponseItem id=RESP-SUP-A-TECH-01
 supplier_id: "SUP-A"
 review_item_id: "SCORE-TECH-01"
 evidences:
@@ -46,8 +43,7 @@ evidences:
 
 ### [SCORE-BIZ-01] 业绩证明
 
-```entity:BidResponseItem
-id: "RESP-SUP-A-BIZ-01"
+```entity:BidResponseItem id=RESP-SUP-A-BIZ-01
 supplier_id: "SUP-A"
 review_item_id: "SCORE-BIZ-01"
 evidences:

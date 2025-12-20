@@ -98,6 +98,11 @@ def workspace(compiler):
             root = str(compiler.project_root)
             
             for i, spec in enumerate(doc.specs):
+                # Skip YAML specs (they have 'data' populated) - only Python code specs are supported here
+                if spec.data:
+                    console.print(f"[yellow]Skipping YAML spec '{spec.id or 'unknown'}' in {doc_path} (Legacy support pending)[/yellow]")
+                    continue
+
                 test_file = tmp_path / f"test_{sanitized_path}_{i}.py"
                 
                 header = f"""

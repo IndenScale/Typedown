@@ -34,8 +34,7 @@ Use the `entity:<Type>` block to create data instances. The content is **YAML** 
 *   **ID:** Every entity needs a unique `id`. If omitted, some implementations might auto-generate one, but explicit is better.
 
 ````markdown
-```entity:RPGCharacter
-id: "hero_01"
+```entity:RPGCharacter id=hero_01
 name: "Aragorn"
 level: 10
 tags: ["ranger", "human"]
@@ -49,8 +48,7 @@ Typedown supports tracking the evolution of data over time.
 *   `derived_from`: This entity is a transformation of another entity.
 
 ````markdown
-```entity:RPGCharacter
-id: "hero_01_v2"
+```entity:RPGCharacter id=hero_01_v2
 former: "hero_01"  # This block supersedes "hero_01"
 name: "King Aragorn"
 level: 50

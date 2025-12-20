@@ -8,8 +8,7 @@ class Color(BaseModel):
     hex: str
 ```
 
-```entity:Color
-id: color_green
+```entity:Color id=color_green
 name: "Green"
 hex: "#00FF00"
 ```

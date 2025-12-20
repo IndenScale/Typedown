@@ -19,8 +19,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.project import Project
 ```
 
-```entity:Project
-id: "proj_2023_legacy_archive"
+```entity:Project id=proj_2023_legacy_archive
 name: "Legacy System Archival"
 code: "PROJ-2023-012"
 manager_id: "emp_fin_head_001"

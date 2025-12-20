@@ -19,8 +19,7 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import RFI
 ```
 
-```entity:RFI
-id: "rfi_2024_robotic_arm"
+```entity:RFI id=rfi_2024_robotic_arm
 project_code: "PROJ-2025-001"
 title: "High-Precision Industrial Robotic Arm Procurement"
 issued_date: "2024-11-10"

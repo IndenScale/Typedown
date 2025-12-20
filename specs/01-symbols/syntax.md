@@ -25,26 +25,57 @@ class User(BaseModel):
    - **Enum**: `Enum`
 3. **Override Mechanism**: Classes defined here are automatically registered to the current document's context. If a name conflicts with an existing model, the new definition overrides the old one.
 
-Use the `entity:<ClassName>` tag. You can specify an `id` in the header or within the body.
+Use the `entity:<ClassName>` tag. You must specify an `id` in the header.
 
 ````markdown
-# ID specified in header
-
 ```entity:User id=alice
 name: "Alice"
 age: 30
 ```
+````
 
-# ID specified in body (YAML)
+## 3. Spec Definition (Testing & Logic)
 
-```entity:User
-id: "bob"
-name: "Bob"
-age: 25
+Typedown supports two ways to define specifications or tests:
+
+### 3.1 Python Specs (`spec` or `spec:python`)
+
+Use standard Python code (typically Pytest functions) to verify complex logic.
+
+````markdown
+```spec id=check_user_age
+def test_users_are_adults(workspace):
+    users = workspace.get_entities_by_type("User")
+    for user in users:
+        assert user.age >= 18
 ```
 ````
 
-## 3. Context Configuration
+### 3.2 YAML Specs (`spec` or `spec:yaml`)
+
+Use declarative YAML to define simple rules or check execution parameters.
+
+````markdown
+```spec id=rule_evidence_required
+target: Control
+check: compliance.checks.has_evidence
+severity: error
+params:
+  min_count: 1
+```
+````
+
+## 4. Code Block Metadata
+
+You can attach arbitrary metadata to any code block header using `key=value` syntax. The compiler parses these attributes and stores them in the AST.
+
+````markdown
+```entity:User id=alice status=active priority=high
+...
+```
+````
+
+## 5. Context Configuration
 
 Typedown uses flexible **Executable Configuration Scripts** to manage context configuration.
 
@@ -72,4 +103,5 @@ from my_app.models import Product, Order
 To maintain context clarity and avoid unexpected naming conflicts, Typedown **defaults to OFF** for automatically scanning and loading `.py` files in the directory.
 
 - **Default Behavior**: Only models explicitly imported (`import`) or defined (`class ...`) within `config:python` are loaded.
+- **Prelude (Global Imports)**: You can also define globally available symbols (like a standard library) in `typedown.toml` under the `[linker.prelude]` section. These symbols are automatically available in all scripts.
 - **Future Expansion**: Automatic injection for specific directories may be enabled via a global CLI configuration file (e.g., `pyproject.toml`) using a whitelist/blacklist pattern.
