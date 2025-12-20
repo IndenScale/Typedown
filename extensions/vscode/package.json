@@ -1,8 +1,12 @@
 {
-  "name": "typedown-vscode",
+  "name": "typedown-vscode-ext",
   "displayName": "Typedown",
   "description": "Progressive Formalization for Markdown",
-  "version": "0.1.0",
+  "version": "0.1.2",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/IndenScale/Typedown.git"
+  },
   "publisher": "Typedown",
   "engines": {
     "vscode": "^1.75.0"
