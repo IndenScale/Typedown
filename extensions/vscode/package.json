@@ -1,6 +1,6 @@
 {
-  "name": "typedown-vscode-ext",
-  "displayName": "Typedown",
+  "name": "typedown-vscode-integration",
+  "displayName": "Typedown Integration",
   "description": "Progressive Formalization for Markdown",
   "version": "0.1.2",
   "repository": {
