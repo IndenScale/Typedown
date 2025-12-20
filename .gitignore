@@ -10,6 +10,10 @@ __pycache__/
 .venv/
 venv/
 env/
+# Local Strategy & Tasks
+_strategy/todos/
+.claude/
+.gemini/
 .env
 
 # Typedown Artifacts

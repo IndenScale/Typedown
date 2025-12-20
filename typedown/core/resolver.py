@@ -1,113 +1,137 @@
-from typing import Dict, List, Set, Tuple
-from collections import deque
-from typedown.core.ast import EntityBlock, Project
+from pathlib import Path
+from typing import Optional, Dict, Tuple
+import sys
 
-class CircularDependencyError(Exception):
-    pass
+from typedown.core.config import TypedownConfig
 
 class Resolver:
-    def __init__(self, project: Project):
-        self.project = project
-        self.dependency_graph: Dict[str, List[str]] = {} # id -> list of parent ids
+    """
+    Compiler Component: Path Resolver & Dependency Manager.
+    Responsible for mapping logical import strings (e.g. "@lib.math") to physical file paths.
+    """
 
-    def build_graph(self):
-        """
-        Build the dependency graph from the symbol table.
-        Dependencies include:
-        1. Inheritance (former / derived_from)
-        2. Content References ([[Target.attr]])
-        """
-        # Pre-calculate reference map: entity_id -> set(dependency_ids)
-        ref_deps: Dict[str, Set[str]] = {}
+    def __init__(self, root: Path):
+        self.start_root = root.resolve()
+        self.project_root, self.config = self._find_project_root(self.start_root)
         
-        # We need to map References to Entities based on SourceLocation
-        # Iterate over documents to do this mapping contextually
-        for doc in self.project.documents.values():
-            # For each document, check which references fall into which entity block
+        # Cache for resolved paths to avoid repeated disk I/O
+        # import_string -> resolved_absolute_path
+        self._resolution_cache: Dict[str, Path] = {}
+
+    def _find_project_root(self, start: Path) -> Tuple[Path, TypedownConfig]:
+        """
+        Climb up the directory tree to find `typedown.toml`.
+        If not found, defaults to start_path and empty config.
+        """
+        current = start
+        while True:
+            config_file = current / "typedown.toml"
+            if config_file.exists():
+                try:
+                    config = TypedownConfig.load(config_file)
+                    return current, config
+                except Exception as e:
+                    # TODO: Log warning via proper logger
+                    print(f"Warning: Failed to parse {config_file}: {e}", file=sys.stderr)
             
-            # Optimization: Sort entities by start line (should be already ?)
-            # Naive approach: for each ref, find the containing entity
-            for ref in doc.references:
-                ref_line = ref.location.line_start
-                target_id = ref.query_string.split('.')[0] # "User.name" -> "User"
-                
-                # Check if this target exists in symbol table
-                if target_id not in self.project.symbol_table:
-                    # Ignore external/invalid refs here, Evaluator will catch them.
-                    # Or should we enforce existence? 
-                    # If we enforce, we might break on self-references inside the same block?
-                    # Let's verify existence.
-                    continue
-                
-                # Find the owner entity
-                owner_entity = None
-                for entity in doc.entities:
-                    if entity.location.line_start <= ref_line <= entity.location.line_end:
-                        owner_entity = entity
-                        break
-                
-                if owner_entity:
-                    if owner_entity.id not in ref_deps:
-                        ref_deps[owner_entity.id] = set()
+            parent = current.parent
+            if parent == current: # Reached filesystem root
+                break
+            current = parent
+            
+        # Fallback: No config found, treat start_dir as root with default config
+        return start, TypedownConfig()
+
+    def resolve(self, source: str, relative_to: Optional[Path] = None) -> Path:
+        """
+        Resolve an import string to a physical file path.
+        
+        Args:
+            source: The import string, e.g., "@lib.math", "models.user", "./utils"
+            relative_to: The file path doing the importing (for relative imports)
+            
+        Returns:
+            Absolute Path to the target file (.py or .td)
+            
+        Raises:
+            FileNotFoundError: If the module cannot be found.
+        """
+        if source in self._resolution_cache:
+            return self._resolution_cache[source]
+
+        # 1. Handle Virtual Namespace Mappings (e.g., "@lib")
+        # We look for the longest matching prefix in dependencies
+        matched_dep_path = None
+        remaining_parts = source
+        
+        # Sort dependencies by key length descending to match specific prefixes first
+        sorted_deps = sorted(self.config.dependencies.items(), key=lambda x: len(x[0]), reverse=True)
+        
+        for dep_name, dep_config in sorted_deps:
+            if source == dep_name or source.startswith(dep_name + "."):
+                # Found a match!
+                if dep_config.path:
+                    # Resolve dependency root relative to the project root (where typedown.toml is)
+                    dep_root = (self.project_root / dep_config.path).resolve()
                     
-                    # Avoid self-dependency (not circular, just no-op)
-                    if target_id != owner_entity.id:
-                        ref_deps[owner_entity.id].add(target_id)
+                    if source == dep_name:
+                        matched_dep_path = dep_root
+                        remaining_parts = ""
+                    else:
+                        # Remove prefix and dot
+                        matched_dep_path = dep_root
+                        remaining_parts = source[len(dep_name) + 1:] 
+                    break
+        
+        # 2. Construct search base
+        if matched_dep_path:
+            # We are inside a mapped dependency
+            search_base = matched_dep_path
+        else:
+            # Standard import
+            if source.startswith("."):
+                # Relative import
+                if relative_to is None:
+                     raise ValueError(f"Cannot resolve relative import '{source}' without context.")
+                search_base = relative_to.parent
+                # Handling ".." is tricky with string split, simpler to use resolve() later
+                # For now, simplistic handling of "./" logic via relative conversion
+                # But Python relative imports use dots differently (from . import x). 
+                # Here we assume file-path like relative imports from standard 'import:' block?
+                # If it's python import 'from .mod import', source is usually absolute in AST or handled by python.
+                # Let's assume 'source' is the module path.
+                remaining_parts = source
+            else:
+                # Absolute import relative to project root (default behavior)
+                search_base = self.project_root
+                remaining_parts = source
 
-        # Now build the full graph
-        for entity_id, entity in self.project.symbol_table.items():
-            deps = set()
+        # 3. Resolve file path from parts
+        # "math" -> "math.py" or "math.td" or "math/__init__.py"
+        path_parts = remaining_parts.split(".") if remaining_parts else []
+        
+        current_path = search_base
+        for part in path_parts:
+            current_path = current_path / part
             
-            # 1. Structural Dependencies (Inheritance)
-            if entity.former_ref:
-                t = entity.former_ref.target_query
-                if t in self.project.symbol_table: deps.add(t)
-            
-            if entity.derived_from_ref:
-                t = entity.derived_from_ref.target_query
-                if t in self.project.symbol_table: deps.add(t)
-            
-            # 2. Content Dependencies (References)
-            if entity_id in ref_deps:
-                deps.update(ref_deps[entity_id])
-                
-            self.project.dependency_graph[entity_id] = list(deps)
+        # 4. Probe for extensions
+        candidates = [
+            current_path.with_suffix(".py"),
+            current_path.with_suffix(".td"),
+            current_path.with_suffix(".md"),
+            current_path / "__init__.py",
+            current_path / "index.td",
+             current_path / "index.md"
+        ]
+        
+        # If it's a direct directory mapping (like import @lib), current_path might be the dir itself
+        if current_path.is_dir():
+             candidates.insert(0, current_path / "__init__.py")
 
-    def topological_sort(self) -> List[str]:
-        """
-        Return a list of entity IDs in instantiation order (Parents first).
-        Uses Kahn's algorithm.
-        """
-        graph = self.project.dependency_graph
-        
-        # Rebuild graph as Adjacency List: Dependency -> [Dependents]
-        # graph[u] = [deps] means u depends on deps.
-        # Edge direction V -> U means V must complete before U starts.
-        adj = {u: [] for u in graph}
-        in_degree = {u: 0 for u in graph} 
-        
-        for u, deps in graph.items():
-            for v in deps:
-                # u depends on v. So v -> u edge.
-                adj[v].append(u)
-                in_degree[u] += 1
-        
-        # Queue of nodes with no dependencies
-        queue = deque([u for u in in_degree if in_degree[u] == 0])
-        sorted_list = []
-        
-        while queue:
-            u = queue.popleft()
-            sorted_list.append(u)
-            
-            for v in adj[u]:
-                in_degree[v] -= 1
-                if in_degree[v] == 0:
-                    queue.append(v)
-                    
-        if len(sorted_list) != len(graph):
-            # Debugging cycle
-            remaining = [u for u in in_degree if in_degree[u] > 0]
-            raise CircularDependencyError(f"Cycle detected involving entities: {remaining}")
-            
-        return sorted_list
+        for candidate in candidates:
+            if candidate.exists():
+                resolved = candidate.resolve()
+                self._resolution_cache[source] = resolved
+                return resolved
+
+        raise FileNotFoundError(f"Could not resolve module '{source}' from '{relative_to or self.project_root}'")

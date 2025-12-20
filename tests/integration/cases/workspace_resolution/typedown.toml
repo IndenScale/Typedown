@@ -1,0 +1,10 @@
+[package]
+name = "test-workspace"
+version = "0.1.0"
+
+[workspace]
+members = ["."]
+
+[dependencies]
+# Map the virtual namespace "@lib" to the local "lib" directory
+"@lib" = { path = "./lib" }

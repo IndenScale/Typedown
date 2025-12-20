@@ -23,7 +23,6 @@ Markdown 代码块中可以嵌套 Markdown 代码块。
 # 嵌套的 Python
 print("hello world")
 ```
-
 ````
 
 ## 文档系统
@@ -31,6 +30,12 @@ print("hello world")
 该系统使用 `docs` 与 `dev-docs` 两个目录来记录面向用户与开发者的文档。
 
 前者专注记录公式，而后者记录讨论、设计决策和实现记录。
+
+## AI 辅助文档
+
+- **[.gemini/skills.md](.gemini/skills.md)**: Typedown 核心技能手册（语法、CLI、调试）。
+
+- **[.gemini/agents.md](.gemini/agents.md)**: 角色定义与分工。
 
 ## 运行
 

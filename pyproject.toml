@@ -11,6 +11,8 @@ dependencies = [
     "python-frontmatter>=1.0.0",
     "markdown-it-py>=3.0.0",
     "rich>=13.0.0",
+    "tomli>=2.3.0",
+    "mistune>=3.1.4",
 ]
 
 [project.optional-dependencies]
