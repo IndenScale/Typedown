@@ -1,6 +1,18 @@
-# Typedown: Progressive Formalization for Markdown
+# Typedown: The Organizational Modeling Language
 
-**Typedown** is a new document format, toolchain, and product experience designed to bridge the gap between free-form Markdown and strict data schemas. It integrates **Markdown**, **Pydantic**, **Pytest**, and **Assets** into a cohesive package, reducing the cognitive friction in the process of "Progressive Formalization."
+**Typedown** is an open-source **Organizational Modeling Language (OML)** designed to bridge the gap between free-form human intent and strict machine execution.
+
+While it uses **Markdown** as its carrier syntax, Typedown is not just a document format. It is a language for **Organization as Code (OaC)**.
+
+## What is OML?
+
+Just as **Terraform (HCL)** models infrastructure and **SQL** models data, **Typedown** models the organization itself.
+
+*   **Entities**: People, Roles, Assets, Projects.
+*   **Rules**: Permissions, Workflows, Constraints.
+*   **Relationships**: Who reports to whom? What budget funds this project?
+
+It integrates **Markdown**, **Pydantic**, **Pytest**, and **Assets** into a cohesive package, reducing the cognitive friction in the process of "Progressive Formalization."
 
 ## The Vision
 

@@ -24,7 +24,7 @@ Headerless ERP 以**“数据模型 (Ontology)”**、**“治理规则 (Governa
 - `common/`: 基础类型（货币、单位、时间格式）。
 - `org/`: 组织架构定义（员工、角色、层级）。
 
-### 2. `governance/` (治理层)
+### 2. `specs/` (规则层)
 
 > **对应现实**：职能部门 (Functional Departments) 与垂直管理条线。
 
@@ -39,11 +39,11 @@ Headerless ERP 以**“数据模型 (Ontology)”**、**“治理规则 (Governa
 
 这里是企业最核心的**不可变记录 (Immutable Log)**。
 
-- 目录结构通常映射 `governance` 中的职能分类。
-- 只有通过了 `governance` 中 Spec 校验的数据，才有资格被合并 (Merge) 进这里。
+- 目录结构通常映射 `specs` 中的职能分类。
+- 只有通过了 `specs` 中规则校验的数据，才有资格被合并 (Merge) 进这里。
 - 它是企业的“单一事实来源 (Single Source of Truth)”。
 
-### 4. `collaboration/` (协作区)
+### 4. `workspace/` (工作区)
 
 > **对应现实**：业务部门 (Business Units) 的日常工作台。
 
@@ -53,11 +53,11 @@ Headerless ERP 以**“数据模型 (Ontology)”**、**“治理规则 (Governa
 - **宽松约束**：在这里，用户可以自由引入不同程度的约束。
 - **工作流**：
   1. 团队在这里协作、起草业务单据（如：草拟合同、填写报销单）。
-  2. 尝试将草稿针对 `governance` 中的规则进行验证。
+  2. 尝试将草稿针对 `specs` 中的规则进行验证。
   3. 验证通过后，提交 PR 或 Commit 进入 `ledgers`。
   4. 协作区仅保留对 `ledgers` 中已归档数据的引用 (`[[...]]`)。
 
-### 5. `discussions/` (讨论区)
+### 5. `issues/` (议题区)
 
 > **对应现实**：会议室、RFC 评审、决策记录。
 
@@ -76,7 +76,7 @@ Headerless ERP 以**“数据模型 (Ontology)”**、**“治理规则 (Governa
 
 ```bash
 # 验证协作区的数据是否合规
-td test collaboration/sales/drafts/contract_001.td
+td test workspace/sales/drafts/contract_001.td
 
 # 验证整个账本的一致性
 td test ledgers/

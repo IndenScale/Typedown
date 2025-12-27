@@ -10,11 +10,6 @@ __pycache__/
 .venv/
 venv/
 env/
-# Local Strategy & Tasks
-_strategy/todos/
-.claude/
-.gemini/
-.env
 
 # Typedown Artifacts
 dist/
@@ -27,10 +22,10 @@ htmlcov/
 
 # IDEs
 .idea/
+.vscode/
 
 # Logs
 *.log
-
 
 # Node / VS Code Extension
 node_modules/
@@ -43,5 +38,8 @@ docs/.vitepress/cache/
 docs/.vitepress/dist/
 docs/.vitepress/.temp/
 
-# Private Strategy Docs
-_strategy/
+# Private & Strategy (All underscore prefixed paths)
+_*
+.claude/
+.gemini/
+.env
