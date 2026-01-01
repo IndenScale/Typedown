@@ -1,24 +1,69 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig } from "vitepress";
 
 export default defineConfig({
   title: "Typedown",
   description: "Progressive Formalization for Markdown",
   cleanUrls: true,
+  lang: "zh-CN",
 
-  // Shared Theme Configuration
+  // Theme Configuration
   themeConfig: {
-    logo: { text: "Typedown" },
     siteTitle: "Typedown",
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/indenscale/typedown' }
+      { icon: "github", link: "https://github.com/indenscale/typedown" },
     ],
-    localeLinks: {
-      text: 'Language',
-      items: [
-        { text: 'English', link: '/' },
-        { text: '简体中文', link: '/zh/' }
-      ]
-    }
+    nav: [
+      { text: "宣言", link: "/manifesto" },
+      { text: "核心理念", link: "/00-核心理念" },
+      { text: "技术规范", link: "/01-语法/01-代码块" },
+    ],
+    sidebar: [
+      {
+        text: "理念",
+        items: [
+          { text: "宣言", link: "/manifesto" },
+          { text: "核心理念", link: "/00-核心理念" },
+        ],
+      },
+      {
+        text: "语法 (Syntax)",
+        items: [
+          { text: "代码块", link: "/01-语法/01-代码块" },
+          { text: "引用", link: "/01-语法/02-引用" },
+        ],
+      },
+      {
+        text: "语义 (Semantics)",
+        items: [
+          { text: "演变语义", link: "/02-语义/01-演变语义" },
+          {
+            text: "上下文与作用域",
+            link: "/02-语义/02-上下文与作用域",
+          },
+        ],
+      },
+      {
+        text: "运行 (Runtime)",
+        items: [
+          { text: "脚本系统", link: "/03-运行/01-脚本系统" },
+          { text: "质量控制", link: "/03-运行/02-质量控制" },
+        ],
+      },
+      {
+        text: "最佳实践",
+        items: [{ text: "身份管理", link: "/04-最佳实践/01-身份管理" }],
+      },
+    ],
+    docFooter: {
+      prev: "上一页",
+      next: "下一页",
+    },
+    outline: {
+      label: "页面导航",
+    },
+    returnToTopLabel: "回到顶部",
+    sidebarMenuLabel: "菜单",
+    darkModeSwitchLabel: "深色模式",
   },
 
   ignoreDeadLinks: true,
@@ -30,82 +75,4 @@ export default defineConfig({
       },
     },
   },
-
-  locales: {
-    root: {
-      label: 'English',
-      lang: 'en',
-      themeConfig: {
-        nav: [
-          { text: 'Manifesto', link: '/manifesto' },
-          { text: 'Guide', link: '/guide/01_syntax' },
-          { text: 'Reference', link: '/reference/cli' }
-        ],
-        sidebar: {
-          '/guide/': [
-            {
-              text: 'User Guide',
-              items: [
-                { text: '1. Syntax Guide', link: '/guide/01_syntax' },
-                { text: '2. Testing & Validation', link: '/guide/02_testing' },
-                { text: '3. Project Structure', link: '/guide/03_project_structure' }
-              ]
-            }
-          ],
-          '/reference/': [
-            {
-              text: 'Reference',
-              items: [
-                { text: 'CLI Reference', link: '/reference/cli' },
-                { text: 'Architecture', link: '/reference/architecture' }
-              ]
-            }
-          ]
-        }
-      }
-    },
-    zh: {
-      label: '简体中文',
-      lang: 'zh',
-      link: '/zh/',
-      themeConfig: {
-        nav: [
-          { text: '宣言', link: '/zh/manifesto' },
-          { text: '指南', link: '/zh/guide/01_syntax' },
-          { text: '参考', link: '/zh/reference/cli' }
-        ],
-        sidebar: {
-          '/zh/guide/': [
-            {
-              text: '用户指南',
-              items: [
-                { text: '1. 语法指南', link: '/zh/guide/01_syntax' },
-                { text: '2. 测试与验证', link: '/zh/guide/02_testing' },
-                { text: '3. 项目结构', link: '/zh/guide/03_project_structure' }
-              ]
-            }
-          ],
-          '/zh/reference/': [
-            {
-              text: '参考手册',
-              items: [
-                { text: 'CLI 参考', link: '/zh/reference/cli' },
-                { text: '架构', link: '/zh/reference/architecture' }
-              ]
-            }
-          ]
-        },
-        docFooter: {
-          prev: '上一页',
-          next: '下一页'
-        },
-        outline: {
-          label: '页面导航'
-        },
-        returnToTopLabel: '回到顶部',
-        sidebarMenuLabel: '菜单',
-        darkModeSwitchLabel: '深色模式'
-      }
-    }
-  }
-})
+});

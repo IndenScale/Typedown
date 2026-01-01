@@ -1,38 +1,47 @@
-# Manifesto
+# 宣言 (Manifesto)
 
-## Core Philosophy
+> **"You don't know it until you model it."**
+> (直到你建立了模型，你才真正了解它。)
 
-**You don't know it until you model it.**
+## 1. 认知阶梯 (The Ladder of Cognition)
 
-## The Five Steps of Modeling
+建模不是写文档，而是认知的物化过程。它包含五个递进的台阶：
 
-Modeling is the process of cognition, consisting of five progressive steps:
+1. **Recognize (识别)**: 交付 **Boolean**。
+   - 意识到某个概念或实体的存在。
+2. **Name (命名)**: 交付 **String**。
+   - 赋予该概念一个唯一的指代名称（Handle）。
+3. **Describe (描述)**: 交付 **Text/List**。
+   - 罗列其属性、特征以及与其他概念的关系。
+4. **Schematize (模式化)**: 交付 **Struct (Pydantic)**。
+   - 将描述转化为计算机可理解的严格结构，定义数据的形状。
+5. **Normalize (规范化)**: 交付 **Predicate (Pytest)**。
+   - 定义校验逻辑与测试断言，确保真理的完整性。
 
-1. **Recognize**: Delivers a **Boolean**.
-   - Acknowledging the existence of a concept or entity.
-2. **Name**: Delivers a **String**.
-   - Assigning a unique reference name to the concept.
-3. **Describe**: Delivers a **Hierarchical List**.
-   - Listing attributes, characteristics, and relationships with other concepts.
-4. **Schematize**: Delivers a **Pydantic Model** (or other Schema).
-   - Translating the description into a strict structure understandable by computers.
-5. **Normalize**: Delivers **Validator & Test Assertion**.
-   - Defining validation logic and test assertions to ensure data meets expected constraints.
+## 2. 角色：文学工程师 (The Literate Engineer)
 
-## Vision: Da Vinci in the AI Era
+受限于工业时代的专业分工，人类往往只负责上述链条中的一环。PM 负责描述，架构师负责模式化，开发者负责规范化。
 
-Due to the specialization of the industrial age, humans often handle only one or two steps in this chain. Product managers describe, architects schematize, and developers normalize.
+**AI 的出现，让“达芬奇式”的全才回归成为可能。**
 
-**The emergence of AI enables everyone to bridge the entire chain and become a polymath (Da Vinci).**
+为了驾驭这种能力，我们需要一种新的职业范式：**文学工程师 (The Literate Engineer)**。
 
-However, existing toolchains fragment this process, breaking the flow:
+- **文学性 (Literate)**: 我们保留自然语言的表达力，用 Markdown 承载思想的流动与模糊性。
+- **工程性 (Engineering)**: 我们引入工程学的纪律，用 Schema 和 测试 锚定真理的边界。
 
-- Mind mapping in XMind
-- Documentation in Word/Notion
-- Coding in IDEs
+工程本身就暗示着**纪律**与**约束**。Typedown 不仅仅是一个文档工具，它是为文学工程师打造的集成开发环境（IDE）。
 
-**Typedown Proposes**:
+## 3. 辩证法：约束即自由 (Freedom via Constraint)
 
-Future humans should work in a **unified format that smoothly supports the transition from recognition to normalization, from Idea to production-grade code**.
+为什么 Typedown 要引入“脆弱的引用”、“严格的 Schema”和“物理场域”？
 
-In this format, we leave the drudgery of **casting thought into form** to AI, while humans focus on the core creative thinking.
+因为**由约束产生杠杆 (Leverage comes from Constraints)**。
+
+- **这是交换**：你交付了“遵守 Schema”的**约束**，换取了 AI “生成 100 个符合逻辑的测试用例”的**杠杆**。
+- **这是代价**：你交付了“显式处理引用路径”的**纪律**，换取了 编译器 “在重构时瞬间指出所有逻辑断裂”的**自由**。
+
+真正的自由不是随心所欲（那是混乱），而是拥有掌控复杂系统的能力（那是精通）。
+
+通过将**思维过程形式化 (Formalizing Thought)**，我们将繁琐的“乃至形式”的苦役交给了工具和 AI，从而释放了人类最核心的价值——**创造性思维进行最高维度的编排**。
+
+这就是 Typedown 的承诺：**用最严格的约束，换取最极致的认知自由。**
