@@ -4,7 +4,7 @@ from collections import defaultdict
 
 # Add project root to sys.path to import typedown core
 project_root = Path(__file__).resolve().parents[3]
-sys.path.append(str(project_root))
+sys.path.append(str(project_root / "src"))
 
 from typedown.core.workspace import Workspace
 

@@ -1,4 +1,5 @@
 import sys
+sys.path.insert(0, "src")
 import typedown
 import typedown.core.workspace
 import typedown.core.loader

@@ -1,187 +1,116 @@
-# Typedown: The Organizational Modeling Language
+# Typedown: The Consensus Modeling Language (CML)
 
-**Typedown** is an open-source **Organizational Modeling Language (OML)** designed to bridge the gap between free-form human intent and strict machine execution.
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-While it uses **Markdown** as its carrier syntax, Typedown is not just a document format. It is a language for **Organization as Code (OaC)**.
+**Typedown** is a language designed for **Literate Modeling**. It bridges the gap between the fluidity of human thought (Markdown) and the rigor of engineering (Pydantic + Pytest).
 
-## What is OML?
+> **"You don't know it until you model it."** — [Manifesto](docs/zh/manifesto.md)
 
-Just as **Terraform (HCL)** models infrastructure and **SQL** models data, **Typedown** models the organization itself.
+---
 
-*   **Entities**: People, Roles, Assets, Projects.
-*   **Rules**: Permissions, Workflows, Constraints.
-*   **Relationships**: Who reports to whom? What budget funds this project?
+## The Trinity
 
-It integrates **Markdown**, **Pydantic**, **Pytest**, and **Assets** into a cohesive package, reducing the cognitive friction in the process of "Progressive Formalization."
+Typedown treats Markdown as a first-class language for **Consensus as Code (CaC)**, built on three pillars:
 
-## The Vision
+1.  **Markdown (Interface)**: Retains nature language expressiveness. It's the habitat for humans and AI.
+2.  **Pydantic (Structure)**: Defines strict data schemas via `model` blocks.
+3.  **Pytest (Logic)**: Enforces business rules and constraints via `spec` blocks.
 
-> **You don't know it until you model it.** — [**Read the full Typedown Manifesto**](docs/manifesto.md)
+## Why Typedown?
 
-In software engineering and complex system design, knowledge often evolves from vague concepts to strict specifications. Current tools force a binary choice: unstructured text (Markdown/Google Docs) or rigid structures (Database/JSON/Code).
+Traditional tools force a binary choice:
 
-Typedown allows you to treat Markdown as the primary interface while gradually imposing constraints via Python's ecosystem:
+- **Liquids (Text/Markdown)**: High fluidity but zero structural integrity. Documentation rots instantly.
+- **Crystals (Code/JSON/SQL)**: High integrity but zero flexibility. Hard for humans to browse and for AI to grasp intent.
 
-1. **Markdown** is the host language.
-2. **Pydantic** defines the structure (Schema) and local validation.
-3. **Pytest** defines global constraints and relationship verification.
+Typedown is **Active Soft Matter**. It allows information to "phase transition" from loose notes into solid, validated models within the same document.
 
-## Core Concepts
+## Core Features
 
-### 1. The Trinity: Markdown + Pydantic + Pytest
+- **Progressive Formalization**: Start with a sketch, end with a verified system.
+- **Triple Resolution**: Resolve references `[[ref]]` through **Hash** (L0), **Handle** (L1), and **Logical ID** (L2).
+- **Evolution Semantics**: Track time using `former` (versioning) and `derived_from` (prototyping).
+- **Context-Aware Scoping**: Implicit hierarchy via `config.td` and directory inheritance.
+- **QC Pipeline**: Four-layered validation from syntax (Lint) to external facts (Test).
 
-- **Markdown**: The human-readable layer.
-- **Pydantic**: The schema layer. Defines classes and field-level validation.
-- **Pytest**: The logic layer. Defines constraints that require access to the global variable table (e.g., "Referenced ID must exist").
+## Quick Start
 
-### 2. Configuration & Inheritance
+### 1. Define a Model
 
-- **Front Matter**: Used for file metadata (e.g., title, author, status).
-- **Scoped Configuration**: Each directory can contain a `config.td`. Code blocks tagged with `config:python` in `config.td` are executed to build context (e.g. importing models) and are inherited by subdirectories.
-- **Override Rule**: Deepest (most specific) definition wins.
-
-### 3. Entities & Data Blocks
-
-Variables are expressed using code blocks with a specific language identifier: `entity:<class_name>`.
+Define your schema directly in Markdown using Python:
 
 ````markdown
-# User Definition
-
-Here we define the admin user.
-
-```model
-class User(BaseModel):
-    id: str
+```model:UserAccount
+class UserAccount(BaseModel):
     name: str
-    role: str
+    age: int = Field(..., ge=18)
+    role: str = "member"
 ```
+````
 
-```entity:User id=u_001
+### 2. Declare an Entity
+
+Instantiate data using YAML with smart reference unboxing:
+
+````markdown
+```entity UserAccount: alice
+id: "iam/user/alice-v1"
 name: "Alice"
+age: 30
 role: "admin"
 ```
 ````
 
-### 4. Evolution & Derivation (The "Desugar" Process)
+### 3. Write a Specification
 
-Typedown supports minimal writing for evolving data.
-
-- **`former`**: Represents the same entity (conceptually) at a different point in time or state.
-- **`derived_from`**: Represents a variant of a base object.
-
-**Input (Syntactic Sugar):**
+Add business logic that targets your data:
 
 ````markdown
-# Version 2
-
-```entity:User
-former: "u_001"  # References the previous object
-email: "alice@example.com" # Only new/changed fields needed
+```spec id=check_roles
+@target(type="UserAccount")
+def validate_admin(subject: UserAccount):
+    if subject.role == "admin":
+        assert subject.age >= 25, "Admins must be senior"
 ```
 ````
 
-**Output (Desugared/Materialized):**
-The compiler merges the previous state with the new fields to create a complete object for validation.
+## CLI Usage
 
-### 5. Compilation & Materialization
+The `td` tool is your companion for the development loop:
 
-The CLI supports a "compile" operation that can:
+- **`td lint`**: (L1) Check Markdown syntax and YAML formatting.
+- **`td check`**: (L2) Validate entities against Pydantic models.
+- **`td validate`**: (L3) Check references and run `spec` blocks (Internal Logic).
+- **`td test`**: (L4) Run external verification (Oracles/APIs).
+- **`td run <script>`**: Execute scripts defined in Front Matter.
 
-- **Validate**: Check all Pydantic models and Pytest constraints.
-- **Materialize**: Rewrite documents to fill in missing fields from `former` or `derived_from` sources, optimizing the reading experience for consumers while keeping the writing experience minimal.
+## Installation
 
-### 6. Directory Structure
+Typedown thrives in the [uv](https://github.com/astral-sh/uv) ecosystem.
 
-A standard Typedown project looks like this:
+```bash
+# Clone and sync
+git clone https://github.com/IndenScale/Typedown.git
+cd Typedown
+uv sync
 
-```text
-.
-├── docs/       # The content. Markdown files (.md / .td)
-│   ├── arch/
-│   │   ├── config.td  # Scoped config for this dir
-│   │   └── design.md
-│   └── ...
-├── models/     # The Schema. Python Pydantic classes
-│   └── user.py
-├── specs/      # The Constraints. Pytest files
-│   └── test_consistency.py
-└── assets/     # Images, diagrams, static files
+# Run help
+uv run td --help
+
+# Or use the alias
+uv run typedown --help
 ```
 
 ## Documentation
 
-For more detailed information, please refer to the following directories:
+- **[GEMINI.md](GEMINI.md)**: AI Agent Guidance (Start here for AI dev).
+- **[Chinese Documentation](docs/zh/index.md)**: The current primary source of truth.
+- **[Manifesto](docs/zh/manifesto.md)**: Why we built this.
 
-- **[Specs](specs/)**: Formal language specifications, RFCs, and data models.
-- **[Docs](docs/)**: User guides and feature documentation.
-- **[Dev Docs](dev-docs/)**: Architecture decisions (ADRs) and implementation details.
-
-## Architecture & Toolchain
-
-The ecosystem consists of several decoupled components:
-
-### 1. Typedown Compiler (`tdc`)
-
-The core library responsible for processing the project.
-
-- **Analyze**: Parse Markdown AST, resolve imports, build the symbol table, and handle `config.td` inheritance.
-- **Desugar**: Resolve `former` (temporal) and `derived_from` (inheritance) links, flattening the data into pure Pydantic instances.
-- **Lint**: Static analysis for broken links, unused imports, and style conventions.
-- **Validate**: Execute Pydantic validators and invoke Pytest runner on the extracted dataset.
-
-### 2. Typedown CLI (`td`)
-
-The user interface for the terminal.
-
-- `td init`: Scaffold a new project.
-- `td build`: Compile docs to static HTML/PDF (optional integration).
-- `td check`: Run the full Validate pipeline.
-- `td materialize`: Update source files to expand "sugared" blocks.
-
-### 3. Typedown LSP (Language Server)
-
-Provides the IDE experience (VS Code extension).
-
-- **Autocompletion**: For `entity:Class` fields based on Pydantic definitions.
-- **Go to Definition**: Jump from a usage in Markdown to the Python class definition.
-- **Real-time Diagnostics**: Show validation errors (red squiggles) directly in the Markdown editor.
-
-## Installation & Usage
-
-Typedown is built with Python. We recommend using `uv` for lightning-fast environment management.
-
-### Method 1: Run directly with `uvx`
-
-You can run the Typedown CLI directly without manual installation using `uvx` (part of the `uv` toolchain). This is great for trying it out or running one-off commands.
-
-```bash
-# Run in any directory
-uvx typedown check
-```
-
-### Method 2: Development Setup
-
-If you want to contribute or use it in a local project:
-
-1. **Install `uv`**:
-
-   ```bash
-   curl -LsSf https://astral.sh/uv/install.sh | sh
-   ```
-
-2. **Initialize Virtual Environment & Install**:
-
-   ```bash
-   # In the project root
-   uv sync
-   ```
-
-3. **Run the CLI**:
-
-   ```bash
-   uv run td --help
-   ```
+---
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE).
+MIT © [IndenScale](https://github.com/IndenScale)

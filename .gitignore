@@ -43,3 +43,10 @@ _*
 .claude/
 .gemini/
 .env
+
+todos/
+debug_*.py
+test_location.py
+test_project/
+test_pytest_executor.py
+test_pytest_*.py

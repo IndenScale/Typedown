@@ -1,0 +1,151 @@
+import logging
+import sys
+import threading
+from pathlib import Path
+from typing import Optional
+
+from pygls.lsp.server import LanguageServer
+from lsprotocol.types import (
+    TEXT_DOCUMENT_DID_OPEN,
+    TEXT_DOCUMENT_DID_CHANGE,
+    TEXT_DOCUMENT_DID_SAVE,
+    DidOpenTextDocumentParams,
+    DidChangeTextDocumentParams,
+    DidSaveTextDocumentParams,
+    InitializeParams,
+    MessageType,
+)
+from rich.console import Console
+
+from typedown.core.compiler import Compiler
+from typedown.server.managers.diagnostics import publish_diagnostics, uri_to_path
+from typedown.server.managers.watcher import ProjectWatcher
+
+# ======================================================================================
+# Server Definition
+# ======================================================================================
+
+class TypedownLanguageServer(LanguageServer):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.compiler: Optional[Compiler] = None
+        self.watcher: Optional[ProjectWatcher] = None
+        self.lock = threading.Lock()
+
+# Create the server instance globally so decorators can use it
+server = TypedownLanguageServer("typedown-server", "0.2.0")
+
+# ======================================================================================
+# Lifecycle Events
+# ======================================================================================
+
+@server.feature("initialize")
+def initialize(ls: TypedownLanguageServer, params: InitializeParams):
+    root_uri = params.root_uri or params.root_path
+    if root_uri:
+        if not root_uri.startswith('file://') and not root_uri.startswith('/'):
+             root_path = Path(root_uri).resolve()
+        else:
+             root_path = uri_to_path(root_uri)
+             
+        try:
+            # Configure logging to file (optional, for debugging)
+            # logging.basicConfig(filename='/tmp/typedown_lsp.log', level=logging.INFO)
+            
+            # Use stderr for Compiler output to avoid polluting stdout (LSP protocol)
+            stderr_console = Console(stderr=True)
+            ls.compiler = Compiler(target=root_path, console=stderr_console)
+            
+            # Warm up: Initial compilation
+            ls.compiler.compile()
+            
+            logging.info(f"Typedown Engine Ready at {root_path}")
+            # ls.show_message(f"Typedown: Engine ready at {root_path}", MessageType.Info)
+            
+        except Exception as e:
+            logging.error(f"Failed to initialize compiler: {e}")
+            ls.show_message(f"Typedown: Initialization failed - {e}", MessageType.Error)
+
+    # Start Filesystem Watcher
+    try:
+        def on_change(path: Path):
+            # This runs in a thread, so be careful. 
+            # Ideally we schedule this on the main event loop if simple access isn't thread safe.
+            # Compiler seems mostly synchronous so might be OK, but let's wrap or be cautious.
+            # For now, direct call:
+             if ls.compiler:
+                 try:
+                     with ls.lock:
+                         content = path.read_text(encoding="utf-8")
+                         ls.compiler.update_document(path, content)
+                         # We need to trigger diagnostics publish. 
+                         # publish_diagnostics uses ls.publish_diagnostics which sends LSP notification.
+                         publish_diagnostics(ls, ls.compiler)
+                 except Exception as err:
+                     logging.error(f"Error processing external change for {path}: {err}")
+
+        ls.watcher = ProjectWatcher(root_path, on_change)
+        ls.watcher.start()
+        
+    except Exception as e:
+        logging.error(f"Failed to start FS watcher: {e}")
+        ls.show_message(f"Typedown: Watcher failed - {e}", MessageType.Warning)
+
+@server.feature("shutdown")
+def shutdown(ls: TypedownLanguageServer, *args):
+    if ls.watcher:
+        ls.watcher.stop()
+
+@server.feature(TEXT_DOCUMENT_DID_OPEN)
+def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
+    # Publish diagnostics immediately upon opening a file
+    if ls.compiler:
+        with ls.lock:
+            publish_diagnostics(ls, ls.compiler)
+
+@server.feature(TEXT_DOCUMENT_DID_CHANGE)
+def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentParams):
+    if not ls.compiler:
+        return
+        
+    uri = params.text_document.uri
+    path = uri_to_path(uri)
+    
+    # We assume full text sync for now (pygls default behavior for syncKind=Full)
+    if params.content_changes:
+        content = params.content_changes[0].text
+        
+        with ls.lock:
+            # Incremental Update -> Re-Link -> Re-Validate
+            # This updates the compiler's internal state for this file
+            ls.compiler.update_document(path, content)
+            
+            # Publish new diagnostics after partial recompile
+            publish_diagnostics(ls, ls.compiler)
+
+@server.feature(TEXT_DOCUMENT_DID_SAVE)
+def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
+    # On save, we rely on the in-memory state which is likely most up-to-date.
+    # However, if we wanted to sync with disk-based tools, we might re-read here.
+    # For now, just ensuring diagnostics are visible is enough.
+    if ls.compiler:
+        publish_diagnostics(ls, ls.compiler)
+
+# ======================================================================================
+# Feature Registration
+# ======================================================================================
+# Importing these modules registers their @server.feature handlers
+import typedown.server.features.completion
+import typedown.server.features.hover
+import typedown.server.features.navigation
+import typedown.server.features.rename
+import typedown.server.features.semantic_tokens
+import typedown.server.features.code_lens
+
+# ======================================================================================
+# Entry Point
+# ======================================================================================
+
+def lsp_entry():
+    """Entry point for the LSP server (STDIO)."""
+    server.start_io()

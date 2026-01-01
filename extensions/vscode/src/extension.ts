@@ -12,6 +12,7 @@ import {
 
 let client: LanguageClient | undefined;
 let outputChannel: vscode.OutputChannel;
+let statusBarItem: vscode.StatusBarItem;
 
 export async function activate(context: vscode.ExtensionContext) {
   // Register restart command
@@ -27,6 +28,30 @@ export async function activate(context: vscode.ExtensionContext) {
   );
 
   context.subscriptions.push(restartCommand);
+
+  // Status Bar
+  statusBarItem = vscode.window.createStatusBarItem(
+    vscode.StatusBarAlignment.Right,
+    100
+  );
+  statusBarItem.command = "typedown.restartLsp";
+  context.subscriptions.push(statusBarItem);
+
+  // Configuration Change Listener
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeConfiguration(async (e) => {
+      if (e.affectsConfiguration("typedown.server")) {
+        const item = await vscode.window.showInformationMessage(
+          "Typedown Server configuration changed. Restart server?",
+          "Yes",
+          "No"
+        );
+        if (item === "Yes") {
+          vscode.commands.executeCommand("typedown.restartLsp");
+        }
+      }
+    })
+  );
 
   await startServer(context);
 }
@@ -117,9 +142,6 @@ async function startServer(context: vscode.ExtensionContext) {
       { scheme: "file", language: "markdown" },
       { scheme: "file", language: "typedown" }, // Also support .td
     ],
-    synchronize: {
-      fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{md,td,py}"),
-    },
     outputChannel: outputChannel, // Assign the output channel here
     traceOutputChannel: outputChannel,
   };
@@ -135,6 +157,19 @@ async function startServer(context: vscode.ExtensionContext) {
     outputChannel.appendLine(
       `[Info] Client state change: ${event.oldState} -> ${event.newState}`
     );
+    if (event.newState === State.Running) {
+      statusBarItem.text = "$(check) Typedown";
+      statusBarItem.tooltip = "Typedown Engine is Ready";
+      statusBarItem.show();
+    } else if (event.newState === State.Starting) {
+      statusBarItem.text = "$(sync~spin) Typedown";
+      statusBarItem.tooltip = "Starting Typedown Engine...";
+      statusBarItem.show();
+    } else {
+      statusBarItem.text = "$(error) Typedown";
+      statusBarItem.tooltip = "Typedown Engine Stopped";
+      statusBarItem.show();
+    }
   });
 
   // Start the client. This will also launch the server

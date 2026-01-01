@@ -1,0 +1,7 @@
+[project]
+name = "integration_showcase"
+version = "0.1.0"
+
+[tasks]
+test = "td test"
+lint = "td lint"
