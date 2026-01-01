@@ -4,11 +4,18 @@ from typedown.core.errors import CycleError
 class DependencyGraph:
     def __init__(self):
         self.adj: Dict[str, Set[str]] = {}
+        self.reverse_adj: Dict[str, Set[str]] = {}
         
     def add_dependency(self, node: str, dependency: str):
         if node not in self.adj:
             self.adj[node] = set()
         self.adj[node].add(dependency)
+        
+        # Maintain reverse graph: dependency is used by node
+        if dependency not in self.reverse_adj:
+            self.reverse_adj[dependency] = set()
+        self.reverse_adj[dependency].add(node)
+
         # Ensure dependency exists in graph structure too
         if dependency not in self.adj:
             self.adj[dependency] = set()

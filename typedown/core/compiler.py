@@ -11,6 +11,7 @@ from typedown.core.compiler_context import CompilerContext
 from typedown.core.ir import Document, EntityDef, SourceLocation
 from typedown.core.utils import find_project_root, IgnoreMatcher
 from typedown.core.config import TypedownConfig, ScriptConfig
+from typedown.core.graph import DependencyGraph
 
 console = Console()
 
@@ -29,6 +30,8 @@ class Compiler:
         self.target_files: Set[Path] = set()
         self.active_script: Optional[ScriptConfig] = None
         self.diagnostics: List[TypedownError] = []
+        self.dependency_graph: Optional[DependencyGraph] = None
+        self.model_registry: Dict[str, Any] = {}
         
     def compile(self, script_name: Optional[str] = None) -> bool:
         """Runs the full compilation pipeline."""
@@ -239,10 +242,11 @@ class Compiler:
         self.console.print("  [dim]Stage 3: Entity validation and linkage...[/dim]")
         
         from typedown.core.evaluator import Evaluator, EvaluationError
-        from typedown.core.graph import DependencyGraph
+        # from typedown.core.graph import DependencyGraph
 
         # 1. Build Reference Graph
-        graph = DependencyGraph()
+        # 1. Build Reference Graph
+        self.dependency_graph = DependencyGraph()
         entities_by_id = {}
         
         for doc in self.documents.values():
@@ -252,21 +256,21 @@ class Compiler:
                 if "former" in entity.data:
                     former_id = entity.data["former"]
                     if former_id in self.symbol_table:
-                        graph.add_dependency(entity.id, former_id)
+                        self.dependency_graph.add_dependency(entity.id, former_id)
 
                 # Scan for references in entity data
                 refs = self._find_refs_in_data(entity.data)
                 for ref in refs:
                     dep_id = ref.split('.')[0]
                     if dep_id in self.symbol_table:
-                        graph.add_dependency(entity.id, dep_id)
+                        self.dependency_graph.add_dependency(entity.id, dep_id)
                 
-                if entity.id not in graph.adj:
-                    graph.adj[entity.id] = set()
+                if entity.id not in self.dependency_graph.adj:
+                    self.dependency_graph.adj[entity.id] = set()
 
         # 2. Topological Sort for evaluation order
         try:
-            order = graph.topological_sort()
+            order = self.dependency_graph.topological_sort()
         except CycleError as e:
             self.diagnostics.append(e)
             return # Critical failure

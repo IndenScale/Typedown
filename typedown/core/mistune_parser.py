@@ -35,6 +35,17 @@ class TypedownParser:
         
         return doc
 
+    def parse_text(self, content: str, fake_path: str = "<memory>") -> Document:
+        """Parse raw string content directly."""
+        # Mistune v3: parse() returns (ast, state)
+        ast, state = self.markdown.parse(content)
+        
+        doc = Document(path=Path(fake_path), raw_content=content)
+        
+        self._traverse(ast, doc, fake_path)
+        
+        return doc
+
     def _traverse(self, ast: List[Dict[str, Any]], doc: Document, file_path: str):
         # We need to track line numbers. Mistune AST often provides 'loc' tuples (start_line, end_line)
         # But AstRenderer might not populate it by default unless enabled?
@@ -52,6 +63,17 @@ class TypedownParser:
                 # Scan for inline references [[...]]
                 text_content = self._get_text_content(node)
                 self._scan_references(text_content, doc, file_path)
+
+            elif node_type == 'heading':
+                text_content = self._get_text_content(node)
+                # Capture header
+                doc.headers.append({
+                    'title': text_content,
+                    'level': node.get('level', 1),
+                    'line': 0 # TODO: Accurate location from AST if available
+                })
+                # Check for refs in header too
+                self._scan_references(text_content, doc, file_path)
             
             # Recursive traversal for nested structures (lists, blockquotes)
             if 'children' in node:
@@ -67,51 +89,84 @@ class TypedownParser:
         
         code = node.get('text', '') or node.get('raw', '')
         
-        # Parse info string: "type:name id=foo key=val"
+        # Parse info string: "entity ClassName: EntityID"
         parts = info_str.split()
         if not parts:
             return
             
-        type_part = parts[0] # e.g. "entity:User" or "model" or "spec"
+        block_type = parts[0]
         
-        # Extract additional attributes like id=xxx
-        meta = {}
-        for p in parts[1:]:
-            if '=' in p:
-                k, v = p.split('=', 1)
-                meta[k] = v.strip('"\'')
+        # Enforce strict syntax: ```entity ClassName: EntityID```
+        if block_type == 'entity':
+            if len(parts) < 3:
+                # Invalid syntax, ignore or log
+                return
+            
+            raw_type = parts[1]
+            if not raw_type.endswith(':'):
+                 # Strict syntax requires colon? User said "ClassName: EntityID"
+                 # We'll allow missing colon if it's unambiguous, but let's prefer stripping it.
+                 # Actually user said "Unique reasonable syntax is ent CLs: ID". Let's enforce colon?
+                 # Flexible reading: strip colon if present.
+                 pass
+            
+            type_name = raw_type.rstrip(':')
+            entity_id = parts[2]
+            
+            # Additional metadata might follow? User didn't specify. 
+            # Assuming strictly ID is the last mandatory part.
+            
+            # Reconstruct location
+            loc = SourceLocation(file_path=file_path, line_start=0, line_end=0) 
 
-        loc = SourceLocation(file_path=file_path, line_start=0, line_end=0) 
-        node_id = meta.get('id')
-
-        if type_part.startswith("entity:"):
-            type_name = type_part[len("entity:") :].strip()
             try:
                 data = yaml.safe_load(code)
                 if isinstance(data, dict):
-                    # Use ID from info string ONLY
-                    entity_id = node_id
-                    if entity_id:
-                        # Inject ID into data for backward compatibility (lazy access in specs)
-                        data['id'] = entity_id
-                        doc.entities.append(EntityDef(
-                            id=entity_id,
-                            type_name=type_name,
-                            data=data,
-                            location=loc
-                        ))
+                    # Inject ID into data
+                    data['id'] = entity_id
+                    
+                    doc.entities.append(EntityDef(
+                        id=entity_id,
+                        type_name=type_name,
+                        data=data,
+                        location=loc
+                    ))
             except yaml.YAMLError:
-                pass 
+                pass
 
-        elif type_part == "model":
-            doc.models.append(ModelDef(id=node_id, code=code, location=loc))
+        elif block_type == "model":
+            # Models might use "model ClassName" or just "model" with code defining it.
+            # Keeping existing permissive model logic for now unless instructed otherwise.
+            loc = SourceLocation(file_path=file_path, line_start=0, line_end=0)
+            meta = {}
+            for p in parts[1:]:
+                 if '=' in p:
+                     k,v = p.split('=', 1)
+                     meta[k] = v.strip('"\'')
+            node_id = meta.get('id')
+            doc.models.append(ModelDef(id=node_id, code=code, location=loc)) 
 
-        elif type_part == "spec":
+        elif block_type == "spec":
             # Spec Block (Python/Pytest)
+            # Parse meta for ID
+            meta = {}
+            for p in parts[1:]:
+                 if '=' in p:
+                     k,v = p.split('=', 1)
+                     meta[k] = v.strip('"\'')
+            node_id = meta.get('id')
+            
             doc.specs.append(SpecDef(id=node_id, name=node_id or "spec_block", code=code, location=loc))
         
-        elif type_part.startswith("spec:"):
+        elif block_type.startswith("spec:"):
             # YAML Spec
+            meta = {}
+            for p in parts[1:]:
+                 if '=' in p:
+                     k,v = p.split('=', 1)
+                     meta[k] = v.strip('"\'')
+            node_id = meta.get('id')
+
             try:
                 data = yaml.safe_load(code)
                 if isinstance(data, dict):
@@ -121,7 +176,14 @@ class TypedownParser:
             except yaml.YAMLError:
                 pass
 
-        elif type_part.startswith("config:python"):
+        elif block_type.startswith("config:python"):
+            meta = {}
+            for p in parts[1:]:
+                 if '=' in p:
+                     k,v = p.split('=', 1)
+                     meta[k] = v.strip('"\'')
+            node_id = meta.get('id')
+
             doc.configs.append(ConfigDef(
                 id=node_id,
                 code=code,

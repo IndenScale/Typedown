@@ -1,25 +1,34 @@
-# Typedown 规范索引
+# Typedown 技术规范 (Specifications)
 
-## 元概念 (Meta)
+Typedown 是一个面向未来的组织建模语言 (OML)。本目录包含其完整的技术规范文档。
 
-- [000-concept.md](meta/000-concept.md): 核心概念与理念。
+## 1. 概念 (Concepts)
 
-## 1. 符号与扫描 (Symbols)
+理解 Typedown 设计哲学的必读文档。
 
-- [syntax.md](01-symbols/syntax.md): 基础语法与扩展。
-- [structure.md](01-symbols/structure.md): 项目目录结构。
-- [ir.md](01-symbols/ir.md): 内部编译器表示 (IR) 与符号。
+- [00-核心理念.md](00-核心理念.md): 解释核心设计决策，包括“引用即查询”、“禁止多层列表”与“隐式上下文”背后的思考。
 
-## 2. 链接与上下文 (Linkage)
+## 2. 语法 (Syntax)
 
-- [import.md](02-linkage/import.md): 导入与配置继承。
-- [scripts.md](02-linkage/scripts.md): 脚本与配置。
+定义 Typedown 的物理形态与书写规则。
 
-## 3. 实体与校验 (Entities)
+- [01-代码块.md](01-语法/01-代码块.md): 定义 `model`, `entity`, `config`, `spec` 等核心代码块的语法。
+- [02-引用.md](01-语法/02-引用.md): 阐述 `[[...]]` 引用语法及其**三重解析 (Triple Resolution)** 机制。
 
-- [evolution.md](03-entities/evolution.md): 数据演变机制。
-- [reference.md](03-entities/reference.md): 引用与链接机制。
+## 3. 语义 (Semantics)
 
-## 4. 执行与验证 (Execution)
+定义 Typedown 的逻辑模型与符号行为。
 
-- [testing.md](04-execution/testing.md): 测试与规格验证机制。
+- [01-演变语义.md](02-语义/01-演变语义.md): 解释 `former` (时间演变) 与 `derived_from` (结构派生) 的区别。
+- [02-上下文与作用域.md](02-语义/02-上下文与作用域.md): 详解词法作用域、配置继承与 **Handle vs Logical ID** 的分离设计。
+
+## 4. 运行 (Runtime)
+
+定义 Typedown 的执行模型、验证流水线与质量控制体系。
+
+- [01-脚本系统.md](03-运行/01-脚本系统.md): 介绍 Front Matter 中的 `scripts` 定义、环境变量注入及作用域继承。
+- [02-质量控制.md](03-运行/02-质量控制.md): 建立 **L1-L4 分层质量模型**，明确 `lint`, `check`, `validate`, `test` 的边界与职责。
+
+## 5. 最佳实践 (Best Practices)
+
+- [01-身份管理.md](04-最佳实践/01-身份管理.md): 关于 Entity ID 命名、版本控制与 Handle 使用的指导原则。

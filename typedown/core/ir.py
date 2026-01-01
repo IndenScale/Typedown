@@ -59,4 +59,5 @@ class Document(Node):
     entities: List[EntityDef] = Field(default_factory=list)
     specs: List[SpecDef] = Field(default_factory=list)
     references: List[Reference] = Field(default_factory=list)
+    headers: List[Dict[str, Any]] = Field(default_factory=list) # [{'title': str, 'level': int, 'line': int}]
     raw_content: str = ""
