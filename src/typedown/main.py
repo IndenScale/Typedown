@@ -1,6 +1,6 @@
 import typer
 from pathlib import Path
-from typedown.server import lsp_cmd
+from typedown.commands.lsp import lsp as lsp_cmd
 from typedown.commands.query import query as query_cmd
 
 def version_callback(value: bool):

@@ -33,7 +33,7 @@ class TypedownLanguageServer(LanguageServer):
         self.lock = threading.Lock()
 
 # Create the server instance globally so decorators can use it
-server = TypedownLanguageServer("typedown-server", "0.2.0")
+server = TypedownLanguageServer("typedown-server", "0.2.1")
 
 # ======================================================================================
 # Lifecycle Events
