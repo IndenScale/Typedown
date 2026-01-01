@@ -40,6 +40,7 @@ docs/.vitepress/.temp/
 
 # Private & Strategy (All underscore prefixed paths)
 _*
+!**/__init__.py
 .claude/
 .gemini/
 .env
