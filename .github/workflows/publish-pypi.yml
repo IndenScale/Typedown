@@ -27,7 +27,7 @@ jobs:
       - name: Run Tests
         run: |
           uv sync
-          uv run td test tests/integration/cases
+          uv run td test --path tests/integration_showcase
 
       - name: Build distribution
         run: uv build
