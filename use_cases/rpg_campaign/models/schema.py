@@ -1,5 +1,6 @@
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from typedown.core.base.types import Ref
 
 class Item(BaseModel):
     id: str
@@ -14,7 +15,7 @@ class Character(BaseModel):
     level: int = 1
     hp: int
     max_hp: int
-    inventory: List[str] = Field(default_factory=list) # List of Item IDs
+    inventory: List[Ref["Item"]] = Field(default_factory=list) # List of Item IDs
 
 class Monster(BaseModel):
     id: str
@@ -22,4 +23,4 @@ class Monster(BaseModel):
     type: str
     hp: int
     attack: int
-    loot: List[str] = Field(default_factory=list)
+    loot: List[Ref["Item"]] = Field(default_factory=list)

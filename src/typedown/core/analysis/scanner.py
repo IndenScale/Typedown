@@ -69,7 +69,7 @@ class Scanner:
             documents[path] = doc
         except Exception as e:
             self.console.print(f"[yellow]Warning:[/yellow] Failed to parse {path}: {e}")
-            self.diagnostics.append(TypedownError(f"Parse Error: {e}", location=SourceLocation(str(path), 0, 0)))
+            self.diagnostics.append(TypedownError(f"Parse Error: {e}", location=SourceLocation(file_path=str(path), line_start=0, line_end=0, col_start=0, col_end=0)))
 
     def _matches_script(self, path: Path, script: ScriptConfig) -> bool:
         try:

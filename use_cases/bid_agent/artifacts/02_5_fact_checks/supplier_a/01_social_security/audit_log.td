@@ -11,7 +11,8 @@ from use_cases.bid_agent.models.core import DocumentType
 
 ## 1. 核心人员社保核查
 
-```entity:FactCheckRecord id=CHECK-SOC-PM-ZHANG
+```entity FactCheckRecord: CHECK-SOC-PM-ZHANG
+id: "CHECK-SOC-PM-ZHANG"
 target_evidence_id: "PER-PM-ZHANG"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-HR-01"
@@ -23,7 +24,8 @@ screenshot:
   type: "SUPPORTING_DOC"
 ```
 
-```entity:FactCheckRecord id=CHECK-SOC-TD-LI
+```entity FactCheckRecord: CHECK-SOC-TD-LI
+id: "CHECK-SOC-TD-LI"
 target_evidence_id: "PER-TD-LI"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-HR-01"
@@ -37,7 +39,8 @@ screenshot:
 
 ## 2. 团队成员抽查 (示例)
 
-```entity:FactCheckRecord id=CHECK-SOC-CORE-01
+```entity FactCheckRecord: CHECK-SOC-CORE-01
+id: "CHECK-SOC-CORE-01"
 target_evidence_id: "PER-CORE-01"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-HR-01"

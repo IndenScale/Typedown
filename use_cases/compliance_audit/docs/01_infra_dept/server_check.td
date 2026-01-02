@@ -7,7 +7,8 @@
 
 针对 [[req_iso_9_1_1]] (访问控制策略)，我们检查了生产环境的堡垒机配置。
 
-```entity:Control id=ctrl_infra_bastion_access
+```entity Control: ctrl_infra_bastion_access
+id: "ctrl_infra_bastion_access"
 requirement_id: "req_iso_9_1_1"
 owner: "Alice (Ops Lead)"
 status: "COMPLIANT"
@@ -23,7 +24,8 @@ evidence:
 
 针对 [[req_iso_9_2_1]]，发现虽然有流程文档，但自动化脚本在某些情况下会失败。
 
-```entity:Control id=ctrl_infra_user_offboarding
+```entity Control: ctrl_infra_user_offboarding
+id: "ctrl_infra_user_offboarding"
 requirement_id: "req_iso_9_2_1"
 owner: "Alice (Ops Lead)"
 status: "IN_PROGRESS"

@@ -1,6 +1,7 @@
 from typing import Optional, List
 from pydantic import Field
 from ..core.primitives import BaseEntity, Money
+from typedown.core.base.types import Ref
 
 class RFI(BaseEntity):
     """Request for Information (RFI) document"""
@@ -33,14 +34,14 @@ class DesignDocument(BaseEntity):
     project_code: str
     title: str
     version: str
-    approver_id: str
+    approver: Ref["Employee"]
     technical_summary: str
 
 class AcceptanceReport(BaseEntity):
     """User Acceptance Testing (UAT) or Final Acceptance Report"""
     project_code: str
     title: str
-    inspector_id: str
+    inspector: Ref["Employee"]
     date: str
     result: str = Field(..., description="Pass, Fail, Conditional Pass")
     issues_found: List[str] = []

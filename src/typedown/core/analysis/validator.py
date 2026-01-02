@@ -60,6 +60,14 @@ class Validator:
         try:
             order = self.dependency_graph.topological_sort()
         except CycleError as e:
+            # Attempt to attach location if possible
+            cycle_msg = str(e)
+            # Message format: "Circular dependency detected: a -> b -> a"
+            if ": " in cycle_msg:
+                 parts = cycle_msg.split(": ")[1].split(" -> ")
+                 if parts and parts[0] in entities_by_id:
+                     e.location = entities_by_id[parts[0]].location
+            
             self.diagnostics.append(e)
             return
 

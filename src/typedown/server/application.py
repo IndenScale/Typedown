@@ -14,6 +14,8 @@ from lsprotocol.types import (
     DidSaveTextDocumentParams,
     InitializeParams,
     MessageType,
+    LogMessageParams,
+    TextDocumentSyncKind,
 )
 from rich.console import Console
 
@@ -31,6 +33,10 @@ class TypedownLanguageServer(LanguageServer):
         self.compiler: Optional[Compiler] = None
         self.watcher: Optional[ProjectWatcher] = None
         self.lock = threading.Lock()
+
+    def show_message_log(self, message: str, message_type: MessageType = MessageType.Log):
+        """Wrapper to safely show messages to the client log using the built-in window_log_message."""
+        self.window_log_message(LogMessageParams(type=message_type, message=message))
 
 # Create the server instance globally so decorators can use it
 server = TypedownLanguageServer("typedown-server", "0.2.3")
@@ -116,9 +122,11 @@ def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentParams):
         content = params.content_changes[0].text
         
         with ls.lock:
+            ls.show_message_log(f"DidChange: Updating {path}...")
             # Incremental Update -> Re-Link -> Re-Validate
             # This updates the compiler's internal state for this file
             ls.compiler.update_document(path, content)
+            ls.show_message_log(f"DidChange: Update {path} complete. Doc entities: {len(ls.compiler.documents.get(path).entities) if path in ls.compiler.documents else 'None'}")
             
             # Publish new diagnostics after partial recompile
             publish_diagnostics(ls, ls.compiler)

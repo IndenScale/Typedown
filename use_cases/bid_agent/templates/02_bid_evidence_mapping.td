@@ -8,7 +8,8 @@ from use_cases.bid_agent.models.review import BidResponseItem
 
 ## 资质提取
 
-```entity:Certificate id=CERT-CMMI5
+```entity Certificate: CERT-CMMI5
+id: "CERT-CMMI5"
 supplier_id: "SUP-A"
 name: "CMMI Level 5"
 cert_number: "CMMI-2024-001"
@@ -26,7 +27,8 @@ evidence_source:
 
 ### 条款：[SCORE-BIZ-01] CMMI 认证
 
-```entity:BidResponseItem id=RESP-SUP-A-BIZ-01
+```entity BidResponseItem: RESP-SUP-A-BIZ-01
+id: "RESP-SUP-A-BIZ-01"
 supplier_id: "SUP-A"
 scoring_item_id: "SCORE-BIZ-01"
 evidences: [[CERT-CMMI5]]
@@ -36,7 +38,8 @@ auto_check_result: true
 
 ### 条款：[SCORE-TECH-01] 架构设计
 
-```entity:BidResponseItem id=RESP-SUP-A-TECH-01
+```entity BidResponseItem: RESP-SUP-A-TECH-01
+id: "RESP-SUP-A-TECH-01"
 supplier_id: "SUP-A"
 scoring_item_id: "SCORE-TECH-01"
 evidences:

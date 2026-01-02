@@ -16,40 +16,45 @@ from use_cases.headerless_erp.models.org.structure import FunctionalDepartment, 
 
 ## 职能部门 (Functional Departments)
 
-```entity:FunctionalDepartment id=dept_hr_main
+```entity FunctionalDepartment: dept_hr_main
+id: "dept_hr_main"
 name: "Human Resources"
 code: "FUNC_HR"
-head_id: "emp_hr_head_001"
+head: [[emp_hr_head_001]]
 domain_responsibility: ["Recruiting", "Employee Relations", "Payroll"]
 ```
 
-```entity:FunctionalDepartment id=dept_finance_main
+```entity FunctionalDepartment: dept_finance_main
+id: "dept_finance_main"
 name: "Finance Department"
 code: "FUNC_FIN"
-head_id: "emp_fin_head_001"
+head: [[emp_fin_head_001]]
 domain_responsibility: ["Accounting", "Audit", "Treasury"]
 ```
 
-```entity:FunctionalDepartment id=dept_pmo_main
+```entity FunctionalDepartment: dept_pmo_main
+id: "dept_pmo_main"
 name: "Project Management Office"
 code: "FUNC_PMO"
-head_id: "emp_pmo_head_001"
+head: [[emp_pmo_head_001]]
 domain_responsibility: ["Project Governance", "Delivery Assurance"]
 ```
 
 ## 业务部门 (Business Units)
 
-```entity:BusinessUnit id=unit_prod_global
+```entity BusinessUnit: unit_prod_global
+id: "unit_prod_global"
 name: "Global Production Center"
 code: "PROD_GLOBAL"
-head_id: "emp_prod_head_001" # 假设的生产总监
+head: [[emp_prod_head_001]] # 假设的生产总监
 cost_center_code: "CC_PROD_001"
 ```
 
-```entity:BusinessUnit id=unit_prod_alpha
+```entity BusinessUnit: unit_prod_alpha
+id: "unit_prod_alpha"
 name: "Production Team Alpha"
 code: "PROD_ALPHA"
-head_id: "emp_alpha_lead_001"
-parent_unit_id: "unit_prod_global"
+head: [[emp_alpha_lead_001]]
+parent_unit: [[unit_prod_global]]
 cost_center_code: "CC_PROD_ALPHA"
 ```

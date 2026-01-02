@@ -28,10 +28,11 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.project import Project
 ```
 
-```entity:Project id=proj_2025_alpha_upgrade
+```entity Project: proj_2025_alpha_upgrade
+id: "proj_2025_alpha_upgrade"
 name: "Alpha Production Line Upgrade"
 code: "PROJ-2025-001"
-manager_id: "emp_alpha_lead_001" # Rick Deckard
+manager: [[emp_alpha_lead_001]] # Rick Deckard
 status: "Delivery"
 budget:
     amount: 5000000

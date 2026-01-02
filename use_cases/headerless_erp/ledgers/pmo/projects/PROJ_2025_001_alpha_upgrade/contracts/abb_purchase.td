@@ -24,7 +24,8 @@ from use_cases.headerless_erp.models.pmo.documents import Contract
 from use_cases.headerless_erp.models.core.primitives import Money
 ```
 
-```entity:Contract id=ctr_abb_001
+```entity Contract: ctr_abb_001
+id: "ctr_abb_001"
 project_code: "PROJ-2025-001"
 vendor_name: "ABB Engineering"
 title: "Purchase of 4x IRB 6700 Robotic Arms"

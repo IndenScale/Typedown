@@ -19,10 +19,11 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import DesignDocument
 ```
 
-```entity:DesignDocument id=design_alpha_layout_v2
+```entity DesignDocument: design_alpha_layout_v2
+id: "design_alpha_layout_v2"
 project_code: "PROJ-2025-001"
 title: "Alpha Line Layout Plan V2"
 version: "2.0"
-approver_id: "emp_prod_head_001"
+approver: [[emp_prod_head_001]]
 technical_summary: "Shift station 3 & 4 by 1.5m North. Requires demolition of Tool Room wall."
 ```

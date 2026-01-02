@@ -9,7 +9,8 @@ from use_cases.bid_agent.models.verification import FactCheckRecord
 
 ## PMP 证书核查
 
-```entity:FactCheckRecord id=CHECK-CERT-PM-ZHANG-PMP
+```entity FactCheckRecord: CHECK-CERT-PM-ZHANG-PMP
+id: "CHECK-CERT-PM-ZHANG-PMP"
 target_evidence_id: "PER-PM-ZHANG"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-EXT-03"

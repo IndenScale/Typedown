@@ -10,6 +10,7 @@ class MockLS:
     def __init__(self):
         self.compiler = MagicMock()
         self.workspace = MagicMock()
+        self.show_message_log = MagicMock()
 
 def test_goto_definition():
     ls = MockLS()
@@ -20,7 +21,9 @@ def test_goto_definition():
     ref = MagicMock()
     ref.target = "bob"
     ref.identifier = "bob" # Str or Identifier object
-    ref.location.line_start = 0
+    ref.location.line_start = 1
+    ref.location.col_start = 6
+    ref.location.col_end = 13
     doc.references = [ref]
     doc.entities = []
     
@@ -42,9 +45,10 @@ def test_goto_definition():
     
     result = definition(ls, params)
     assert result is not None
+    assert isinstance(result, list)
     # LSP is 0-indexed, so line 5 (1-indexed) becomes 4
-    assert result.range.start.line == 4
-    assert result.uri.endswith("bob.td")
+    assert result[0].target_selection_range.start.line == 4
+    assert result[0].target_uri.endswith("bob.td")
 
 def test_find_references():
     ls = MockLS()
@@ -54,7 +58,9 @@ def test_find_references():
     ref = MagicMock()
     ref.target = "alice"
     ref.identifier = "alice"
-    ref.location.line_start = 0
+    ref.location.line_start = 1
+    ref.location.col_start = 0
+    ref.location.col_end = 9
     doc.references = [ref]
     doc.entities = []
     

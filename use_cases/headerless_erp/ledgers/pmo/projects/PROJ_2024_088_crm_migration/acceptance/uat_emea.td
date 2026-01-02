@@ -26,10 +26,11 @@ if erp_root not in sys.path:
 from use_cases.headerless_erp.models.pmo.documents import AcceptanceReport
 ```
 
-```entity:AcceptanceReport id=uat_crm_emea_001
+```entity AcceptanceReport: uat_crm_emea_001
+id: "uat_crm_emea_001"
 project_code: "PROJ-2024-088"
 title: "EMEA Region Pre-Go-Live UAT"
-inspector_id: "emp_emea_vp_001"
+inspector: [[emp_emea_vp_001]]
 date: "2024-12-20"
 result: "Conditional Pass"
 issues_found: ["Berlin Batch Import Latency", "French Localization Errors"]

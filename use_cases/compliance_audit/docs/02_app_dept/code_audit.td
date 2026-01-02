@@ -4,7 +4,8 @@
 
 针对 [[req_iso_10_1_1]]，我们发现旧版 API 中存在硬编码密钥。
 
-```entity:Control id=ctrl_app_hardcoded_keys
+```entity Control: ctrl_app_hardcoded_keys
+id: "ctrl_app_hardcoded_keys"
 requirement_id: "req_iso_10_1_1"
 owner: "Dave (Dev Lead)"
 status: "COMPLIANT"

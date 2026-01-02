@@ -2,6 +2,7 @@ from enum import Enum
 from typing import List, Optional
 from pydantic import Field
 from ..core.primitives import BaseEntity
+from typedown.core.base.types import Ref
 
 class DepartmentType(str, Enum):
     FUNCTIONAL = "Functional"
@@ -11,13 +12,13 @@ class Employee(BaseEntity):
     name: str
     email: str
     title: str
-    department_id: str
+    department: Ref["Department"]
     level: int = Field(default=1, ge=1, le=20)
 
 class Department(BaseEntity):
     name: str
     code: str
-    head_id: Optional[str] = None
+    head: Optional[Ref["Employee"]] = None
     type: DepartmentType
 
 class FunctionalDepartment(Department):
@@ -26,5 +27,5 @@ class FunctionalDepartment(Department):
 
 class BusinessUnit(Department):
     type: DepartmentType = DepartmentType.BUSINESS
-    parent_unit_id: Optional[str] = None
+    parent_unit: Optional[Ref["BusinessUnit"]] = None
     cost_center_code: str

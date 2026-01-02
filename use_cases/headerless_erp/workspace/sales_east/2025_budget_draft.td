@@ -22,7 +22,8 @@ class DepartmentBudget(_DB):
     pass
 ```
 
-```entity:DepartmentBudget id=draft_budget_sales_east_2025_v2
+```entity DepartmentBudget: draft_budget_sales_east_2025_v2
+id: "draft_budget_sales_east_2025_v2"
 year: 2025
 department_code: "SALES_EAST"
 lines:

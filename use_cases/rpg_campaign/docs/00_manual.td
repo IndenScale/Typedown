@@ -2,13 +2,15 @@
 
 ## 基础物品
 
-```entity:Item id=item_potion_hp
+```entity Item: potion
+id: "item_potion_hp"
 name: "治疗药水 (小)"
 weight: 0.5
 value: 10
 ```
 
-```entity:Item id=item_sword_iron
+```entity Item: sword
+id: "item_sword_iron"
 name: "铁剑"
 weight: 1.5
 value: 50
@@ -18,10 +20,12 @@ value: 50
 
 这里定义了基础的哥布林模板。
 
-```entity:Monster id=mon_goblin_base
+```entity Monster: goblin
+id: "mon_goblin_base"
 name: "哥布林"
 type: "Humanoid"
 hp: 30
 attack: 5
-loot: ["item_sword_iron"]
+loot:
+  - [[sword]]
 ```

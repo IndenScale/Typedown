@@ -142,8 +142,11 @@ async function startServer(context: vscode.ExtensionContext) {
       { scheme: "file", language: "markdown" },
       { scheme: "file", language: "typedown" }, // Also support .td
     ],
-    outputChannel: outputChannel, // Assign the output channel here
+    outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
+    initializationOptions: {
+      logLevel: "debug",
+    },
   };
 
   client = new LanguageClient(

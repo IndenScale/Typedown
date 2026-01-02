@@ -57,9 +57,72 @@ class TypedownParser:
         
         # Initialize Line Navigator for accurate position tracking
         navigator = LineNavigator(content)
+        
+        # Step 1: Traverse AST to build blocks (Entities, Models, etc.)
         self._traverse(ast, doc, path_str, navigator)
+
+        # Step 2: Global Reference Scan (Based on full file content)
+        doc.references = self._scan_all_references(content, path_str)
+        
+        # Step 3: Assign References to Blocks
+        self._assign_references_to_blocks(doc)
         
         return doc
+    
+    def _scan_all_references(self, content: str, file_path: str) -> List[Reference]:
+        refs = []
+        for match in self.wiki_link_pattern.finditer(content):
+            target = match.group(1)
+            start_index = match.start()
+            
+            # Calculate absolute line number (1-indexed)
+            line_no = content.count('\n', 0, start_index) + 1
+            
+            # Calculate column: Find last newline before start_index
+            last_newline_idx = content.rfind('\n', 0, start_index)
+            if last_newline_idx == -1:
+                col_start = start_index 
+            else:
+                col_start = start_index - last_newline_idx - 1
+            
+            col_end = col_start + len(match.group(0))
+
+            ref_loc = SourceLocation(
+                file_path=file_path,
+                line_start=line_no,
+                line_end=line_no,
+                col_start=col_start,
+                col_end=col_end
+            )
+            
+            refs.append(Reference(
+                target=target,
+                location=ref_loc
+            ))
+        return refs
+
+    def _assign_references_to_blocks(self, doc: Document):
+        """ assigns references to their containing blocks """
+        for ref in doc.references:
+            # Check Entities
+            for ent in doc.entities:
+                if ent.location and self._is_loc_contained(ref.location, ent.location):
+                    ent.references.append(ref)
+            
+            # Check Specs
+            for spec in doc.specs:
+                if spec.location and self._is_loc_contained(ref.location, spec.location):
+                    spec.references.append(ref)
+            
+            # Check Models
+            for model in doc.models:
+                if model.location and self._is_loc_contained(ref.location, model.location):
+                    # Models usually don't have references in syntax, but if they do:
+                    pass
+
+    def _is_loc_contained(self, inner: SourceLocation, outer: SourceLocation) -> bool:
+        # Simple line containment
+        return outer.line_start <= inner.line_start <= outer.line_end
 
     def _traverse(self, ast: List[Dict[str, Any]], doc: Document, file_path: str, navigator: 'LineNavigator'):
         for node in ast:
@@ -70,10 +133,8 @@ class TypedownParser:
             
             elif node_type == 'paragraph':
                 text = self._get_text_content(node)
-                loc = navigator.find_text_block(text, file_path)
-                refs = self._scan_references(text, file_path, loc)
-                doc.references.extend(refs)
-
+                # No need to scan references here, done globally
+            
             elif node_type == 'heading':
                 text = self._get_text_content(node)
                 loc = navigator.find_text_block(text, file_path)
@@ -82,8 +143,7 @@ class TypedownParser:
                     'level': node.get('level', 1),
                     'line': loc.line_start if loc else 0
                 })
-                refs = self._scan_references(text, file_path, loc)
-                doc.references.extend(refs)
+                # No need to scan references here, done globally
             
             # Recursive traversal
             if 'children' in node:
@@ -104,50 +164,42 @@ class TypedownParser:
         # Accurate Location Tracking
         loc = navigator.find_code_block(info_str, code, file_path)
 
-        # Pre-scan references in this block
-        block_refs = self._scan_references(code, file_path, loc)
-        doc.references.extend(block_refs)
+        # block_refs will be populated later by _assign_references
+        block_refs = [] 
 
         if block_type == 'model':
             if block_arg:
                 doc.models.append(ModelBlock(id=block_arg, code=code, location=loc))
 
         elif block_type == 'entity':
-            type_name = None
-            entity_id = None
-            
-            # Use improved entity parsing logic
-            if block_arg and len(parts) >= 2:
-                # entity:Type ID
-                type_name = block_arg
-                entity_id = parts[1]
-            elif len(parts) >= 2 and parts[0] == 'entity':
-                # entity Type: ID or entity Type:ID
-                rest = " ".join(parts[1:])
-                if ':' in rest:
-                    type_part, id_part = rest.split(':', 1)
-                    type_name = type_part.strip()
-                    entity_id = id_part.strip()
-
-            if type_name and entity_id:
-                try:
-                    data = yaml.safe_load(code)
-                    if not isinstance(data, dict):
-                        data = {}
-                    
-                    doc.entities.append(EntityBlock(
-                        id=entity_id,
-                        class_name=type_name,
-                        raw_data=data,
-                        slug=str(data.get('id')) if data.get('id') else None,
-                        uuid=str(data.get('uuid')) if data.get('uuid') else None,
-                        former_ids=[data.get('former')] if isinstance(data.get('former'), str) else (data.get('former') or []),
-                        derived_from_id=str(data.get('derived_from')) if data.get('derived_from') else None,
-                        location=loc,
-                        references=block_refs
-                    ))
-                except yaml.YAMLError:
-                    pass
+            if block_arg is None:
+                header_parts = info_str.split()
+                if len(header_parts) >= 2:
+                    rest = " ".join(header_parts[1:])
+                    if ':' in rest:
+                        type_part, id_part = rest.split(':', 1)
+                        type_name = type_part.strip()
+                        entity_id = id_part.strip()
+                        
+                        if type_name and entity_id:
+                            try:
+                                data = yaml.safe_load(code)
+                                if not isinstance(data, dict):
+                                    data = {}
+                                
+                                doc.entities.append(EntityBlock(
+                                    id=entity_id,
+                                    class_name=type_name,
+                                    raw_data=data,
+                                    slug=str(data.get('id')) if data.get('id') else None,
+                                    uuid=str(data.get('uuid')) if data.get('uuid') else None,
+                                    former_ids=[data.get('former')] if isinstance(data.get('former'), str) else (data.get('former') or []),
+                                    derived_from_id=str(data.get('derived_from')) if data.get('derived_from') else None,
+                                    location=loc,
+                                    references=block_refs # To be filled
+                                ))
+                            except yaml.YAMLError:
+                                pass
 
         elif block_type == 'config':
             if block_arg == 'python':
@@ -160,36 +212,19 @@ class TypedownParser:
                  ))
 
         elif block_type == 'spec':
-            spec_id = block_arg or meta.get('id')
-            if not spec_id:
-                spec_id = f"spec_{len(doc.specs) + 1}"
-            
-            doc.specs.append(SpecBlock(
-                id=spec_id, 
-                name=spec_id, 
-                code=code, 
-                target=meta.get('target'),
-                location=loc,
-                references=block_refs
-            ))
+            spec_id = block_arg
+            if spec_id:
+                doc.specs.append(SpecBlock(
+                    id=spec_id, 
+                    name=spec_id, 
+                    code=code, 
+                    location=loc,
+                    references=block_refs # To be filled
+                ))
 
     def _scan_references(self, text: str, file_path: str, base_loc: Optional[SourceLocation] = None) -> List[Reference]:
-        refs = []
-        for match in self.wiki_link_pattern.finditer(text):
-            target = match.group(1)
-            line_offset = text[:match.start()].count('\n')
-            
-            ref_loc = SourceLocation(
-                file_path=file_path,
-                line_start=(base_loc.line_start + line_offset) if base_loc else 0,
-                line_end=(base_loc.line_start + line_offset) if base_loc else 0
-            )
-            
-            refs.append(Reference(
-                target=target,
-                location=ref_loc
-            ))
-        return refs
+        # Deprecated / Unused in favor of global scan
+        return []
 
     def _get_text_content(self, node: Dict[str, Any]) -> str:
         text = ""
@@ -211,26 +246,36 @@ class LineNavigator:
 
     def find_code_block(self, info_str: str, code: str, file_path: str) -> SourceLocation:
         # Search for header line
-        for i in range(self.current_idx, len(self.lines)):
-            line = self.lines[i].strip()
-            if line.startswith("```") and info_str in line:
-                start_l = i + 1 # 1-indexed (header)
+        start_search_idx = self.current_idx
+        
+        while True:
+            for i in range(start_search_idx, len(self.lines)):
+                line = self.lines[i]
+                if line.strip().startswith("```") and info_str in line:
+                    start_l = i + 1 # 1-indexed (header)
+                    
+                    # Try to find the exact column of info_str for better precision
+                    col_start = line.find(info_str)
+                    col_end = col_start + len(info_str)
+                    
+                    code_line_count = len(code.splitlines())
+                    end_l = start_l + code_line_count + 1
+                    
+                    self.current_idx = end_l
+                    return SourceLocation(
+                        file_path=file_path,
+                        line_start=start_l,
+                        line_end=end_l,
+                        col_start=col_start,
+                        col_end=col_end
+                    )
+            
+            # If not found and we started from middle, try from beginning once
+            if start_search_idx > 0:
+                start_search_idx = 0
+            else:
+                break
                 
-                # Splitlines handles training newlines by not creating a blank final list item
-                # but code blocks might have meaningful trailing newlines.
-                # However, Markdown physical lines are what counts.
-                code_line_count = len(code.splitlines())
-                
-                # Header (1) + Code (n) + Footer (1)
-                end_l = start_l + code_line_count + 1
-                
-                # Update navigator index to after the footer
-                self.current_idx = end_l
-                return SourceLocation(
-                    file_path=file_path,
-                    line_start=start_l,
-                    line_end=end_l
-                )
         return SourceLocation(file_path=file_path, line_start=0, line_end=0)
 
     def find_text_block(self, text: str, file_path: str) -> SourceLocation:

@@ -70,6 +70,40 @@ uv run typedown --help
 
 ## 任务管理规范 (Task Management)
 
-- **独立任务文件**: 每一轮显著的逻辑运行或任务阶段，必须在 `todos/` 目录下创建独立的任务文件。
-- **命名规范**: 使用精确到分钟的时间戳命名，格式为 `YYYY-MM-DD_HHMM.md`（例如 `2026-01-01_2130.md`）。
-- **内容要求**: 任务文件需包含任务目标、具体待办事项清单（TODOS）、验收标准以及本轮执行的思考过程（Thought in Chinese）。
+Monoco 采用 **"Task as Code"** 的管理哲学，将任务视为可持久化、可追踪的代码资产。
+
+### 1. 目录结构 (Directory Structure)
+
+任务文件不再堆积于根目录，而是按**语言 (Language)** 与 **状态 (Status)** 分层管理：
+
+```text
+todos/
+├── zh/                     # 主要工作语言 (Language Scope)
+│   ├── active/             # 进行中 (In Progress)
+│   └── archive/            # 已完成/已归档 (Done/Archived)
+└── legacy_timestamped/     # 遗留的时间戳文件 (Read-only)
+```
+
+### 2. 命名与格式 (Naming & Format)
+
+- **ID 系统**: 采用全局递增的 `TASK-XXXX` 编号（例如 `TASK-0004`）。
+- **文件命名**: `TASK-{ID}-{slug}.md`（例如 `TASK-0004-open_vsx_integration.md`）。
+- **元数据**: 必须包含 YAML Front Matter。
+
+```yaml
+---
+id: TASK-0004
+type: task
+status: active # active | done | cancelled
+title: "Open VSX 集成"
+created_at: 2026-01-02
+author: IndenScale
+---
+```
+
+### 3. 工作流 (Workflow)
+
+1. **Session != Task**: 对话 (Session) 是流动的，任务 (Task) 是永恒的。Agent 应主动将 Session 中的意图转化为 Task 文件。
+2. **创建 (Create)**: 在 `active/` 目录创建新任务，分配下一个可用 ID。
+3. **开发 (Develop)**: 任务文件是 "Source of Truth"，记录 Context, Objectives, Plan 和 Thought。
+4. **归档 (Archive)**: 任务完成后，更新状态为 `done` 并移动至 `archive/` 目录。不要删除任务文件。

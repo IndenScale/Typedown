@@ -1,6 +1,7 @@
 from enum import Enum
 from typing import Optional
 from pydantic import BaseModel, Field
+from typedown.core.base.types import Ref
 
 class ActivityType(str, Enum):
     DELIVERY = "DELIVERY"       # 现场交付
@@ -16,8 +17,8 @@ class WorkLocation(str, Enum):
 
 class WorkLog(BaseModel):
     id: str
-    employee_id: str
-    project_id: str
+    employee: Ref["Employee"]
+    project: Ref["Project"]
     month: str # YYYY-MM
     activity_type: ActivityType
     location: WorkLocation

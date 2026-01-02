@@ -9,7 +9,8 @@ from use_cases.bid_agent.models.verification import FactCheckRecord
 
 ## 1. ISO9001 质量管理体系认证
 
-```entity:FactCheckRecord id=CHECK-SUP-A-ISO9001
+```entity FactCheckRecord: CHECK-SUP-A-ISO9001
+id: "CHECK-SUP-A-ISO9001"
 target_evidence_id: "CERT-ISO9001"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-007"

@@ -15,7 +15,8 @@ from use_cases.bid_agent.models.core import FileResource, DocumentType
 
 > 关联证据: [[CERT-ISO9001]] (来自 02_bid_responses/supplier_a/01_evidence_map.td)
 
-```entity:FactCheckRecord id=CHECK-SUP-A-ISO9001
+```entity FactCheckRecord: CHECK-SUP-A-ISO9001
+id: "CHECK-SUP-A-ISO9001"
 target_evidence_id: "CERT-ISO9001"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-007"
@@ -32,7 +33,8 @@ screenshot:
 
 > 关联证据: [[PERSON-PM-01]] (假设已提取)
 
-```entity:FactCheckRecord id=CHECK-SUP-A-PM-SOCIAL
+```entity FactCheckRecord: CHECK-SUP-A-PM-SOCIAL
+id: "CHECK-SUP-A-PM-SOCIAL"
 target_evidence_id: "PERSON-PM-01"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-007"
@@ -49,7 +51,8 @@ screenshot:
 
 > 关联证据: [[ACHIEVEMENT-01]]
 
-```entity:FactCheckRecord id=CHECK-SUP-A-ACH-01
+```entity FactCheckRecord: CHECK-SUP-A-ACH-01
+id: "CHECK-SUP-A-ACH-01"
 target_evidence_id: "ACHIEVEMENT-01"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-007"

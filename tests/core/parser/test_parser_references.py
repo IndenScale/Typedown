@@ -7,7 +7,7 @@ from typedown.core.ast import EntityBlock, Reference
 class TestParserReferences:
     def test_entity_block_references(self, tmp_path):
         content = """
-```entity:User alice
+```entity User: alice
 manager: [[bob]]
 friends:
   - [[charlie]]

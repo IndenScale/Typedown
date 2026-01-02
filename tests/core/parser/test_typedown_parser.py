@@ -34,6 +34,21 @@ age: 30
     assert entity.raw_data["id"] == "users/alice-v1"
     assert entity.raw_data["name"] == "Alice"
 
+def test_parse_entity_block_with_hyphens():
+    parser = TypedownParser()
+    content = """
+```entity ComplianceItem: REQ-PHY-01
+id: "REQ-PHY-01"
+content: "Must be sealed."
+```
+"""
+    doc = parser.parse_text(content, "test.td")
+    assert len(doc.entities) == 1
+    entity = doc.entities[0]
+    assert entity.class_name == "ComplianceItem"
+    assert entity.id == "REQ-PHY-01"
+    assert entity.raw_data["id"] == "REQ-PHY-01"
+
 def test_parse_config_block():
     parser = TypedownParser()
     content = """
@@ -48,7 +63,7 @@ import sys
 def test_parse_spec_block():
     parser = TypedownParser()
     content = """
-```spec id=check_adult target=UserAccount
+```spec:check_adult
 @target(type="UserAccount")
 def validate_age(subject: UserAccount):
     assert subject.age >= 18
@@ -58,7 +73,8 @@ def validate_age(subject: UserAccount):
     assert len(doc.specs) == 1
     spec = doc.specs[0]
     assert spec.id == "check_adult"
-    assert spec.target == "UserAccount"
+    # Target is parsed from code via decorators in L3, not info string
+    # assert spec.target == "UserAccount"
 
 def test_scan_references():
     parser = TypedownParser()

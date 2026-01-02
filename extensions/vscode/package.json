@@ -8,6 +8,10 @@
     "url": "https://github.com/IndenScale/Typedown.git"
   },
   "publisher": "Typedown",
+  "author": {
+    "name": "Typedown Team",
+    "email": "hfu7565ytru@gmail.com"
+  },
   "engines": {
     "vscode": "^1.75.0"
   },
