@@ -98,17 +98,38 @@ def validate_admin(subject: UserAccount):
 
 ## 安装
 
-Typedown 深度集成于 [uv](https://github.com/astral-sh/uv) 生态。
+Typedown 专为 [uv](https://docs.astral.sh/uv/) 生态设计。我们推荐使用 `uv` 或 `uvx`，体验远超传统方式。
+
+### 🚀 极速运行 (推荐)
+
+无需配置环境，使用 `uvx` 即刻运行 Typedown：
 
 ```bash
-# 克隆并同步环境
-git clone https://github.com/IndenScale/Typedown.git
-cd Typedown
-uv sync
-
-# 查看帮助
-uv run td --help
+uvx typedown --help
 ```
+
+### 🛠️ 全局安装
+
+将其安装为系统级的独立工具：
+
+```bash
+uv tool install typedown
+```
+
+### 📦 项目依赖
+
+将其添加到现有的 Python 项目中：
+
+```bash
+uv add typedown
+```
+
+### ⌨️ VS Code 插件
+
+请从以下市场安装 **Typedown Integration**：
+
+- [VS Code Marketplace (官方市场)](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
+- [Open VSX (开源替代)](https://open-vsx.org/extension/Typedown/typedown-vscode)
 
 ---
 

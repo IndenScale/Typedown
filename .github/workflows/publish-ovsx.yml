@@ -28,6 +28,9 @@ jobs:
       - name: Compile
         run: npm run compile
 
+      - name: Package Extension
+        run: npx vsce package
+
       - name: Publish to Open VSX
         run: npx ovsx publish --pat ${{ secrets.OVSX_PAT }} --packagePath ./*.vsix
         env:

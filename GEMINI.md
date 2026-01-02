@@ -40,7 +40,6 @@ Typedown 采用**词法作用域 (Lexical Scoping)**，符号解析遵循层级�
 Typedown 追踪时间与结构演进。详见：[演进语义](docs/zh/02-语义/01-演变语义.md)
 
 - **`former: "id"`**: **版本演进**。用于同一个对象的不同状态。ID 必须使用全局稳定标识符（Slug ID, Hash, UUID），禁止使用局部 Handle。
-- **`derived_from: "id"`**: **结构继承**。子实体继承父实体的结构，但身份独立。ID 约束同上。
 - **合并规则**: 对象递归合并，列表**原子替换**。
 
 ## 质量控制 (QC Pipeline)

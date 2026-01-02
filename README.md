@@ -88,20 +88,38 @@ The `td` tool is your companion for the development loop:
 
 ## Installation
 
-Typedown thrives in the [uv](https://github.com/astral-sh/uv) ecosystem.
+Typedown is designed for the [uv](https://docs.astral.sh/uv/) ecosystem. We recommend using `uv` or `uvx` over standard piping.
+
+### 🚀 Instant Run (Recommended)
+
+Use `uvx` to execute Typedown instantly without managing environments:
 
 ```bash
-# Clone and sync
-git clone https://github.com/IndenScale/Typedown.git
-cd Typedown
-uv sync
-
-# Run help
-uv run td --help
-
-# Or use the alias
-uv run typedown --help
+uvx typedown --help
 ```
+
+### 🛠️ Global Tool
+
+Install it as a standalone tool available everywhere:
+
+```bash
+uv tool install typedown
+```
+
+### 📦 Project Dependency
+
+Add it to your Python project:
+
+```bash
+uv add typedown
+```
+
+### ⌨️ VS Code Extension
+
+Install **Typedown Integration** from:
+
+- [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
+- [Open VSX](https://open-vsx.org/extension/Typedown/typedown-vscode)
 
 ## Documentation
 
