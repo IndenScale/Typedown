@@ -4,10 +4,6 @@
 > **核查工具**: 省人社厅公共服务平台
 > **审核标准**: 缴纳单位必须为 "SUP-A (投标方)"，且连续缴纳 6 个月以上。
 
-```config:python
-from use_cases.bid_agent.models.verification import FactCheckRecord
-from use_cases.bid_agent.models.core import DocumentType
-```
 
 ## 1. 核心人员社保核查
 

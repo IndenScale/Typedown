@@ -2,9 +2,6 @@
 
 > **指令**: 请核对实物及资质原件。如有任意一项 "CRITICAL" 未通过，请勾选 `is_knockout` 并说明理由。
 
-```config:python
-from use_cases.bid_agent.models.review import ReviewResultEntry
-```
 
 ## 形式审查 (一票否决)
 

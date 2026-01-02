@@ -193,7 +193,7 @@ class TypedownParser:
                                     raw_data=data,
                                     slug=str(data.get('id')) if data.get('id') else None,
                                     uuid=str(data.get('uuid')) if data.get('uuid') else None,
-                                    former_ids=[data.get('former')] if isinstance(data.get('former'), str) else (data.get('former') or []),
+                                    former_ids=self._unbox_former(data.get('former')),
                                     derived_from_id=str(data.get('derived_from')) if data.get('derived_from') else None,
                                     location=loc,
                                     references=block_refs # To be filled
@@ -221,6 +221,32 @@ class TypedownParser:
                     location=loc,
                     references=block_refs # To be filled
                 ))
+
+    def _unbox_former(self, raw_value: Any) -> List[str]:
+        """
+        Unbox former field which might be:
+        - "slug" (Str)
+        - ["slug"] (List[Str])
+        - [["slug"]] (List[List[Str]] - Ref Sugar)
+        """
+        if not raw_value:
+            return []
+            
+        if isinstance(raw_value, str):
+            return [raw_value]
+            
+        if isinstance(raw_value, list):
+            result = []
+            for item in raw_value:
+                if isinstance(item, str):
+                    result.append(item)
+                elif isinstance(item, list):
+                    # Try to unbox ['slug']
+                    if len(item) == 1 and isinstance(item[0], str):
+                        result.append(item[0])
+            return result
+            
+        return []
 
     def _scan_references(self, text: str, file_path: str, base_loc: Optional[SourceLocation] = None) -> List[Reference]:
         # Deprecated / Unused in favor of global scan

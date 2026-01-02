@@ -2,16 +2,6 @@
 
 记录外部审计、顾问等人员。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.org.structure import Employee
-```
 
 ```entity Employee: ext_auditor_pwc_009
 id: "ext_auditor_pwc_009"

@@ -10,16 +10,6 @@ CTO 决定启动 "Project Titan"，基于开源技术栈自研 CRM，彻底摆�
 
 ## 2. 项目核心定义
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.project import Project
-```
 
 ```entity Project: proj_2024_crm_migration
 id: "proj_2024_crm_migration"

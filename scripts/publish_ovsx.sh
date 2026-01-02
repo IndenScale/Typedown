@@ -2,7 +2,8 @@
 set -e
 
 # Configuration
-EXTENSION_DIR="extensions/vscode"
+PROJECT_ROOT=$(git rev-parse --show-toplevel)
+EXTENSION_DIR="$PROJECT_ROOT/extensions/vscode"
 OVSX_REGISTRY="https://open-vsx.org"
 
 # Check for Token
@@ -19,23 +20,17 @@ echo "🚀 Starting Open VSX Publication Process..."
 cd "$EXTENSION_DIR" || exit
 
 echo "📦 Installing dependencies..."
-npm install
+npm ci
 
 echo "🛠️  Compiling extension..."
 npm run compile
 
 echo "📦 Packaging extension..."
 # use npx to run vsce without global install
-npx vsce package --out ./out/extension.vsix
+npx vsce package
 
-# Find the generated vsix file
-VSIX_FILE="./out/extension.vsix"
-
-if [ ! -f "$VSIX_FILE" ]; then
-    echo "Error: VSIX file not found at $VSIX_FILE"
-    # fallback to root if out unavailable or path differs
-    VSIX_FILE=$(find . -maxdepth 1 -name "*.vsix" | head -n 1)
-fi
+# Find the generated vsix file in the current directory
+VSIX_FILE=$(ls ./*.vsix | head -n 1)
 
 if [ -z "$VSIX_FILE" ]; then
     echo "Error: Could not locate .vsix file."

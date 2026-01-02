@@ -3,12 +3,6 @@
 > **状态**: 待确认
 > **说明**: 此文件由 AI 初步从 `tender_doc.pdf` 识别，请招标代理机构确认条款完整性。
 
-```config:python
-from use_cases.bid_agent.models.review import (
-    ComplianceItem, ScoringItem, ReviewStage, 
-    Criticality, EvaluationComponent
-)
-```
 
 ## 1. 物理与形式约束 (AI 识别 - 需人工核对)
 

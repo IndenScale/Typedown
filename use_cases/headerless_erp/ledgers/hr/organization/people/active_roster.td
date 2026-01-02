@@ -2,17 +2,6 @@
 
 记录当前在职的正式员工信息。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.org.structure import Employee
-```
-
 ## 职能部门负责人 (Functional Heads)
 
 ```entity Employee: emp_hr_head_001

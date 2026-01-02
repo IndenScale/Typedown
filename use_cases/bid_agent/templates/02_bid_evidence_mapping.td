@@ -1,10 +1,5 @@
 # 投标文件解析 - 供应商 A
 
-```config:python
-from datetime import date
-from use_cases.bid_agent.models.evidence import Certificate, Achievement, EvidenceSource, DocLocation, ValidationStatus
-from use_cases.bid_agent.models.review import BidResponseItem
-```
 
 ## 资质提取
 

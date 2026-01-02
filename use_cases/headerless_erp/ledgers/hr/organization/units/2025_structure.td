@@ -2,17 +2,6 @@
 
 此账本记录了公司当前生效的组织架构单元。
 
-```config:python
-import sys
-import os
-# Ensure project root is in path
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.org.structure import FunctionalDepartment, BusinessUnit
-```
 
 ## 职能部门 (Functional Departments)
 

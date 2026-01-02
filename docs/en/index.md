@@ -3,24 +3,24 @@ layout: home
 
 hero:
   name: "Typedown"
-  text: "Progressive Formalization"
+  text: "Markdown that scales"
   tagline: "You don't know it until you model it."
   actions:
     - theme: brand
-      text: "Read Manifesto"
+      text: "Read the Manifesto"
       link: "/en/manifesto"
     - theme: alt
-      text: "Start Tutorial"
-      link: "/en/tutorial"
+      text: "Explore Core Concepts"
+      link: "/en/00-core-concepts"
     - theme: alt
-      text: "View on GitHub"
+      text: "GitHub"
       link: "https://github.com/indenscale/typedown"
 
 features:
   - title: "The Trinity"
-    details: "Markdown for Human Interface, Pydantic for Data Schema, Pytest for Business Logic. Unified to build a solid foundation of knowledge."
+    details: "Markdown as the Interface, Pydantic for the Schema, and Pytest for the Logic. A unified framework for building solid, verifiable knowledge."
   - title: "Docs as Code"
-    details: "Manage your documentation like code. With full validation, testing, and refactoring capabilities, say goodbye to documentation rot."
-  - title: "Flow State"
-    details: "Stop switching between Word, XMind, and IDE. Complete the entire process from ideation to implementation in a unified Markdown environment."
+    details: "Treat your documentation with the rigor of code. Armed with full validation, cross-referencing, and refactoring, you can finally end documentation rot."
+  - title: "The Flow State"
+    details: "Bridge the gap between ideation and implementation. Stop context-switching between tools and stay in a unified, AI-powered Markdown environment."
 ---

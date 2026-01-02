@@ -1,27 +1,27 @@
-# Tutorial: RPG Campaign
+# Tutorial: The RPG Campaign
 
-Welcome to the Typedown tutorial. In this guide, we will model a simple RPG campaign to demonstrate how Typedown handles:
+Welcome to the Typedown tutorial. Typedown is a **Consensus Modeling Language (CML)** designed to turn fluid thought into verifiable data. In this guide, we will model a simple RPG campaign to explore Typedown's core pillars:
 
-1. **Definitions**: Defining concepts and entities.
-2. **References**: Linking entities together.
-3. **Evolution**: Tracking changes in state over time.
+1. **Definitions**: Modeling concepts and declaring entities.
+2. **References**: Linking the world together via "Intent."
+3. **Evolution**: Tracking the state of the world through time.
 
-## 1. Setup
+## 1. Setup: The Context Field
 
-In this example, we have predefined python models for `Character`, `Item`, and `Monster`. We import them in our `config.td`:
+Typedown reflects the physical structure of your workspace. We start by configuring our environment in `config.td`. Here, we import our Pydantic models (Schemas) that define what a Character, Item, and Monster look like.
 
 ```python
 # config.td
-from use_cases.rpg_campaign.models.schema import Character, Item, Monster
+from models.schema import Character, Item, Monster
 ```
 
 ## 2. Defining The World (The Manual)
 
-First, we define our base items and monsters in `00_manual.td`. This acts as our "Source of Truth" for game assets.
+In `00_manual.td`, we define our base game assets. This is our static "Source of Truth."
 
 ### Basic Items
 
-We define a potion and a sword using the `Item` schemata. Note the `id` field which we will use to reference these items later.
+We define a potion and a sword. Note the `id` field—this is the **Slug**, a stable, global identifier.
 
 ```entity Item: potion
 id: "item_potion_hp"
@@ -37,9 +37,9 @@ weight: 1.5
 value: 50
 ```
 
-### Monster Prototypes
+### Monster Templates
 
-We define a base Goblin template.
+Next, we define a Goblin. In Typedown, we prefer **Explicitness**. Instead of deep inheritance trees, we use AI or simple templates to populate data.
 
 ```entity Monster: goblin
 id: "mon_goblin_base"
@@ -48,87 +48,86 @@ type: "Humanoid"
 hp: 30
 attack: 5
 loot:
-  - [[sword]] # Reference to the sword variable if defined locally, or we can use ID
+  - [[item_sword_iron]]
 ```
 
-_Note: In Typedown, `[[...]]` is used for references. It resolves handles or IDs._
+> **A Note on References**: `[[item_sword_iron]]` is a **Query Intent**. It means "Find the entity with this ID or Handle in the current context."
 
 ## 3. The Adventure Party
 
-In `01_party.td`, we introduce our main characters.
-
-### Warrior Valen
+In `01_party.td`, we introduce our protagonists.
 
 ```entity Character: valen
-id: "slug_char_valen_v1"
+id: "char_valen_v1"
 name: "Valen"
 class_name: "Warrior"
 hp: 100
 max_hp: 100
 inventory:
-  - [[item_sword_iron]] # Starts with an Iron Sword
+  - [[item_sword_iron]]
 ```
 
-### Mage Lyra
-
 ```entity Character: lyra
-id: "slug_char_lyra_v1"
+id: "char_lyra_v1"
 name: "Lyra"
 class_name: "Mage"
 hp: 60
 max_hp: 60
 inventory:
   - [[item_potion_hp]]
-  - [[item_potion_hp]]
 ```
 
 ## 4. The Session (Evolution)
 
-In `02_session.td`, the story unfolds. This demonstrates Typedown's powerful **Evolution Semantics**.
+As the game unfolds in `02_session.td`, we encounter Typedown's most powerful feature: **Evolution Semantics**.
 
 ### The Encounter
 
-Two goblins appear! We instantiate them based on `mon_goblin_base`.
+Two goblins appear! Instead of complex "derivation," we simply declare them as distinct entities in this specific session context.
 
 ```entity Monster: goblin_a
 id: "encounter_01_goblin_a"
-derived_from: "mon_goblin_base"
 name: "Crazy Goblin"
-hp: 20 # Weaker than base
+hp: 20
+attack: 5
 ```
 
-```entity Monster: goblin_b
-id: "encounter_01_goblin_b"
-derived_from: "mon_goblin_base"
-name: "Tough Goblin"
-hp: 40
-attack: 8
-```
+### State Updates: The Timeline
 
-### State Updates
+After a fierce battle, Valen is wounded and Lyra consumes a potion. We don't overwrite the old data; we evolve it. By using the `former` keyword, we link the new state to the previous one, creating an immutable history.
 
-After the battle, Valen is hurt and Lyra uses a potion. We define **Version 2 (V2)** of our characters.
-
-**Valen V2**: took damage, healed a bit, picked up a spare sword.
+**Valen V2**: Wounded, but has scavenged an extra sword.
 
 ```entity Character: valen_v2
 id: "char_valen_v2"
-former: [[slug_char_valen_v1]] # Evolves from V1
+former: "char_valen_v1"
+name: "Valen"
+class_name: "Warrior"
 hp: 80
+max_hp: 100
 inventory:
   - [[item_sword_iron]]
   - [[item_sword_iron]]
 ```
 
-**Lyra V2**: used a potion.
+**Lyra V2**: Spent her potion.
 
 ```entity Character: lyra_v2
 id: "char_lyra_v2"
-former: [[slug_char_lyra_v1]]
-inventory:
-  - [[item_potion_hp]] # One potion left
+former: "char_lyra_v1"
+name: "Lyra"
+class_name: "Mage"
+hp: 60
+max_hp: 60
+inventory: []
 ```
 
-## Conclusion
+## Conclusion: The Power of the Field
 
-By using `former`, we create a linked chain of states. We can query the current state of the party or look back at their history. This is "Consensus Modeling" in action.
+By using `former`, you've created a **verifiable timeline**. The compiler can now:
+
+- Track how Valen's HP changed over sessions.
+- Ensure that `valen_v2` is still a valid `Character`.
+- Navigate between the past and present of your world.
+
+This is the promise of Typedown: **Cognitive freedom through the discipline of modeling.**

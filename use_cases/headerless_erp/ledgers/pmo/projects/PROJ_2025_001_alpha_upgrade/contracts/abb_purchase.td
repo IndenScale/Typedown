@@ -12,17 +12,6 @@
 2.  **交付条款**: DDP Suzhou Factory (2024-12-10 前).
 3.  **付款方式**: 30% 预付，60% 到货验收，10% 质保金 (12个月后支付)。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import Contract
-from use_cases.headerless_erp.models.core.primitives import Money
-```
 
 ```entity Contract: ctr_abb_001
 id: "ctr_abb_001"

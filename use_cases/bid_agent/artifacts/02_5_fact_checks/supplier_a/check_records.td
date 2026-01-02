@@ -4,12 +4,6 @@
 > **核查时间**: 2025-12-19
 > **状态**: 发现一处存疑，其余一致。
 
-```config:python
-from use_cases.bid_agent.models.verification import (
-    FactCheckRecord, VerificationMethod, ConsistencyStatus
-)
-from use_cases.bid_agent.models.core import FileResource, DocumentType
-```
 
 ## 1. 企业资质核查 (ISO9001)
 

@@ -17,16 +17,6 @@ Alpha 产线是我们位于苏州工厂的核心装配线，主要负责 T-Serie
 
 以下定义了本项目在 ERP 系统中的法定身份。任何采购、报销与工时填报均需引用此 ID。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.project import Project
-```
 
 ```entity Project: proj_2025_alpha_upgrade
 id: "proj_2025_alpha_upgrade"

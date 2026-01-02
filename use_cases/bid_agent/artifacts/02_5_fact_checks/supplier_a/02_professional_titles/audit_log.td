@@ -3,9 +3,6 @@
 > **审核员**: OPERATOR-TECH-02
 > **核查工具**: 职称查询系统 / 原件扫描件比对
 
-```config:python
-from use_cases.bid_agent.models.verification import FactCheckRecord
-```
 
 ## 高级职称核查
 

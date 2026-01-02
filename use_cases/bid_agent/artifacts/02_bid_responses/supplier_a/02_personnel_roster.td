@@ -1,8 +1,5 @@
 # 供应商 A - 项目人员配置表
 
-```config:python
-from use_cases.bid_agent.models.evidence import Person
-```
 
 ## 核心管理层 (Key Personnel)
 

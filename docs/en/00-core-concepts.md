@@ -1,59 +1,59 @@
 # Core Concepts
 
-Typedown is not just about adding data support to Markdown; it is a methodology for **Model Evolution**. During the design process, we made several key trade-offs. This document explains the "Reference as Query" philosophy behind these design choices.
+Typedown is more than just adding data support to Markdown; it is a methodology for **Model Evolution**. This document outlines the foundational philosophy of "Reference as Query" and the design trade-offs that make Typedown a powerful tool for complex systems.
 
-## 0. Definition
+## 0. Definition: A Consensus Modeling Language
 
 Typedown is a **Consensus Modeling Language (CML)**.
 
-It is designed to model the **Truth** within an organization.
+It is designed to model the **Truth** within an organization—not just raw data, but the shared understanding that binds teams together.
 
-- **Non-Goals**: It is **not** a note-taking language, nor is it a general-purpose data serialization format. Do not use it for unstructured scribbles or storing large matrices of data.
+- **Non-Goals**: Typedown is **not** a note-taking language, nor is it a general-purpose data serialization format like JSON. Do not use it for unstructured scribbles or for storing massive, high-dimensional datasets.
 
-## 1. Why "Reference as Query"?
+## 1. Reference as Query
 
-In traditional programming languages or configurations, a reference is usually an **Address**, such as a file path `../db/config.json` or a memory pointer.
+In traditional programming or configuration, a reference is typically an **Address**—a file path (`../db/config.json`) or a memory pointer.
 
-Typedown chooses to treat `[[...]]` as a **Query Intent**.
+Typedown treats every reference `[[...]]` as a **Query Intent**.
 
-- **Decoupling**: When you write `[[db]]`, you are expressing "I need the thing called db", not "go load the file at path X".
-- **Late Binding**: The specific resolution logic is deferred until runtime. This means the same `app.td` file points to the production database when placed in the `prod/` directory, and to the test database when placed in `dev/`.
-- **Environmental Polymorphism**: This is the cornerstone of "Write Once, Run Anywhere".
+- **Decoupling**: When you write `[[db]]`, you are declaring, "I need the entity known as db," not "load the file at path X."
+- **Late Binding**: Resolution logic is deferred until runtime. The same `app.td` file might resolve to a production database when placed in the `prod/` folder, and to a mock database when in the `dev/` folder.
+- **Environmental Polymorphism**: This is the cornerstone of Typedown. It allows models to be reused across different environments while maintaining strict local correctness.
 
-## 2. Why No Nested Lists?
+## 2. The Rule of Flat Lists: Why No Nesting?
 
-Typedown **strictly prohibits** the use of two-dimensional arrays (List of Lists) within the Entity Body.
+Typedown **strictly prohibits** two-dimensional arrays (List of Lists) within an Entity Body.
 
-**Reason: Separation of Concerns and Data Boundaries.**
+**The Rationale: Separation of Concerns.**
 
-Any data requiring more than one dimension (like matrices or tensors) should not appear in Typedown. This is not only to support the syntactical sugar of "Smart Unboxing" for `manager: [[alice]]`, but also to force developers to use the correct data carrier.
+Any data requiring more than one dimension (like matrices or tensors) suggests a complexity that should be modeled as an independent Entity or Model. By enforcing flat lists, we support "Smart Unboxing" (e.g., `manager: [[alice]]` resolving directly to an object) and force developers to choose the appropriate data carrier.
 
-**If you need matrix data, please use CSV or JSON. Just don't write it in Typedown.**
+**If you need a matrix, use CSV or JSON. If you need a model, use Typedown.**
 
-## 3. Why Embrace "Fragility" and Tooling?
+## 3. Embracing "Fragility": The Tooling Advantage
 
-Many systems pursue "Robustness", meaning files automatically work after being moved. Typedown does the opposite; we **Embrace Fragility** and regard **Tool Dependency** as a core feature.
+While most systems pursue "Robustness" (files that work regardless of where they are moved), Typedown **Embraces Fragility**. We view **Tool Dependency** as a core feature, not a bug.
 
 ### 3.1 Simulating Natural Language
 
-We simulate the ambiguity of natural language. Implicit context makes the source code read as fluently as natural language, but it also brings polysemy. This ambiguity is, all in all, no worse than natural language, and must be resolved with a powerful toolchain (Git, LSP, Compiler).
+Typedown mimics the ambiguity of natural language. Implicit context allows code to read as fluently as a conversation, but it also introduces polysemy. This ambiguity is resolved by our powerful toolchain (Git, LSP, and the Compiler).
 
-- **Source**: The source code is for humans to read and allows for ambiguity.
-- **Artifact**: Ideally, the published documentation must be **Materialized**, perhaps even referencing Hashes. The compiler is responsible for collapsing fuzzy intents into absolute, immutable truth.
+- **The Source**: For humans to read, allowing for fluid, contextual expression.
+- **The Artifact**: The published truth must be **Materialized**, often referencing immutable content hashes. The compiler is responsible for collapsing fuzzy intent into absolute, objective truth.
 
 ### 3.2 Context as Field
 
-Other languages use explicit imports to hardcode dependencies; Typedown uses **Implicit Context**. This creates a powerful "Field":
+In other languages, dependencies are hardcoded via explicit imports. Typedown uses **Implicit Context**, creating a powerful "Semantic Field":
 
-- **Location determines Destiny**: The physical location of a file determines the "Semantic Field" (Schema constraints, available configs, Handle mappings) it resides in.
-- **Moving is Refactoring**: When you move a file from directory A to directory B, you are actually changing the field it inhabits.
+- **Location determines Destiny**: The physical location of a file dictates the "Field" (Schema constraints, configurations, and Handle mappings) it inhabits.
+- **Moving is Refactoring**: Relocating a file from directory A to directory B is a fundamental refactor of its meaning.
 
-### 3.3 Error as Feedback
+### 3.3 Error as High-Fidelity Feedback
 
-We do **not** want the system to silently adapt to the new environment. Instead, we want it to **crash immediately**:
+We do **not** want files to silently adapt to new environments. We want the system to **crash loudly**:
 
-- **Explosive Feedback**: If the moved file no longer conforms to the constraints of the new environment (e.g., referencing a Handle that does not exist in the new environment), CI and the Compiler should immediately report dozens of errors.
-- **Forced Alignment**: This intense friction forces the developer to stop and explicitly run `get block query` or use the **LSP Code Lens** to re-examine the current context field.
-- **Deliberate Rewrite**: Every movement of documentation is a recalibration of cognition. To pass CI, you must deliberately rewrite the code to adapt to the new field.
+- **Explosive Feedback**: If a moved file violates the constraints of its new environment (e.g., it references a Handle that no longer exists), the Compiler and CI will immediately report dozens of errors.
+- **Forced Alignment**: This friction forces the developer to explicitly re-examine the context using **LSP Code Lenses** or direct queries.
+- **Deliberate Rewrite**: Every movement of documentation is a recalibration of cognition. To pass CI, you must deliberately align your code with the new environment.
 
-This design rejects "Silent Misunderstanding" in favor of "Loud Correction". In a Typedown project, passing local tests (`td test`) means you truly understand the field you are in.
+This design rejects "Silent Misunderstanding" in favor of "Loud Correction." In Typedown, passing `td test` means you have achieved true alignment with your project's field of truth.

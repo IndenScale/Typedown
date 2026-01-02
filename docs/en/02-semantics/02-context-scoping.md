@@ -77,17 +77,17 @@ Implicit context is powerful but introduces cognitive friction. To survive in "f
 
 ### Core Tools
 
-- **LSP Doc Lens**:
+- **LSP Code Lens**:
 
-  - This is the primary window for understanding context.
-  - In the editor, lenses should display the current Block's Environment overlay status (Inherited Configs, Available Handles) in real-time.
-  - **Principle**: "Invisible code" must be made visible through Lenses.
+  - This is the primary window into the current Context.
+  - In the editor, Code Lenses display the Environment overlay status (Inherited Configs, Available Handles) in real-time.
+  - **Principle**: "Invisible context" must be made visible through Code Lenses.
 
 - **`td get block query`**:
-  - Run this command when you have doubts about the current "field".
-  - It simulates the compiler's resolution logic and outputs the final target of the Block under triple resolution.
-  - **Workflow**: Write -> Doubt -> Query -> Correct -> Commit.
+  - Invoke this command whenever you have doubts about the current "field."
+  - It simulates the compiler's resolution logic and outputs the final target of the Block under Triple Resolution.
+  - **Workflow**: Write -> Doubt -> Query -> Align -> Commit.
 
 ### Debugging Philosophy
 
-In Typedown, do not guess. If you are unsure where `[[Ref]]` points to, or what Schema is currently in effect, use tools to query immediately. This **"Write-Query-Correct"** loop is the core experience of Typedown development.
+In Typedown, we do not guess. If you are unsure where `[[Ref]]` points or which Schema is currently in effect, query the system immediately. This **"Write-Query-Align"** loop is the core experience of development in Typedown.

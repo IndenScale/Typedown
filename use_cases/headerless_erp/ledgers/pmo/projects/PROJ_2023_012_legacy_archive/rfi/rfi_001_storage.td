@@ -1,15 +1,5 @@
 # RFI: 冷存储归档方案
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import RFI
-```
 
 ```entity RFI: rfi_2023_cold_storage
 id: "rfi_2023_cold_storage"

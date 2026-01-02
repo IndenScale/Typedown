@@ -1,9 +1,5 @@
 # 供应商 A - 响应证据映射
 
-```config:python
-from use_cases.bid_agent.models.review import BidResponseItem
-from use_cases.bid_agent.models.evidence import DocLocation, Certificate
-```
 
 ## 1. 形式与资格响应
 

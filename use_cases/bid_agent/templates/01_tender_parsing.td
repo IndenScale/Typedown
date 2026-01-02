@@ -1,9 +1,5 @@
 # 招标文件解析 - 某智慧城市项目
 
-```config:python
-from use_cases.bid_agent.models.core import BidProject, ProjectDomain
-from use_cases.bid_agent.models.review import ScoringItem, ScoringType
-```
 
 ```entity BidProject: PROJ-SMART-CITY-001
 id: "PROJ-SMART-CITY-001"
@@ -18,19 +14,21 @@ domain_config:
 
 ```entity ScoringItem: SCORE-BIZ-01
 id: "SCORE-BIZ-01"
-category: "商务标"
+component: "BUSINESS"
 content: "投标人具有 CMMI 5 级证书得 5 分，CMMI 3 级得 2 分，否则不得分。"
 max_score: 5.0
-scoring_type: "OBJECTIVE"
+scoring_type: "SCORE"
+scoring_criteria: "证书等级判定"
 keywords: ["CMMI", "证书"]
 ```
 
 ```entity ScoringItem: SCORE-BIZ-02
 id: "SCORE-BIZ-02"
-category: "商务标"
+component: "BUSINESS"
 content: "项目经理具有 PMP 证书且近三年有类似业绩（合同额>500万）。"
 max_score: 5.0
-scoring_type: "OBJECTIVE"
+scoring_type: "SCORE"
+scoring_criteria: "证书及业绩核验"
 keywords: ["PMP", "业绩", "项目经理"]
 ```
 
@@ -38,8 +36,9 @@ keywords: ["PMP", "业绩", "项目经理"]
 
 ```entity ScoringItem: SCORE-TECH-01
 id: "SCORE-TECH-01"
-category: "技术标"
+component: "TECHNICAL"
 content: "系统架构设计合理性，高可用方案完善。"
 max_score: 20.0
-scoring_type: "SUBJECTIVE"
+scoring_type: "SCORE"
+scoring_criteria: "专家主观打分"
 ```

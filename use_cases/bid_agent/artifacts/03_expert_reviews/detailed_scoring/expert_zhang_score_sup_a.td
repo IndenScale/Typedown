@@ -1,8 +1,5 @@
 # 技术评分表 - 专家张 (供应商 A)
 
-```config:python
-from use_cases.bid_agent.models.review import ReviewResultEntry
-```
 
 ## 技术部分打分
 

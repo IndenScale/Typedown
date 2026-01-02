@@ -60,6 +60,46 @@ class Scanner:
                             if is_match:
                                 target_files.add(file_path)
 
+        # ---------------------------------------------------------
+        # Critical Fix: Ancestry Config Loading
+        # Ensure that config.td files from the target directory up to
+        # the project root are loaded, even if they were not explicitly
+        # targeted. This ensures "Context as Field" works for leaf files.
+        # ---------------------------------------------------------
+        
+        # Determine the starting directory for upward traversal
+        start_dir = target.parent if target.is_file() else target
+        try:
+            start_dir = start_dir.resolve()
+            # Ensure we are within the project
+            start_dir.relative_to(self.project_root)
+            
+            current = start_dir
+            while True:
+                config_path = current / "config.td"
+                
+                # Check if exists and not already loaded (to avoid double parsing)
+                if config_path.exists() and config_path not in documents:
+                    # Note: We do NOT add it to 'target_files' because it's
+                    # context infrastructure, not the user's focus target.
+                    self._process_file(config_path, documents)
+                
+                if current == self.project_root:
+                    break
+                
+                # Move up
+                if current.parent == current: # System root safety
+                    break
+                current = current.parent
+                
+                # Stop if we leave the project root (should be covered by loop condition, but safe)
+                if not current.is_relative_to(self.project_root):
+                    break
+                    
+        except (ValueError, RuntimeError):
+            # Target might be outside project root, skip auto-loading
+            pass
+
         self.console.print(f"    [green]✓[/green] Found {len(documents)} documents.")
         return documents, target_files
 
@@ -94,18 +134,33 @@ class Scanner:
         L1: Syntax & Format Check.
         Validates:
         1. No nested lists in Entity bodies (anti-pattern)
+        2. Config blocks only in config.td
         """
         self.console.print("  [dim]L1: Linting...[/dim]")
         
         has_errors = False
         
         for path, doc in documents.items():
+            # Check 1: Nested Lists
             for entity in doc.entities:
                 if self._check_nested_lists(entity.raw_data):
                     error = TypedownError(
                         f"Nested list detected in entity '{entity.id}'. "
                         f"This is an anti-pattern. Consider extracting to a separate Model.",
                         location=entity.location
+                    )
+                    self.diagnostics.append(error)
+                    has_errors = True
+
+            # Check 2: Config Placement
+            if doc.configs:
+                if path.name != "config.td":
+                    error = TypedownError(
+                        f"Config blocks detected in '{path.name}'. "
+                        f"Config blocks should only appear in 'config.td' files. "
+                        f"Please move this logic to the directory scope.",
+                        location=doc.configs[0].location,
+                        severity="error"
                     )
                     self.diagnostics.append(error)
                     has_errors = True
@@ -125,9 +180,16 @@ class Scanner:
         if isinstance(data, list):
             for item in data:
                 if isinstance(item, list):
-                    # Exception: Allow Single-Element List of Strings (Reference Sugar)
+                    # Exception 1: Allow Single-Element List of Strings (Reference Sugar)
                     # e.g. [[target]] parses as [['target']]
                     if len(item) == 1 and isinstance(item[0], str):
+                        continue
+                    
+                    # Exception 2: Allow Block-Style List of References
+                    # e.g. - [[target]] parses as [['target']] inside the outer list
+                    # So item is [['target']]
+                    if (len(item) == 1 and isinstance(item[0], list) and 
+                        len(item[0]) == 1 and isinstance(item[0][0], str)):
                         continue
                         
                     return True  # Found nested list

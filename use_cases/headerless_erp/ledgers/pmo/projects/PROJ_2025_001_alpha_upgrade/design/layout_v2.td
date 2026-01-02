@@ -8,16 +8,6 @@
 在 V1 方案中，我们将机器人直接安装在现有工位。但在仿真中发现，3 号工位的机械臂在极限姿态下会在此干涉 AGV 通道。
 **V2 修改**: 将 3 号、4 号工位向北平移 1.5 米，为此需要拆除旧的工具间墙体。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import DesignDocument
-```
 
 ```entity DesignDocument: design_alpha_layout_v2
 id: "design_alpha_layout_v2"

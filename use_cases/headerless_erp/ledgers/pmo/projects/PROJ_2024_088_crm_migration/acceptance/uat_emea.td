@@ -15,16 +15,6 @@
 
 **结论**: **Conditional Pass (有条件通过)**。必须在正式上线前修复性能问题。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import AcceptanceReport
-```
 
 ```entity AcceptanceReport: uat_crm_emea_001
 id: "uat_crm_emea_001"

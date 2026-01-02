@@ -3,13 +3,6 @@
 > 采用 **综合评估法**。
 > 流程：形式评审 -> 资格评审 -> 响应性评审 -> 详细评审 (技术/商务/价格)
 
-```config:python
-from use_cases.bid_agent.models.review import (
-    ComplianceItem, ScoringItem, 
-    ReviewStage, EvaluationComponent, 
-    Criticality, ScoringType
-)
-```
 
 ## 第一阶段：形式评审 (Formal Review)
 

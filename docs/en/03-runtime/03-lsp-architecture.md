@@ -1,87 +1,70 @@
-# LSP & IDE Integration (Language Server Protocol)
+# LSP & IDE Integration
 
-Typedown's core value lies in transforming text documents into a structured knowledge base. The immediate feedback for this transformation relies entirely on the Language Server (LSP) design.
+Typedown's core value lies in transforming text documents into a structured, verifiable knowledge base. The immediate feedback loop required for this transformation relies entirely on the **Language Server Protocol (LSP)** implementation.
 
-This document elucidates Typedown LSP's architectural philosophy, core responsibilities, and the division of labor with the VS Code extension.
+This document outlines the architectural philosophy of the Typedown LSP and the division of labor between the server and its clients.
 
 ## 1. Core Architectural Philosophy
 
-### A. Omniscience
+### A. Global Visibility (High-Fidelity Context)
 
-The LSP should not just be a Syntax Highlighter. It must be the **Brain** of the entire project. It should know:
+The LSP is more than a syntax highlighter; it is the **Brain** of the project. It maintains a holistic view of:
 
-- What files exist?
-- What are their dependencies (Dependency Graph)?
-- Does the current project violate any consistency rules?
+- The entire project file structure.
+- The Dependency Graph between entities.
+- Consistency and validity across the entire "Semantic Field."
 
-### B. Editor Agnostic
+### B. Editor Agnostic (Thin Client)
 
-All intelligent logic (jumps, completion, refactoring, diagnostics) must be sunk into the LSP Server (`typedown/server/`). The VS Code Extension (Client) should remain **Extremely Lightweight (Thin Client)**, responsible only for:
+All intelligence (jumps, completion, refactoring, diagnostics) resides in the LSP Server (`typedown/server/`). The VS Code Extension (the Client) is kept **Extremely Lightweight**, responsible only for:
 
-1. Starting the LSP process.
+1. Orchestrating the LSP process.
 2. Forwarding user input and configuration.
-3. Rendering UI returned by LSP (Definition, Hover, Decorations).
+3. Rendering the server's responses (Definitions, Hovers, Decorations).
 
-This ensures Typedown can easily adapt to Vim, Emacs, or JetBrains IDEs in the future.
+This ensures Typedown can be easily integrated into Vim, Emacs, or any other IDE as the community grows.
 
-### C. Hybrid Driven
+### C. The Dual-Path Strategy
 
-To ensure response speed and data freshness, LSP adopts a dual-drive mode:
+To balance responsiveness with accuracy, the LSP employs two distinct synchronization paths:
 
-1. **Editor Events (Fast path)**: Responds to `textDocument/didChange`. Every keystroke in the editor updates the in-memory AST. Used for millisecond-level completion and syntax checking.
-2. **Filesystem Watcher (Truth Path)**: Responds to `FileModified` events. Monitors the entire project directory via `watchdog`. This captures external changes (like `git pull`, script-generated code), ensuring the LSP's worldview aligns with the disk.
+1. **The Fast Path (Memory)**: Responds to `textDocument/didChange`. Every keystroke updates the in-memory AST, providing sub-millisecond completion and syntax checking.
+2. **The Truth Path (Disk)**: Responds to `FileModified` events via a filesystem watcher (`watchdog`). This captures external changes (like `git pull` or script-generated content), ensuring the server's worldview remains aligned with the disk.
 
 ## 2. Feature Matrix
 
-| Feature                    | Method (LSP Method)               | Implementation Strategy                                           | Dependent Core Components    |
+| Feature                    | LSP Method                        | Implementation Strategy                                           | Components                   |
 | :------------------------- | :-------------------------------- | :---------------------------------------------------------------- | :--------------------------- |
-| **Real-time Diagnostics**  | `textDocument/publishDiagnostics` | Trigger full validation (Validator) 300ms after user stops typing | `Validator`, `Parser`        |
-| **Definition Jump**        | `textDocument/definition`         | Reference in `EntityBlock.raw_data` -> Lookup `SymbolTable`       | `SymbolTable`, `QueryEngine` |
-| **Intelligent Completion** | `textDocument/completion`         | Identify current AST node context -> Filter available Handle/ID   | `SymbolTable`                |
-| **Hover Tooltip**          | `textDocument/hover`              | Render Markdown summary of referenced entity                      | `EntityBlock.data`           |
-| **Find References**        | `textDocument/references`         | Reverse lookup dependency graph (`DependencyGraph`)               | `DependencyGraph`            |
+| **Real-time Diagnostics**  | `textDocument/publishDiagnostics` | Triggers L3 Validation (Validator) after a short typing debounce. | `Validator`, `Parser`        |
+| **Go to Definition**       | `textDocument/definition`         | Resolves references via the Triple Resolution mechanism.          | `SymbolTable`, `QueryEngine` |
+| **Intelligent Completion** | `textDocument/completion`         | Identifies AST context and suggests available Handles or IDs.     | `SymbolTable`                |
+| **Hover Tooltips**         | `textDocument/hover`              | Renders a Markdown summary of the referenced entity.              | `EntityBlock.data`           |
+| **Find References**        | `textDocument/references`         | Performs a reverse lookup on the Dependency Graph.                | `DependencyGraph`            |
 
 ## 3. Implementation Details
 
-### 3.1 Virtual File System (VFS)
+### 3.1 Workspace Snapshot
 
-LSP maintains a `Workspace` instance containing:
+LSP maintains a consistent state of the project:
 
-- **Document Map**: `Path -> Document (AST)`.
-- **Symbol Table**: `ID -> EntityBlock`.
-- **Dependency Graph**: Topology of references between entities.
+- **Document Map**: Path-to-AST mapping.
+- **Symbol Table**: Resolution index for Handles and IDs.
+- **Dependency Graph**: Topology of inter-entity relationships.
 
-### 3.2 Incremental Update & Debounce
+### 3.2 Concurrency & Performance
 
-For performance, we should not recompile the entire project on every keystroke.
+The LSP Server is strictly thread-safe:
 
-1. **Single File Update**: `didChange` only triggers `Parser.parse()` for the current file.
-2. **Partial Reconnection**: Only recalculate symbol tables and connections for affected files.
-3. **Debounce**: Expensive `Validator` (L3 Check) should be executed with debounce.
-
-### 3.3 External (Project-Level) Listening
-
-The `watchdog` thread runs independently. When it detects changes not triggered by the editor, it actively calls `Server.update_document_from_disk(path)`.
-
-### 3.4 Concurrency Model
-
-To ensure state consistency, the LSP Server adopts a strict thread-safe design:
-
-- **Main Thread (LSP Loop)**: Handles all requests from Client (VS Code) (`textDocument/*`). This is the main thread for reading/writing Compiler state.
+- **Main Thread**: Handles Client requests and updates the memory AST.
 - **Watchdog Thread**: Independently monitors disk changes.
-- **Locking Strategy**: `Compiler` and its internal state (`documents`, `symbol_table`, `dependency_graph`) are protected by a global **Read-Write Lock (`threading.Lock`)**.
-  - Main Thread acquires the lock when processing requests.
-  - Watchdog Thread acquires the lock when updating disk state.
-  - This prevents race conditions during the compilation process.
+- **Locking**: The `Compiler` state is protected by a global **Read-Write Lock**. This ensures that the Truth Path and the Fast Path never cause race conditions.
 
-## 4. VS Code Extension Responsibilities
+## 4. Client Responsibilities (e.g., VS Code)
 
-The VS Code plugin's responsibilities are limited to:
-
-- Registering `.td` / `.typedown` file associations.
-- Providing syntax highlighting rules (`tmLanguage.json`) — _Note: LSP can also provide Semantic Tokens, but tmLanguage is faster and has better compatibility for Markdown_.
-- Starting the command `td lsp`.
+- Registering `.td` and `.typedown` file associations.
+- Providing core syntax highlighting (`tmLanguage.json`) for immediate visual feedback.
+- Executing the `td lsp` command to bootstrap the server.
 
 ---
 
-> **Design Principle Summary**: LSP is the Daemonized Core of Typedown. It serves not only the editor but is essentially a compiler service with instant response capabilities.
+> **Summary**: The LSP is the daemonized engine of Typedown. It is more than an editor aid; it is a live compiler service that ensures the "Consensus" in Consensus Modeling is always verified and visible.

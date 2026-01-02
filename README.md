@@ -1,12 +1,12 @@
-# Typedown: The Consensus Modeling Language (CML)
+# Typedown: Markdown that scales
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
-**Typedown** is a language designed for **Literate Modeling**. It bridges the gap between the fluidity of human thought (Markdown) and the rigor of engineering (Pydantic + Pytest).
+**Typedown** is a Consensus Modeling Language (CML) designed for **Literate Modeling**. It bridges the gap between the fluidity of human thought (Markdown) and the rigor of engineering (Pydantic + Pytest).
 
-> **"You don't know it until you model it."** — [Manifesto](docs/zh/manifesto.md)
+> **"You don't know it until you model it."**
 
 ---
 
@@ -14,9 +14,9 @@
 
 Typedown treats Markdown as a first-class language for **Consensus as Code (CaC)**, built on three pillars:
 
-1.  **Markdown (Interface)**: Retains nature language expressiveness. It's the habitat for humans and AI.
-2.  **Pydantic (Structure)**: Defines strict data schemas via `model` blocks.
-3.  **Pytest (Logic)**: Enforces business rules and constraints via `spec` blocks.
+1. **Markdown (Interface)**: Retains natural language expressiveness. It's the habitat for humans and AI.
+2. **Pydantic (Structure)**: Defines strict data schemas via `model` blocks.
+3. **Pytest (Logic)**: Enforces business rules and constraints via `spec` blocks.
 
 ## Why Typedown?
 
@@ -29,9 +29,10 @@ Typedown is **Active Soft Matter**. It allows information to "phase transition" 
 
 ## Core Features
 
+- **Markdown that scales**: Manage thousands of interconnected entities with IDE-grade navigation and validation.
 - **Progressive Formalization**: Start with a sketch, end with a verified system.
 - **Triple Resolution**: Resolve references `[[ref]]` through **Hash** (L0), **Handle** (L1), and **Logical ID** (L2).
-- **Evolution Semantics**: Track time using `former` (versioning) and `derived_from` (prototyping).
+- **Evolution Semantics**: Track time using `former` (versioning) to manage history.
 - **Context-Aware Scoping**: Implicit hierarchy via `config.td` and directory inheritance.
 - **QC Pipeline**: Four-layered validation from syntax (Lint) to external facts (Test).
 
@@ -124,8 +125,9 @@ Install **Typedown Integration** from:
 ## Documentation
 
 - **[GEMINI.md](GEMINI.md)**: AI Agent Guidance (Start here for AI dev).
-- **[Chinese Documentation](docs/zh/index.md)**: The current primary source of truth.
-- **[Manifesto](docs/zh/manifesto.md)**: Why we built this.
+- **[English Documentation](docs/en/index.md)**: Explore more about Typedown.
+- **[Chinese Documentation](docs/zh/index.md)**: 核心中文文档.
+- **[Manifesto](docs/en/manifesto.md)**: Why we built this.
 
 ---
 

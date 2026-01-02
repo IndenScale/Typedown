@@ -1,10 +1,12 @@
 # Core Blocks
 
-Typedown enhances Markdown's Code Blocks, treating them as semantic containers. these blocks are the fundamental units for building the Typedown language.
+> **"You don't know it until you model it."**
+
+Typedown enhances Markdown's Code Blocks by treating them as semantic containers. These blocks are the fundamental units for building the Typedown language.
 
 ## 1. Model Blocks (`model`)
 
-The `model` block allows you to define data schemas directly within the document using Pydantic syntax. This implements "Progressive Formalization"—evolving from loose textual descriptions to strict type definitions.
+The `model` block allows you to define data schemas directly within the document using Pydantic syntax. This implements "Progressive Formalization"—evolving from loose textual descriptions toward strict type definitions.
 
 ````markdown
 ```model:UserAccount
@@ -18,15 +20,15 @@ class UserAccount(BaseModel):
 ````
 
 - **Runtime Environment**: Executed in a Python environment pre-installed with `pydantic` and `typing`.
-- **Scope**: Models defined here are registered to the file's local scope. The ID currently after the colon (e.g., `UserAccount`) serves as the primary identifier for the model.
+- **Scope**: Models defined here are registered to the file's local scope. The ID after the colon (e.g., `UserAccount`) serves as the primary identifier for the model.
 - **Naming Constraint**: To ensure parser efficiency, the ID in the Info String **MUST** exactly match the Pydantic class name defined inside the code block. See [03-identifiers.md](03-identifiers.md) for details.
 
 ## 2. Entity Blocks (`entity`)
 
-The `entity` block is the primary way to declare "data" in Typedown. We adopt a strategy of separating **Handle** and **Logical ID**.
+The `entity` block is the primary way to declare "data" in Typedown. We adopt a strategy of separating the **Handle** from the **Logical ID**.
 
 ````markdown
-<!-- UserAccount is the type reference, alice is the instance Handle -->
+<!-- UserAccount is the type reference; alice is the instance Handle -->
 
 ```entity UserAccount: alice
 # 1. Logical ID (Slug): Explicitly defined business primary key for version evolution (former)
@@ -36,7 +38,7 @@ id: "users/alice-v1"
 name: "Alice"
 age: 30
 
-# 3. Reference Syntax Sugar: Looks like a reference list, compiler automatically unboxes
+# 3. Reference Syntax Sugar: Looks like a reference list; the compiler automatically unboxes it
 friends:
   - [[bob]]
   - [[charlie]]
@@ -64,7 +66,7 @@ sys.path.append("./src")
 ```
 ````
 
-- **Execution Timing**: Executed during the "Linking Phase".
+- **Execution Timing**: Executed during the "Linking Phase."
 - **Function**: Exports Python symbols for use by `model` or `spec` blocks in the same directory.
 
 ## 4. Spec Blocks (`spec`)
@@ -99,5 +101,5 @@ scripts:
 ---
 ```
 
-- **Metadata**: Metadata like `tags`, `author` can be indexed by the query system.
+- **Metadata**: Metadata like `tags` and `author` can be indexed by the query system.
 - **Scripts**: Defines shortcut commands capable of running in this context, invoked via `td run <script_name>`.

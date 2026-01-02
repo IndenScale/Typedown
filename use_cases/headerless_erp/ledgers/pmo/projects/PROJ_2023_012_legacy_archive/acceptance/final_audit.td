@@ -11,16 +11,6 @@
 **结果**: 所有抽样数据均成功从 Glacier 恢复，且 MD5 校验值与原始 AS/400 记录完全一致。
 Retention Policy 设置正确，确保存储的数据在 2033 年前不可被删除。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import AcceptanceReport
-```
 
 ```entity AcceptanceReport: accept_archive_final_audit
 id: "accept_archive_final_audit"

@@ -3,9 +3,6 @@
 > **审核员**: OPERATOR-007
 > **核查工具**: 原件核对 / 中标公示网查询
 
-```config:python
-from use_cases.bid_agent.models.verification import FactCheckRecord
-```
 
 ## 1. 智慧城市一期项目
 

@@ -3,9 +3,6 @@
 > **审核员**: OPERATOR-007
 > **核查工具**: 认监委官网 / 高企认定网
 
-```config:python
-from use_cases.bid_agent.models.verification import FactCheckRecord
-```
 
 ## 1. ISO9001 质量管理体系认证
 

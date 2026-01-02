@@ -3,9 +3,6 @@
 > **审核员**: OPERATOR-EXT-03
 > **核查工具**: PMI 官网 / 建造师注册查询系统
 
-```config:python
-from use_cases.bid_agent.models.verification import FactCheckRecord
-```
 
 ## PMP 证书核查
 

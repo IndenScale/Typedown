@@ -2,16 +2,6 @@
 
 本文件记录了 2024-12-05 当天的安装施工详情。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.infra.physical import Rack, NetworkDevice, CablingRecord
-```
 
 ## 1. 机柜落位
 

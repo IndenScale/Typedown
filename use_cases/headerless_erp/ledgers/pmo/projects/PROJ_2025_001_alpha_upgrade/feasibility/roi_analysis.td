@@ -13,16 +13,6 @@
 
 预计 **2.3 年** 可收回全部投资。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import FeasibilityStudy
-```
 
 ```entity FeasibilityStudy: feas_alpha_roi_v1
 id: "feas_alpha_roi_v1"

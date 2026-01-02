@@ -6,17 +6,6 @@
 本合同涵盖从 Salesforce 到 Titan CRM 的所有历史数据迁移工作。
 服务商必须签署最严格的 NDA，因为涉及全量客户联系方式。
 
-```config:python
-import sys
-import os
-current_dir = os.getcwd()
-erp_root = os.path.abspath(os.path.join(current_dir, "../../../../../../../.."))
-if erp_root not in sys.path:
-    sys.path.append(erp_root)
-
-from use_cases.headerless_erp.models.pmo.documents import Contract
-from use_cases.headerless_erp.models.core.primitives import Money
-```
 
 ```entity Contract: ctr_acn_etl_001
 id: "ctr_acn_etl_001"
