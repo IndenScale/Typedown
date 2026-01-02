@@ -46,12 +46,10 @@ class Validator:
                         if target_id in symbol_table:
                             self.dependency_graph.add_dependency(entity.id, target_id)
 
-                # Use AST-based references
-                for ref in entity.references:
-                    if ref.identifier:
-                        dep_id = str(ref.identifier)
-                        if dep_id in symbol_table:
-                            self.dependency_graph.add_dependency(entity.id, dep_id)
+                # Relaxed Validation:
+                # We NO LONGER add dependencies for standard references (lines 50-54 removed).
+                # This enables circular references (e.g. OrgUnit <-> Head) which are handled via Late Binding.
+                # The dependency graph now ONLY constrains Evolution (former) time-travel.
                 
                 if entity.id not in self.dependency_graph.adj:
                     self.dependency_graph.adj[entity.id] = set()

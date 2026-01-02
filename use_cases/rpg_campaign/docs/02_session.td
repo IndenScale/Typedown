@@ -37,7 +37,7 @@ Valen 失去了 30 点 HP，但经过治疗恢复了 10 点。最终 HP 为 80�
 
 ```entity Character: valen_v2
 id: "char_valen_v2"
-former: "char_valen_v1"
+former: [[slug_char_valen_v1]]
 hp: 80
 inventory:
   - [[item_sword_iron]]
@@ -50,12 +50,12 @@ Lyra 消耗了一瓶药水。
 
 ```entity Character: lyra_v2
 id: "char_lyra_v2"
-former: "char_lyra_v1"
+former: [[slug_char_lyra_v1]]
 inventory:
   - [[item_potion_hp]] # 只剩一瓶
 ```
 
 ## 当前队伍状态
 
-现在，[[char_valen_v1]].hp 是 [[char_valen_v2]].hp (80)，而 [[char_lyra_v1]].inventory 中只剩下了 [[char_lyra_v2]].inventory。
+现在，[[slug_char_valen_v1]].hp 是 [[char_valen_v2]].hp (80)，而 [[slug_char_lyra_v1]].inventory 中只剩下了 [[char_lyra_v2]].inventory。
 队伍继续前进...

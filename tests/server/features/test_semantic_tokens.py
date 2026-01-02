@@ -12,7 +12,7 @@ def test_semantic_tokens_entity_header():
     doc = MagicMock()
     # Line 0: No match
     # Line 1: Match at col 10 (3+6+1)
-    doc.source = "Plain text\n```entity:UserAccount"
+    doc.source = "Plain text\n```entity UserAccount"
     ls.workspace.get_text_document.return_value = doc
     
     params = SemanticTokensParams(
@@ -31,7 +31,7 @@ def test_semantic_tokens_entity_header():
 def test_semantic_tokens_multiple():
     ls = MockLS()
     doc = MagicMock()
-    doc.source = "```entity:U1\n```entity:U2"
+    doc.source = "```entity U1\n```entity U2"
     ls.workspace.get_text_document.return_value = doc
     
     params = SemanticTokensParams(

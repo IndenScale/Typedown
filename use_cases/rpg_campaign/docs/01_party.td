@@ -5,7 +5,7 @@
 ## 战士 Valen
 
 ```entity Character: valen
-id: "char_valen_v1"
+id: "slug_char_valen_v1"
 name: "Valen"
 class_name: "Warrior"
 hp: 100
@@ -17,7 +17,7 @@ inventory:
 ## 法师 Lyra
 
 ```entity Character: lyra
-id: "char_lyra_v1"
+id: "slug_char_lyra_v1"
 name: "Lyra"
 class_name: "Mage"
 hp: 60

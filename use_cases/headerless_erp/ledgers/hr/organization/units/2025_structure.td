@@ -58,3 +58,11 @@ head: [[emp_alpha_lead_001]]
 parent_unit: [[unit_prod_global]]
 cost_center_code: "CC_PROD_ALPHA"
 ```
+
+```entity BusinessUnit: unit_sales_emea
+id: "unit_sales_emea"
+name: "EMEA Sales Region"
+code: "SALES_EMEA"
+head: [[emp_emea_vp_001]]
+cost_center_code: "CC_SALES_EMEA"
+```

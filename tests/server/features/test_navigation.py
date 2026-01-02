@@ -11,6 +11,7 @@ class MockLS:
         self.compiler = MagicMock()
         self.workspace = MagicMock()
         self.show_message_log = MagicMock()
+        self.lock = MagicMock()
 
 def test_goto_definition():
     ls = MockLS()

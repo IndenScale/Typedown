@@ -79,3 +79,32 @@ title: "Junior Engineer"
 department: [[unit_prod_alpha]]
 level: 4
 ```
+
+## 生产与销售领导层 (Production & Sales Leadership)
+
+```entity Employee: emp_prod_head_001
+id: "emp_prod_head_001"
+name: "Roy Batty"
+email: "roy.b@corp.com"
+title: "Production Director"
+department: [[unit_prod_global]]
+level: 16
+```
+
+```entity Employee: emp_emea_vp_001
+id: "emp_emea_vp_001"
+name: "Hans Gruber"
+email: "hans.g@corp.com"
+title: "VP EMEA Sales"
+department: [[unit_sales_emea]]
+level: 16
+```
+
+```entity Employee: emp_1001
+id: "emp_1001"
+name: "Eldon Tyrell"
+email: "eldon.t@corp.com"
+title: "Senior Consultant"
+department: [[unit_prod_global]]
+level: 20
+```
