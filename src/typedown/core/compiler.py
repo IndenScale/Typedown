@@ -64,12 +64,11 @@ class Compiler:
             self.dependency_graph = validator.dependency_graph
             
             # Stage 3.5: Specs (Internal Self-Validation)
-            # We run this as part of compile (L3 Closure)
-            if not any(d.severity == "error" for d in self.diagnostics):
-                specs_passed = self._run_specs()
-                if not specs_passed:
-                    # Errors are already added to self.diagnostics by _run_specs via spec_executor
-                    pass
+            # REMOVED: Specs are now L4 and should be triggered on-demand (CLI/LSP), 
+            # not during standard compilation/startup.
+            # if not any(d.severity == "error" for d in self.diagnostics):
+            #     specs_passed = self._run_specs() 
+
 
             # Check for Errors
             has_error = False
@@ -222,7 +221,7 @@ class Compiler:
             from typedown.core.parser import TypedownParser
             parser = TypedownParser()
             # Parse in-memory
-            new_doc = parser.parse_text(content, fake_path=path)
+            new_doc = parser.parse_text(content, path_str=str(path))
             
             # TODO: Advanced Diffing using content_hash to skip invalidation
             # old_doc = self.documents.get(path)
@@ -261,8 +260,9 @@ class Compiler:
         self.dependency_graph = validator.dependency_graph
         
         # Stage 3.5: Specs (Internal Self-Validation)
-        if not any(d.severity == "error" for d in self.diagnostics):
-            self._run_specs()
+        # REMOVED: On-demand only.
+        # if not any(d.severity == "error" for d in self.diagnostics):
+        #     self._run_specs()
     
     def run_script(
         self,

@@ -132,12 +132,19 @@ class SpecExecutor:
             for spec in doc.specs:
                 selector = self._extract_selector(spec)
                 if not selector:
-                    self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no @target decorator. Skipping.")
-                    continue
+                    # ... legacy handling ...
+                    pass
+                else:
+                    # DEBUG: Print extracted selector
+                    self.console.print(f"    [dim]DEBUG: Extracted selector: {selector.raw} from {spec.location.file_path if spec.location else 'unknown'}[/dim]")
                     
                 matches = self._find_matching_entities(selector, symbol_table)
+                # DEBUG: Print match count
+                if selector:
+                     self.console.print(f"    [dim]DEBUG: Found {len(matches)} matches for {selector.type_filter}[/dim]")
+
                 if not matches:
-                    self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw}")
+                    self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw if selector else 'None'}")
                     continue
                     
                 for entity in matches:
@@ -266,3 +273,14 @@ class SpecExecutor:
                     matches.append(node)
         
         return matches
+
+    def _is_legacy_yaml_spec(self, spec: SpecBlock) -> bool:
+        """Heuristic to check if a spec is a legacy YAML definition."""
+        # Check for typical YAML fields in the spec code
+        # Older specs (spec:Rule) defined 'target:' and 'check:' in YAML
+        code_strip = spec.code.strip()
+        lines = code_strip.splitlines()
+        has_target_field = any(line.strip().startswith("target:") for line in lines)
+        has_check_field = any(line.strip().startswith("check:") for line in lines)
+        
+        return has_target_field or has_check_field

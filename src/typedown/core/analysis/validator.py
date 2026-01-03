@@ -162,14 +162,11 @@ class Validator:
             if match:
                 target_id_str = match.group(1)
 
-            # Enforce Global Addressing (L0/L2/L3)
-            identifier = Identifier.parse(target_id_str)
-            if not identifier.is_global():
-                self.diagnostics.append(TypedownError(
-                    f"Evolution constraint: 'former' requires a Global Identifier (L0/L2/L3). '{target_id_str}' is a Local Handle.",
-                    location=entity.location,
-                    severity="error"
-                ))
+            # Enforce Global Addressing (L0/L2/L3) -> REMOVED
+            # Philosophy Shift: "We cannot judge validity from format alone. Only resolution failure counts."
+            # identifier = Identifier.parse(target_id_str)
+            # if not identifier.is_global(): ...
+
 
             if hasattr(symbol_table, "resolve"):
                 parent_node = symbol_table.resolve(target_id_str, context_path=context_path)

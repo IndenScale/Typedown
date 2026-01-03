@@ -7,24 +7,27 @@ migrated from the old YAML-based `spec:Rule` definitions.
 from models.schema import Monster, Item
 import pytest
 
-@pytest.mark.rpg
-def test_monster_hp_positive(workspace):
+# Note: @target is handled by the framework logic.
+# We don't import it because it's replaced before runtime,
+# but the IDE might complain, so we can define a dummy if needed
+# or just rely on Typedown's magic context.
+# We will assume Typedown framework does not require importing target.
+
+@target(type="Monster")
+def test_monster_hp_positive(subject: Monster):
     """
     Test: All monsters must have positive HP.
     """
-    monsters = workspace.get_entities_by_type("Monster")
-    for monster in monsters:
-        assert monster.hp > 0, f"Monster {monster.name} has non-positive HP: {monster.hp}"
+    # The framework injects 'subject' which is the matching Entity
+    assert subject.hp > 0, f"Monster {subject.name} has non-positive HP: {subject.hp}"
 
-@pytest.mark.rpg
-def test_item_max_weight_limit(workspace):
+@target(type="Item")
+def test_item_max_weight_limit(subject: Item):
     """
     Test: Items should not exceed a certain weight limit.
     This test is an example of failure, as some items might intentionally exceed the limit.
     """
-    items = workspace.get_entities_by_type("Item")
-    limit = 1.5 # From the old spec:Rule params
-    for item in items:
-        # We expect this to fail for "Sword of Iron" (weight 2.0)
-        assert item.weight <= limit, f"Item {item.name} weight {item.weight} exceeds limit {limit}!"
+    limit = 1.5
+    # We expect this to fail for "Sword of Iron" (weight 2.0)
+    assert subject.weight <= limit, f"Item {subject.name} weight {subject.weight} exceeds limit {limit}!"
 ```

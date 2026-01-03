@@ -64,12 +64,12 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
     return lenses
 
 @server.command(CMD_RUN_SPEC)
-def run_spec_command(ls: TypedownLanguageServer, args):
+def run_spec_command(ls: TypedownLanguageServer, *args):
     """Callback for Run Spec lens."""
     if not ls.compiler or len(args) < 2:
         return
         
-    file_path_str, spec_id = args
+    file_path_str, spec_id = args[0], args[1]
     ls.show_message(f"Running spec '{spec_id}'...", 3) # Info message
     
     # compile() now triggers Stage 3.5 (Specs) automatically
@@ -83,10 +83,10 @@ def run_spec_command(ls: TypedownLanguageServer, args):
         ls.show_message(f"Validation failed. ✗ Check errors in '{spec_id}'.", 1)
 
 @server.command(CMD_VIEW_FORMER)
-def view_former_command(ls: TypedownLanguageServer, args):
+def view_former_command(ls: TypedownLanguageServer, *args):
     if not ls.compiler or len(args) < 2:
         return
         
-    file_path_str, entity_id = args
+    file_path_str, entity_id = args[0], args[1]
     # TODO: Implement a ghost text or peek view for evolution history
     ls.show_message(f"Evolution history for '{entity_id}' (P0 implemented former field)", 3)

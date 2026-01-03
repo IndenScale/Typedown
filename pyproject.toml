@@ -1,6 +1,6 @@
 [project]
 name = "typedown"
-version = "0.2.6"
+version = "0.2.7"
 description = "Progressive Formalization for Markdown using Pydantic and Pytest"
 readme = "README.md"
 requires-python = ">=3.10"
