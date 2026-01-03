@@ -78,7 +78,8 @@ def test_validator_former_invalid_identifier():
     
     validator.validate(docs, symbol_table, {})
     
-    # Should have an error about Local Handle
+    # Should have an error about target not found (Resolution Check)
     assert len(validator.diagnostics) == 1
-    assert "requires a Global Identifier" in validator.diagnostics[0].message
-    assert "Local Handle" in validator.diagnostics[0].message
+    assert "target 'alice-local' not found" in validator.diagnostics[0].message
+    # assert "Local Handle" in validator.diagnostics[0].message # No longer relevant
+

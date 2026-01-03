@@ -179,6 +179,13 @@ class Validator:
                 # But we do NOT merge its data.
                 # 'former' remains a metadata link.
                 pass
+            else:
+                # Resolution Failed
+                self.diagnostics.append(TypedownError(
+                    f"Evolution Error: 'former' target '{target_id_str}' not found.",
+                    location=entity.location,
+                    severity="error"
+                ))
 
         try:
             # In-place reference resolution

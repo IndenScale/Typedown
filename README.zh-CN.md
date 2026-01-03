@@ -71,8 +71,6 @@ Typedown 旨在主要在编辑器中使用，并由强大的命令行工具提�
 
 ### 2. 全局 CLI (用于 CI/CD)
 
-使用 `uv` (推荐) 或 `pip` 在 CI 流程中验证你的知识库：
-
 ```bash
 # 即时运行 (无需安装)
 uvx typedown check

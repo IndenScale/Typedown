@@ -132,20 +132,18 @@ class SpecExecutor:
             for spec in doc.specs:
                 selector = self._extract_selector(spec)
                 if not selector:
-                    # ... legacy handling ...
-                    pass
-                else:
-                    # DEBUG: Print extracted selector
-                    self.console.print(f"    [dim]DEBUG: Extracted selector: {selector.raw} from {spec.location.file_path if spec.location else 'unknown'}[/dim]")
-                    
-                matches = self._find_matching_entities(selector, symbol_table)
-                # DEBUG: Print match count
-                if selector:
-                     self.console.print(f"    [dim]DEBUG: Found {len(matches)} matches for {selector.type_filter}[/dim]")
-
-                if not matches:
-                    self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw if selector else 'None'}")
+                    if self._is_legacy_yaml_spec(spec):
+                         # Legacy YAML specs are skipped without warning
+                         pass
+                    else:
+                        self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no @target decorator. Skipping.")
                     continue
+
+                matches = self._find_matching_entities(selector, symbol_table)
+                if not matches:
+                    self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw}")
+                    continue
+
                     
                 for entity in matches:
                     tasks.append((spec, entity))

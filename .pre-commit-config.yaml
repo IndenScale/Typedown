@@ -1,0 +1,36 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.0
+    hooks:
+      - id: ruff
+        args: [--fix]
+      - id: ruff-format
+
+  - repo: local
+    hooks:
+      # 1. Python Test Suite (Core Logic)
+      - id: pytest
+        name: Pytest (Core)
+        entry: uv run pytest
+        language: system
+        types: [python]
+        pass_filenames: false
+        # Run only on changes to src or tests
+        files: ^(src|tests)/
+
+      # 2. Typedown Self-Verification (Dogfooding)
+      - id: typedown-check
+        name: Typedown L2 Check (Schema)
+        entry: uv run td check
+        language: system
+        types: [markdown]
+        pass_filenames: false
+        files: \.td$
+
+      # 3. VS Code Extension Build (Frontend)
+      - id: vscode-compile
+        name: VS Code Compile
+        entry: bash -c "cd extensions/vscode && npm run compile"
+        language: system
+        files: ^extensions/vscode/
+        pass_filenames: false

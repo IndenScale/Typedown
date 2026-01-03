@@ -105,4 +105,21 @@ author: IndenScale
 1. **Session != Task**: 对话 (Session) 是流动的，任务 (Task) 是永恒的。Agent 应主动将 Session 中的意图转化为 Task 文件。
 2. **创建 (Create)**: 在 `active/` 目录创建新任务，分配下一个可用 ID。
 3. **开发 (Develop)**: 任务文件是 "Source of Truth"，记录 Context, Objectives, Plan 和 Thought。
+
 4. **归档 (Archive)**: 任务完成后，更新状态为 `done` 并移动至 `archive/` 目录。不要删除任务文件。
+
+## 发布流程 (Release Workflow)
+
+Monoco 采用自动化流水线管理 Typedown 的多渠道发布。
+
+- **触发条件**: 当以 `v*` 开头的标签 (e.g., `v0.2.7`) 被推送到仓库时触发。
+- **Action 职责**:
+  - `publish-pypi.yml`: 构建并发布 Python 包到 PyPI。
+  - `vscode-extension.yml`: 并行构建并发布插件到 VS Code Marketplace 和 Open VSX Registry。
+- **一致性**: 该流程确保核心编译器 (PyPI) 与编辑器插件 (VSX/OVSX) 版本始终保持同步。
+- **发布指令**:
+
+  ```bash
+  git tag vX.Y.Z
+  git push --tags
+  ```

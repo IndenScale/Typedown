@@ -39,7 +39,7 @@ class TypedownLanguageServer(LanguageServer):
         self.window_log_message(LogMessageParams(type=message_type, message=message))
 
 # Create the server instance globally so decorators can use it
-server = TypedownLanguageServer("typedown-server", "0.2.7")
+server = TypedownLanguageServer("typedown-server", "0.2.8")
 
 # ======================================================================================
 # Lifecycle Events
