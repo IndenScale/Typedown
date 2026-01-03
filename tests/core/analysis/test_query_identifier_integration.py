@@ -139,11 +139,11 @@ class TestQueryEngineIdentifierIntegration:
         symbol_table = MockSymbolTable()
         
         # 不存在的 Handle
-        with pytest.raises(ReferenceError, match="Handle not found"):
+        with pytest.raises(ReferenceError, match="L2 Fuzzy Match failed"):
             QueryEngine._resolve_symbol_path("nonexistent", symbol_table)
         
         # 不存在的 Slug
-        with pytest.raises(ReferenceError, match="Slug not found"):
+        with pytest.raises(ReferenceError, match="L1 Exact Match failed"):
             QueryEngine._resolve_symbol_path("users/nonexistent", symbol_table)
         
         # 不存在的属性

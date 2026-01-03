@@ -21,7 +21,6 @@ def test_parse_entity_block():
     parser = TypedownParser()
     content = """
 ```entity UserAccount: alice
-id: "users/alice-v1"
 name: "Alice"
 age: 30
 ```
@@ -30,15 +29,14 @@ age: 30
     assert len(doc.entities) == 1
     entity = doc.entities[0]
     assert entity.class_name == "UserAccount"
-    assert entity.id == "alice" # Note: Parser currently uses handle as ID? Let's check code.
-    assert entity.raw_data["id"] == "users/alice-v1"
+    assert entity.id == "alice"
+    # assert entity.raw_data["id"] == "user-alice-v1" # Deprecated/Removed from body
     assert entity.raw_data["name"] == "Alice"
 
 def test_parse_entity_block_with_hyphens():
     parser = TypedownParser()
     content = """
 ```entity ComplianceItem: REQ-PHY-01
-id: "REQ-PHY-01"
 content: "Must be sealed."
 ```
 """
@@ -47,7 +45,7 @@ content: "Must be sealed."
     entity = doc.entities[0]
     assert entity.class_name == "ComplianceItem"
     assert entity.id == "REQ-PHY-01"
-    assert entity.raw_data["id"] == "REQ-PHY-01"
+    # assert entity.raw_data["id"] == "REQ-PHY-01"
 
 def test_parse_config_block():
     parser = TypedownParser()

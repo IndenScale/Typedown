@@ -7,7 +7,6 @@
 ## 高级职称核查
 
 ```entity FactCheckRecord: CHECK-TITLE-PM-ZHANG
-id: "CHECK-TITLE-PM-ZHANG"
 target_evidence_id: "PER-PM-ZHANG"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-TECH-02"
@@ -20,7 +19,6 @@ screenshot:
 ```
 
 ```entity FactCheckRecord: CHECK-TITLE-TD-LI
-id: "CHECK-TITLE-TD-LI"
 target_evidence_id: "PER-TD-LI"
 target_supplier_id: "SUP-A"
 operator_id: "OPERATOR-TECH-02"

@@ -4,7 +4,6 @@
 
 
 ```entity Employee: ext_auditor_pwc_009
-id: "ext_auditor_pwc_009"
 name: "Sherlock Holmes"
 email: "sherlock@pwc.com"
 title: "Lead Auditor"

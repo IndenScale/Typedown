@@ -20,7 +20,6 @@
 
 
 ```entity FeasibilityStudy: feas_archive_cloud_vs_tape
-id: "feas_archive_cloud_vs_tape"
 project_code: "PROJ-2023-012"
 title: "Cold Storage Technology Selection"
 author: "Infra Team"

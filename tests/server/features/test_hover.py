@@ -31,7 +31,8 @@ def test_hover_entity_reference():
     
     result = hover(ls, params)
     assert result is not None
-    assert "**Entity**: `alice`" in result.contents
+    assert "**Handle**: `alice`" in result.contents
+    assert "**System ID**: `alice`" in result.contents
     assert "**Type**: `UserAccount`" in result.contents
 
 def test_hover_model_header():

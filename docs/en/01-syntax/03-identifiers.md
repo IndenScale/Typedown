@@ -4,71 +4,35 @@ The core philosophy of Typedown is **Progressive Formalization**, which is deepl
 
 ## The Identifier Spectrum
 
-We define four core identifiers, with their precision increasing and ease of use decreasing:
+We define identifiers as three distinct **Resolution States**, rather than just differences in format.
 
-| Type   | Name                   | Location               | Characteristics                    | Typical Scenario                                               |
-| :----- | :--------------------- | :--------------------- | :--------------------------------- | :------------------------------------------------------------- |
-| **L1** | **Handle**             | Code Block Header      | Local, Volatile, Short             | Development phase, code block declaration, local reference     |
-| **L2** | **Slug (Logical ID)**  | Entity Body (`id`)     | Global, Stable, Readable           | Cross-file reference, long-term maintenance, version evolution |
-| **L3** | **UUID**               | Entity Body (`uuid`)   | Global, Unique, No Semantics       | Database primary key, scenarios without manual intervention    |
-| **L0** | **Hash (Fingerprint)** | Immutable (Calculated) | Absolute, Deterministic, Immutable | Release artifacts, dependency locking, content addressing      |
+| Level  | Resolution Strategy | Phase                | Behavior                                                                                    |
+| :----- | :------------------ | :------------------- | :------------------------------------------------------------------------------------------ |
+| **L0** | **Hash Match**      | Runtime / Distribute | **Absolute Anchor**. Exact verification based on content Hash.                              |
+| **L1** | **Exact Match**     | Persist / Compile    | **Exact Index**. Requires a globally unique string match.                                   |
+| **L2** | **Fuzzy Match**     | Edit / IDE           | **Fuzzy Inference**. Temporary state during developer input, relying on context derivation. |
 
-### 1. Handle (L1)
+> **Core Insight**: The essential difference between L2 (Handle) and L1 (System ID) lies in **whether fuzzy matching is allowed**.
+>
+> - During **IDE Input**, you type `alice` (L2), and the completion tool identifies it as `users-alice-v1`.
+> - During **File Save**, the code must settle into `users-alice-v1` (L1) for precise compiler resolution.
 
-**Handle** is the first interface for developers interacting with code blocks. Defined via colon syntax.
+### System ID Styles
 
-- **Syntax**: `BlockType: Handle`
-- **Scope**: Defaults to file-level private (Local Scope), unless explicitly exported.
-- **Usage**: Provides a memorable name for quick reference in the current context.
+For the compiler kernel, **Name, Slug, and UUID make no difference**; they are all string Keys serving as **L1 System ID**. The choice of style depends purely on project conventions:
 
-````markdown
-<!-- "User" and "alice" are Handles -->
+- **Name Style**: `alice` (Short, but prone to conflict in large projects)
+- **Slug Style**: `users-alice-v1` (Recommended, clear namespace)
+- **UUID Style**: `550e84...` (Machine-generated, no semantics)
 
-```model:User
-...
-```
+Regardless of the style chosen, as long as it is globally unique and precisely referenced, it is an **L1 System ID**.
 
-```entity User: alice
-...
-```
-````
+## Resolution Priority
 
-### 2. Slug (Logical ID, L2)
+When a reference `[[target]]` occurs, the parser strictly follows the **L0 -> L1 -> L2** sequence:
 
-**Slug** is the stable anchor of an entity in space-time. When an entity matures, it should have an explicit logical ID.
+1. **L0 Check (Hash)**: Checks if it matches `sha256:...` format. If so, performs content addressing.
+2. **L1 Check (ID)**: Performs an exact lookup for a matching `id` or `uuid` in the global index.
+3. **L2 Check (Handle)**: Performs a fuzzy match for a Handle in the local context.
 
-- **Syntax**: Define `id: "path/to/identity"` in Entity Body.
-- **Constraint**: Globally unique. Usually adopts a URL-like path structure.
-- **Evolution**: Use `former: ["old-slug"]` to track ID renaming, ensuring continuity of historical references.
-
-````markdown
-```entity User: alice
-# This is a Slug, it is the official ID card of this entity
-id: "users/alice-v1"
-name: "Alice"
-```
-````
-
-### 3. Hash (Content Fingerprint, L0)
-
-**Hash** is the mathematical digest of content. It is objective truth, independent of human will.
-
-- **Generation**: `SHA-256(Canonical_Body)`.
-- **Usage**: Ensures the reference points to **a specific state at a specific moment**.
-
-When you use a Hash in a reference (`[[sha256:abc...]]`), you are no longer referencing "that person called Alice" (she might change), but referencing "the snapshot of Alice's data at that moment in that state".
-
-### 4. UUID (L3)
-
-**UUID** is the final fallback identifier.
-
-- **Usage**: Use UUID when you are too lazy to name (Handle), don't want to maintain a logical path (Slug), and content changes frequently (Hash is unstable).
-- **Automation**: Usually generated automatically by tools; humans should avoid manual handling.
-
-## Identifier Resolution Priority
-
-When a reference `[[target]]` occurs, the parser follows this priority:
-
-1. **Hash Check**: If it is `sha256:...`, perform content addressing (L0) directly.
-2. **Handle Lookup**: Look for a matching Handle in the current file and Context (L1).
-3. **Slug/UUID Lookup**: Look for a matching ID in the global index (L2/L3).
+> **Design Intent**: Precision over vagueness, Global over Local. This ensures reference determinism while preserving flexibility in developer experience.

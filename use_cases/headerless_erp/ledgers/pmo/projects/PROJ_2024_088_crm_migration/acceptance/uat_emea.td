@@ -17,7 +17,6 @@
 
 
 ```entity AcceptanceReport: uat_crm_emea_001
-id: "uat_crm_emea_001"
 project_code: "PROJ-2024-088"
 title: "EMEA Region Pre-Go-Live UAT"
 inspector: [[emp_emea_vp_001]]

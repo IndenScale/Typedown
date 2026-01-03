@@ -15,7 +15,7 @@ Typedown 是一门 **共识建模语言 (Consensus Modeling Language - CML)**。
 Typedown 通过增强 Markdown 的代码块来将其视为语义单元。详见：[核心代码块](docs/zh/01-语法/01-代码块.md)
 
 - **`model`**: 使用 Pydantic 定义数据架构。类名需与块 ID 一致。
-- **`entity`**: 声明数据实例。支持 `entity <Type>: <Handle>` 语法。
+- **`entity`**: 声明数据实例。支持 `entity <Type>: <Identifier>` 语法。Identifier 即为 System ID。
 - **`config`**: 动态配置环境或注入 Python 符号（常用于 `config.td`）。
 - **`spec`**: 定义测试与校验逻辑，采用“选择器绑定”模式（`@target`）。
 
@@ -23,7 +23,7 @@ Typedown 通过增强 Markdown 的代码块来将其视为语义单元。详见�
 
 Typedown 采用**词法作用域 (Lexical Scoping)**，符号解析遵循层级递进。详见：[上下文与作用域](docs/zh/02-语义/02-上下文与作用域.md)
 
-1. **Local Scope**: 当前文件的 `model`、`entity` (Handles)。
+1. **Local Scope**: 当前文件的 `model`、`entity` (L2 Handles)。
 2. **Directory Scope**: `config.td` 导出的符号（子目录自动继承）。
 3. **Parent Scopes**: 递归向上直到 `typedown.yaml` 全局配置。
 
@@ -31,9 +31,9 @@ Typedown 采用**词法作用域 (Lexical Scoping)**，符号解析遵循层级�
 
 `[[...]]` 代表**查询意图**，通过 **三重解析 (Triple Resolution)** 坍缩为真理。详见：[引用规范](docs/zh/01-语法/02-引用.md)
 
-1. **Hash Check**: 匹配内容哈希 `[[sha256:...]]` (L0 - 绝对鲁棒)。
-2. **Handle Lookup**: 匹配当前上下文的局部句柄 `[[alice]]` (L1 - 开发体验)。
-3. **ID Lookup**: 匹配全局逻辑 ID `[[users/alice-v1]]` 或 UUID `[[550e84...]]` (L2/L3 - 跨系统版本控制)。
+1. **L0 Hash Check**: 匹配内容哈希 `[[sha256:...]]` (绝对鲁棒)。
+2. **L1 Exact Match**: 匹配全局 System ID `[[user-alice-v1]]` (精确索引)。
+3. **L2 Context Match**: 匹配当前上下文的局部 Handle `[[alice]]` (模糊查找)。
 
 ## 演进语义 (Evolution Semantics)
 
@@ -54,7 +54,7 @@ Typedown 质量控制体系遵循分层原则。详见：[质量控制](docs/zh/
 ## 开发约束与最佳实践
 
 - **禁止嵌套列表**: 严禁在 Entity Body 使用嵌套数组。详见：[核心理念 #2](docs/zh/00-核心理念.md#2-为什么禁止多层列表)
-- **显式 ID 晋升**: 稳定后的实体应从 Handle 晋升为 Slug ID（`id: "..."`）。详见：[身份管理](docs/zh/04-最佳实践/01-身份管理.md)
+- **ID 风格晋升**: 稳定后的实体应从 Name 风格（`alice`）晋升为 Slug 风格（`users-alice-v1`），修改 Block Signature 即可。
 - **环境即场域**: 文件的物理位置决定其语义。移动文件即重构。
 - **脚本系统**: 通过 Front Matter 定义可执行脚本。详见：[脚本系统](docs/zh/03-运行/01-脚本系统.md)
 

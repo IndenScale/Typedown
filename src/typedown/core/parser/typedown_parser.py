@@ -187,11 +187,15 @@ class TypedownParser:
                                 if not isinstance(data, dict):
                                     data = {}
                                 
+                                # Enforce Signature as Identity
+                                if 'id' in data:
+                                    raise ValueError("Conflict: System ID must be defined in Block Signature, not in Body.")
+
                                 doc.entities.append(EntityBlock(
                                     id=entity_id,
                                     class_name=type_name,
                                     raw_data=data,
-                                    slug=str(data.get('id')) if data.get('id') else None,
+                                    slug=None, # Deprecated: Body 'id' is no longer used as slug. Signature ID is the System ID.
                                     uuid=str(data.get('uuid')) if data.get('uuid') else None,
                                     former_ids=self._unbox_former(data.get('former')),
                                     derived_from_id=str(data.get('derived_from')) if data.get('derived_from') else None,

@@ -10,7 +10,6 @@
 
 
 ```entity Project: proj_2023_legacy_archive
-id: "proj_2023_legacy_archive"
 name: "Legacy System Archival"
 code: "PROJ-2023-012"
 manager: [[emp_fin_head_001]]

@@ -39,20 +39,20 @@ def test_validator_former_linkage():
     console = Console()
     validator = Validator(console)
     
-    # alice_v1 (Simulate a Slug ID by using users/alice-v1)
-    # Note: In real parsing, ID would be just "users/alice-v1".
-    alice_v1 = EntityBlock(id="users/alice-v1", class_name="UserAccount", raw_data={"name": "Alice", "age": 30}, location=SourceLocation(file_path="v1.td", line_start=0, line_end=0))
+    # alice_v1 (Simulate a Slug ID by using user-alice-v1)
+    # Note: In real parsing, ID would be just "user-alice-v1".
+    alice_v1 = EntityBlock(id="user-alice-v1", class_name="UserAccount", raw_data={"name": "Alice", "age": 30}, location=SourceLocation(file_path="v1.td", line_start=0, line_end=0))
     alice_v1.resolved_data = alice_v1.raw_data 
     
     # alice_v2 points to alice_v1 via former
-    # Using L2 Global Identifier: [[users/alice-v1]]
-    alice_v2 = EntityBlock(id="users/alice-v2", class_name="UserAccount", raw_data={"former": "[[users/alice-v1]]", "age": 31, "name": "Alice V2"}, location=SourceLocation(file_path="v2.td", line_start=0, line_end=0), former_ids=["[[users/alice-v1]]"])
+    # Using L2 Global Identifier: [[user-alice-v1]]
+    alice_v2 = EntityBlock(id="users/alice-v2", class_name="UserAccount", raw_data={"former": "[[user-alice-v1]]", "age": 31, "name": "Alice V2"}, location=SourceLocation(file_path="v2.td", line_start=0, line_end=0), former_ids=["[[user-alice-v1]]"])
     
     docs = {Path("v1.td"): Document(path=Path("v1.td"), raw_content=""), Path("v2.td"): Document(path=Path("v2.td"), raw_content="")}
     docs[Path("v1.td")].entities.append(alice_v1)
     docs[Path("v2.td")].entities.append(alice_v2)
     
-    symbol_table = {"users/alice-v1": alice_v1, "users/alice-v2": alice_v2}
+    symbol_table = {"user-alice-v1": alice_v1, "users/alice-v2": alice_v2}
     
     validator.validate(docs, symbol_table, {})
     

@@ -22,7 +22,7 @@ If absolute precision is needed, you should lock onto a specific version via **C
 
 Typedown supports three reference forms, and the compiler automatically infers your intent based on context.
 
-- **Slug (Logical ID)**: `[[users/alice-v1]]`
+- **Slug (Logical ID)**: `[[user-alice-v1]]`
 
   - **Semantics**: Points to a specific entity in the global index.
   - **Recommended Usage**: Cross-file references, formal documentation links. This is the most common human-readable anchor.

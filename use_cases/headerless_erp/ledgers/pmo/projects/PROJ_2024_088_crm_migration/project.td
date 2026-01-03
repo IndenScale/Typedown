@@ -12,7 +12,6 @@ CTO 决定启动 "Project Titan"，基于开源技术栈自研 CRM，彻底摆�
 
 
 ```entity Project: proj_2024_crm_migration
-id: "proj_2024_crm_migration"
 name: "Global CRM Migration"
 code: "PROJ-2024-088"
 manager: [[emp_pmo_head_001]]

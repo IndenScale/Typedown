@@ -45,14 +45,24 @@ def completions(ls: TypedownLanguageServer, params: CompletionParams):
     entity_match = re.search(r'\[\[entity:([\w\.\-_]*)$', prefix)
     if entity_match:
         # Show all known Entities
-        for entity_id, entity in ls.compiler.symbol_table.items():
+        for key, entity in ls.compiler.symbol_table.items():
+            # Determine System ID (L1) vs Handle (L2)
+            system_id = getattr(entity, 'id', key)
+            
+            # Check if it's a HandleWrapper pointing to an Entity
+            if hasattr(entity, 'value') and hasattr(entity.value, 'id'):
+                 system_id = entity.value.id
+                 detail_text = f"Handle -> {system_id}"
+            else:
+                 detail_text = getattr(entity, 'class_name', "Entity")
+
             items.append(CompletionItem(
-                label=entity_id,
+                label=key,
                 kind=CompletionItemKind.Class,
-                detail=entity.class_name or "Entity",
-                documentation=f"Defined in {Path(entity.location.file_path).name}",
-                insert_text=f"{entity_id}]]",
-                sort_text=f"00_{entity_id}"
+                detail=detail_text,
+                documentation=f"Defined in {getattr(getattr(entity, 'location', None), 'file_path', 'Unknown')}",
+                insert_text=f"{system_id}]]",
+                sort_text=f"00_{key}"
             ))
         return CompletionList(is_incomplete=False, items=items)
 
@@ -90,14 +100,24 @@ def completions(ls: TypedownLanguageServer, params: CompletionParams):
             ))
 
         # 2. Entities (Icon: Class/Struct)
-        for entity_id, entity in ls.compiler.symbol_table.items():
+        for key, entity in ls.compiler.symbol_table.items():
+            # Determine System ID (L1) vs Handle (L2)
+            system_id = getattr(entity, 'id', key)
+            
+            # Check if it's a HandleWrapper pointing to an Entity
+            if hasattr(entity, 'value') and hasattr(entity.value, 'id'):
+                 system_id = entity.value.id
+                 detail_text = f"Handle -> {system_id}"
+            else:
+                 detail_text = getattr(entity, 'class_name', "Entity")
+
             items.append(CompletionItem(
-                label=entity_id,
+                label=key,
                 kind=CompletionItemKind.Struct, # Distinct from Class
-                detail=entity.class_name or "Entity",
-                documentation=f"Defined in {Path(entity.location.file_path).name}",
-                insert_text=f"{entity_id}]]",
-                sort_text=f"10_{entity_id}"
+                detail=detail_text,
+                documentation=f"Defined in {getattr(getattr(entity, 'location', None), 'file_path', 'Unknown')}",
+                insert_text=f"{system_id}]]",
+                sort_text=f"10_{key}"
             ))
             
         # 3. Files (Icon: File)

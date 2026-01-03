@@ -24,14 +24,12 @@ In `00_manual.td`, we define our base game assets. This is our static "Source of
 We define a potion and a sword. Note the `id` field—this is the **Slug**, a stable, global identifier.
 
 ```entity Item: potion
-id: "item_potion_hp"
 name: "Healing Potion (Small)"
 weight: 0.5
 value: 10
 ```
 
 ```entity Item: sword
-id: "item_sword_iron"
 name: "Iron Sword"
 weight: 1.5
 value: 50
@@ -42,7 +40,6 @@ value: 50
 Next, we define a Goblin. In Typedown, we prefer **Explicitness**. Instead of deep inheritance trees, we use AI or simple templates to populate data.
 
 ```entity Monster: goblin
-id: "mon_goblin_base"
 name: "Goblin"
 type: "Humanoid"
 hp: 30
@@ -58,7 +55,6 @@ loot:
 In `01_party.td`, we introduce our protagonists.
 
 ```entity Character: valen
-id: "char_valen_v1"
 name: "Valen"
 class_name: "Warrior"
 hp: 100
@@ -68,7 +64,6 @@ inventory:
 ```
 
 ```entity Character: lyra
-id: "char_lyra_v1"
 name: "Lyra"
 class_name: "Mage"
 hp: 60
@@ -86,7 +81,6 @@ As the game unfolds in `02_session.td`, we encounter Typedown's most powerful fe
 Two goblins appear! Instead of complex "derivation," we simply declare them as distinct entities in this specific session context.
 
 ```entity Monster: goblin_a
-id: "encounter_01_goblin_a"
 name: "Crazy Goblin"
 hp: 20
 attack: 5
@@ -99,7 +93,6 @@ After a fierce battle, Valen is wounded and Lyra consumes a potion. We don't ove
 **Valen V2**: Wounded, but has scavenged an extra sword.
 
 ```entity Character: valen_v2
-id: "char_valen_v2"
 former: "char_valen_v1"
 name: "Valen"
 class_name: "Warrior"
@@ -113,7 +106,6 @@ inventory:
 **Lyra V2**: Spent her potion.
 
 ```entity Character: lyra_v2
-id: "char_lyra_v2"
 former: "char_lyra_v1"
 name: "Lyra"
 class_name: "Mage"

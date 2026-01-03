@@ -19,7 +19,6 @@ Alpha 产线是我们位于苏州工厂的核心装配线，主要负责 T-Serie
 
 
 ```entity Project: proj_2025_alpha_upgrade
-id: "proj_2025_alpha_upgrade"
 name: "Alpha Production Line Upgrade"
 code: "PROJ-2025-001"
 manager: [[emp_alpha_lead_001]] # Rick Deckard

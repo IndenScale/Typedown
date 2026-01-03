@@ -26,7 +26,9 @@ def hover(ls: TypedownLanguageServer, params: HoverParams):
                 entity = ls.compiler.symbol_table[ref_id]
                 
                 # Basic Info
-                md = f"**Entity**: `{ref_id}`  |  **Type**: `{entity.class_name}`\n\n"
+                sys_id = getattr(entity, 'id', 'Unknown')
+                type_name = getattr(entity, 'class_name', 'Unknown')
+                md = f"**Handle**: `{ref_id}`\n**System ID**: `{sys_id}`\n**Type**: `{type_name}`\n\n"
                 
                 # Fetch Content Preview if possible
                 if entity.location and entity.location.file_path:

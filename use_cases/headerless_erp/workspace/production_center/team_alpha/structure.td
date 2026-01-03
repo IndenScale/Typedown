@@ -3,7 +3,6 @@
 隶属于 Global Production Center。
 
 ```entity BusinessUnit: unit_prod_alpha
-id: "unit_prod_alpha"
 name: "Production Team Alpha"
 code: "PROD_ALPHA"
 head: [[emp_2045]]

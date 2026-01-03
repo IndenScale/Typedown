@@ -3,7 +3,6 @@
 这是一个一级生产部门，下辖多个生产小组。
 
 ```entity BusinessUnit: unit_production_center
-id: "unit_production_center"
 name: "Global Production Center"
 code: "PROD_GLOBAL"
 head: [[emp_1001]]

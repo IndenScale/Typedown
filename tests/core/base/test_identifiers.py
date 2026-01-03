@@ -51,7 +51,8 @@ class TestIdentifierParsing:
         assert id2.namespace == "config/database"
         assert id2.name == "prod"
         
-        # 版本化 ID
+        # 版本化 ID (必须包含 / 才能被识别为 Slug，否则为 Handle)
+        # 修正：之前认为 user-alice-v1 是 Slug，但 parse 逻辑依赖 "/"
         id3 = Identifier.parse("users/alice-v1")
         assert isinstance(id3, Slug)
         assert id3.name == "alice-v1"

@@ -8,7 +8,6 @@
 
 
 ```entity Contract: ctr_acn_etl_001
-id: "ctr_acn_etl_001"
 project_code: "PROJ-2024-088"
 vendor_name: "Accenture"
 title: "Salesforce Data ETL Service"

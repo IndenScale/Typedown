@@ -13,7 +13,6 @@ Retention Policy 设置正确，确保存储的数据在 2033 年前不可被删
 
 
 ```entity AcceptanceReport: accept_archive_final_audit
-id: "accept_archive_final_audit"
 project_code: "PROJ-2023-012"
 title: "AS/400 Decommissioning Compliance Audit"
 inspector: [[ext_auditor_pwc_009]]

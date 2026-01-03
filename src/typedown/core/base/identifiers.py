@@ -4,7 +4,7 @@ Typedown Identifier System - 标识符体系
 实现文档中定义的四层标识符光谱 (Identifier Spectrum):
 - L0: Hash (sha256:...) - 内容寻址，绝对鲁棒
 - L1: Handle (alice) - 局部句柄，开发体验优先
-- L2: Slug (users/alice-v1) - 逻辑 ID，跨系统版本控制
+- L2: Slug (user-alice-v1) - 逻辑 ID，跨系统版本控制
 - L3: UUID (550e84...) - 全局唯一标识符
 
 核心设计原则：
@@ -115,7 +115,7 @@ class Slug(Identifier):
     - 跨系统版本控制
     - 可用于 former/derived_from
     
-    示例: users/alice-v1, config/database/prod, models/user-account
+    示例: user-alice-v1, config/database/prod, models/user-account
     """
     
     path: str = Field(description="路径形式的 ID")

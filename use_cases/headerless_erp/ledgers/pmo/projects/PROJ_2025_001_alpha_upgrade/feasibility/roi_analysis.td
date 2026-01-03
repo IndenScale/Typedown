@@ -15,7 +15,6 @@
 
 
 ```entity FeasibilityStudy: feas_alpha_roi_v1
-id: "feas_alpha_roi_v1"
 project_code: "PROJ-2025-001"
 title: "Alpha Line Automation ROI Analysis"
 author: "Finance Dept (Sarah Lee)"

@@ -10,7 +10,7 @@ The `former` keyword links a new entity state to its previous version.
 - **Constraints**: **Must use Global Addressing**.
   - 🚫 **Prohibited**: Local Handles (like `alice`). Evolution relationships must remain stable across files and contexts.
   - ✅ **Allowed**:
-    - **Slug ID**: `users/alice-v1` (Most common)
+    - **Slug ID**: `user-alice-v1` (Most common)
     - **UUID**: `550e84...` (Machine-generated unique ID)
     - **Block Fingerprint**: `sha256:8f4b...` (Content-based hash, most precise)
 - **Semantics**:

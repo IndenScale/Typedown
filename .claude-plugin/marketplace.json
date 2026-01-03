@@ -1,0 +1,20 @@
+{
+  "name": "typedown",
+  "owner": {
+    "name": "Typedown Team",
+    "email": "support@typedown.org"
+  },
+  "metadata": {
+    "description": "Skills for writing and validating Typedown code",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "core",
+      "description": "Core skills for writing Typedown files correctly",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/typedown"]
+    }
+  ]
+}

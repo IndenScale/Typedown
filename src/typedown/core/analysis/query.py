@@ -202,11 +202,11 @@ class QueryEngine:
                 return val
             elif isinstance(identifier, Handle):
                 val = symbol_table.resolve_handle(identifier.name, context_path)
-                if val is None: raise ReferenceError(f"Handle not found: {identifier}")
+                if val is None: raise ReferenceError(f"L2 Fuzzy Match failed: Handle '{identifier}' not found in current context.")
                 return val
             elif isinstance(identifier, Slug):
                 val = symbol_table.resolve_slug(identifier.path)
-                if val is None: raise ReferenceError(f"Slug not found: {identifier}")
+                if val is None: raise ReferenceError(f"L1 Exact Match failed: System ID '{identifier}' not found in global index.")
                 return val
             elif isinstance(identifier, UUID):
                 val = symbol_table.resolve_uuid(identifier.uuid_value)

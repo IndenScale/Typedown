@@ -10,7 +10,6 @@
 
 
 ```entity RFI: rfi_2024_robotic_arm
-id: "rfi_2024_robotic_arm"
 project_code: "PROJ-2025-001"
 title: "High-Precision Industrial Robotic Arm Procurement"
 issued_date: "2024-11-10"
