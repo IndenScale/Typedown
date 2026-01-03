@@ -13,12 +13,12 @@ Kael is no longer a mere "Mage". He has touched the ancient scrolls and become a
 ```entity Character: hero-kael-v2
 # 1. Identity Consistency
 # We use 'id' to give this entity a stable, global identifier.
-id: "chars/kael-v2"
+
 
 # 2. Evolution Link
 # 'former' points to the previous stable state of this character.
 # Note: Evolution must use Global IDs (L0/L2/L3), not local handles.
-former: "chars/kael-v1"
+former: "hero-kael"
 
 # 3. Explicit Data
 # Typedown uses "Pure Pointers"—data isn't merged automatically.
@@ -29,7 +29,7 @@ level: 10
 hp: 120
 max_hp: 120
 inventory:
-  - [[items/potion-v1]]
+  - [[healing-potion]]
   # Kael dropped the rusty sword and gained something new in the narrative (imaginary)
 ```
 

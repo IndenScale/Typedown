@@ -2,13 +2,13 @@
 
 ## 基础物品
 
-```entity Item: potion
+```entity Item: item_potion_hp
 name: "治疗药水 (小)"
 weight: 0.5
 value: 10
 ```
 
-```entity Item: sword
+```entity Item: item_sword_iron
 name: "铁剑"
 weight: 1.5
 value: 50
@@ -24,5 +24,5 @@ type: "Humanoid"
 hp: 30
 attack: 5
 loot:
-  - [[sword]]
+  - [[item_sword_iron]]
 ```

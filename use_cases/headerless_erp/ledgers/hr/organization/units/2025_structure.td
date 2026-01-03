@@ -2,7 +2,6 @@
 
 此账本记录了公司当前生效的组织架构单元。
 
-
 ## 职能部门 (Functional Departments)
 
 ```entity FunctionalDepartment: dept_hr_main

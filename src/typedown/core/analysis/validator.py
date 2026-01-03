@@ -101,6 +101,17 @@ class Validator:
                 # Pre-process: Desugar YAML artifacts (e.g. [['ref']] -> "[[ref]]")
                 data = Desugarer.desugar(entity.raw_data)
                 
+                # Auto-inject ID from Signature if missing in Body (Signature as Identity)
+                if "id" in data:
+                    self.diagnostics.append(TypedownError(
+                        "Conflict: System ID must be defined in Block Signature, not in Body.",
+                        location=entity.location,
+                        severity="error"
+                    ))
+                    # Fallthrough to validation to catch other errors, but using the user-provided ID
+                elif entity.id:
+                    data["id"] = entity.id
+
                 try:
                     # Fuzzy validate: We use model_cls.model_construct if we want to skip validation
                     # but for L2 we WANT validation. 
@@ -135,7 +146,7 @@ class Validator:
                          self.diagnostics.append(TypedownError(
                              f"Schema Violation in {entity.id or 'anonymous'}: {e}", 
                              location=entity.location,
-                             severity="error"
+                             severity="warning"
                          ))
                     else:
                         total_checked += 1

@@ -12,6 +12,10 @@ class Item(BaseModel):
 ```
 
 ```model:Character
+from typing import List
+from pydantic import BaseModel, Field
+from typedown.core.base.types import Ref
+
 class Character(BaseModel):
     name: str
     class_name: str
@@ -19,5 +23,5 @@ class Character(BaseModel):
     hp: int
     max_hp: int
     # Reference to other items defined in Typedown
-    inventory: List[Reference["Item"]] = Field(default_factory=list)
+    inventory: List[Ref["Item"]] = Field(default_factory=list)
 ```
