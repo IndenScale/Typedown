@@ -6,7 +6,8 @@ hero:
   text: "渐进式形式化"
   tagline: "直到你建立模型，你才真正了解它。"
   image:
-    src: /assets/brand/logo.svg
+    light: /assets/brand/logo-light.svg
+    dark: /assets/brand/logo-dark.svg
     alt: Typedown Logo
   actions:
     - theme: brand
