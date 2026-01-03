@@ -12,10 +12,6 @@ class Item(BaseModel):
 ```
 
 ```model:Character
-from typing import List
-from pydantic import BaseModel, Field
-from typedown.types import Reference
-
 class Character(BaseModel):
     name: str
     class_name: str

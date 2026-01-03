@@ -1,0 +1,15 @@
+<svg width="64" height="64" viewBox="-32 -32 64 64" xmlns="http://www.w3.org/2000/svg">
+    <path d="
+        M -30 -26 L 0 -26 L -15 0 Z
+        M 0 -26 L 30 -26 L 15 0 Z
+        M -15 0 L 15 0 L 0 26 Z" 
+        fill="#E6E6E6" 
+        stroke="#999999" 
+        stroke-width="2" 
+        stroke-linejoin="round"/>
+    
+    <path d="
+        M -16.2 0.6 L 16.2 0.6 L 0 -27.2 Z" 
+        fill="#333333" 
+        stroke="none"/>
+</svg>

@@ -8,7 +8,29 @@ export default defineConfig({
   // Shared ignore
   ignoreDeadLinks: true,
 
+  head: [
+    [
+      "link",
+      {
+        rel: "icon",
+        href: "/assets/brand/icon-light.svg",
+        media: "(prefers-color-scheme: light)",
+      },
+    ],
+    [
+      "link",
+      {
+        rel: "icon",
+        href: "/assets/brand/icon-dark.svg",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+  ],
   themeConfig: {
+    logo: {
+      light: "/assets/brand/logo-light.svg",
+      dark: "/assets/brand/logo-dark.svg",
+    },
     socialLinks: [
       { icon: "github", link: "https://github.com/indenscale/typedown" },
     ],
@@ -113,6 +135,7 @@ export default defineConfig({
             items: [
               { text: "代码块", link: "/zh/01-语法/01-代码块" },
               { text: "引用", link: "/zh/01-语法/02-引用" },
+              { text: "标识符", link: "/zh/01-语法/03-标识符" },
             ],
           },
           {
@@ -130,6 +153,7 @@ export default defineConfig({
             items: [
               { text: "脚本系统", link: "/zh/03-运行/01-脚本系统" },
               { text: "质量控制", link: "/zh/03-运行/02-质量控制" },
+              { text: "LSP架构", link: "/zh/03-运行/03-LSP架构" },
             ],
           },
           {

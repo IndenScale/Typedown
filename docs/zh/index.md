@@ -5,6 +5,9 @@ hero:
   name: "Typedown"
   text: "渐进式形式化"
   tagline: "直到你建立模型，你才真正了解它。"
+  image:
+    src: /assets/brand/logo.svg
+    alt: Typedown Logo
   actions:
     - theme: brand
       text: "阅读宣言"

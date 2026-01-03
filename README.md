@@ -1,8 +1,10 @@
-# Typedown: Markdown that scales
+# <img src="assets/brand/logo.svg" height="30" alt="Typedown Logo" /> Typedown: Markdown that scales
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+
+> **English** | [简体中文](./README.zh-CN.md)
 
 **Typedown** is a Consensus Modeling Language (CML) designed for **Literate Modeling**. It bridges the gap between the fluidity of human thought (Markdown) and the rigor of engineering (Pydantic + Pytest).
 

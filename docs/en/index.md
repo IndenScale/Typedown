@@ -5,6 +5,9 @@ hero:
   name: "Typedown"
   text: "Markdown that scales"
   tagline: "You don't know it until you model it."
+  image:
+    src: /assets/brand/logo.svg
+    alt: Typedown Logo
   actions:
     - theme: brand
       text: "Read the Manifesto"
