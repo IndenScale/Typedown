@@ -92,6 +92,32 @@ def _definition_impl(ls: TypedownLanguageServer, params: DefinitionParams):
                  # Go to Model Definition
                  type_name = match.group(2)
                  ls.show_message_log(f"Definition Request: Clicked on Type '{type_name}'")
+                 if type_name in ls.compiler.symbol_table:
+                      target_obj = ls.compiler.symbol_table[type_name]
+                      if hasattr(target_obj, 'location') and target_obj.location:
+                           target_uri = Path(target_obj.location.file_path).as_uri()
+                           target_line = max(0, target_obj.location.line_start - 1)
+                           ls.show_message_log(f"Definition Request: Jump to Model Block '{type_name}' at {target_uri}:{target_line}")
+                           
+                           full_range = Range(
+                              start=Position(line=target_line, character=0),
+                              end=Position(line=max(0, target_obj.location.line_end), character=0)
+                           )
+                           selection_range = Range(
+                              start=Position(line=target_line, character=0),
+                              end=Position(line=target_line, character=len(type_name) + 12) # ~ ```model:ID
+                           )
+                           
+                           return [LocationLink(
+                              origin_selection_range=Range(
+                                  start=Position(line=line, character=type_start),
+                                  end=Position(line=line, character=type_end)
+                              ),
+                              target_uri=target_uri,
+                              target_range=full_range,
+                              target_selection_range=selection_range
+                           )]
+
                  if hasattr(ls.compiler, 'model_registry') and type_name in ls.compiler.model_registry:
                       model_cls = ls.compiler.model_registry[type_name]
                       try:

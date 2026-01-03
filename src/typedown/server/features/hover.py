@@ -31,7 +31,8 @@ def hover(ls: TypedownLanguageServer, params: HoverParams):
                 md = f"**Handle**: `{ref_id}`\n**System ID**: `{sys_id}`\n**Type**: `{type_name}`\n\n"
                 
                 # Fetch Content Preview if possible
-                if entity.location and entity.location.file_path:
+                loc = getattr(entity, 'location', None)
+                if loc and loc.file_path:
                     try:
                         p = Path(entity.location.file_path)
                         if p.exists():
@@ -55,15 +56,14 @@ def hover(ls: TypedownLanguageServer, params: HoverParams):
 
                 return Hover(contents=md)
     
-    # 2. Check for Entity Block Header: ```entity:Type
-    match = re.match(r'^(\s*)(```)(entity):([a-zA-Z0-9_\.]+)', line)
+    # 2. Check for Entity Block Header: ```entity Type: ID
+    match = re.match(r'^(\s*)```entity\s+([\w\.\-]+)(?:\s*:\s*([\w\.\-]+))?', line)
     if match:
-        # Check if cursor is on Type name
-        type_start = match.start(4)
-        type_end = match.end(4)
+        # Check if cursor is on Type name (Group 2)
+        type_start = match.start(2)
+        type_end = match.end(2)
         if type_start <= col <= type_end:
-            type_name = match.group(4)
-            
+            type_name = match.group(2)            
             # Lookup in compiler's model registry
             if hasattr(ls.compiler, 'model_registry') and type_name in ls.compiler.model_registry:
                 model_cls = ls.compiler.model_registry[type_name]

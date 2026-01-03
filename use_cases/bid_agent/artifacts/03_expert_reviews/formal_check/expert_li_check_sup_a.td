@@ -5,14 +5,14 @@
 
 ## 形式审查 (一票否决)
 
-```entity:ReviewResultEntry
+```entity ReviewResultEntry
 expert_id: "EXPERT-LI"
 response_item_id: "REQ-PHY-01" # 密封检查
 is_passed: true
 comment: "密封完好，骑缝章完整。"
 ```
 
-```entity:ReviewResultEntry
+```entity ReviewResultEntry
 expert_id: "EXPERT-LI"
 response_item_id: "REQ-PHY-02" # 份数检查
 is_passed: true
@@ -20,7 +20,7 @@ is_passed: true
 
 ## 资格审查
 
-```entity:ReviewResultEntry
+```entity ReviewResultEntry
 expert_id: "EXPERT-LI"
 response_item_id: "REQ-QUAL-02" # ISO9001
 is_passed: true

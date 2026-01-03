@@ -3,14 +3,14 @@
 
 ## 技术部分打分
 
-```entity:ReviewResultEntry
+```entity ReviewResultEntry
 expert_id: "EXPERT-ZHANG"
 response_item_id: "SCORE-TECH-01" # 架构设计
 score: 9.0
 comment: "双活设计非常详细，且考虑了数据库层面的同步延迟，优于其他方案。"
 ```
 
-```entity:ReviewResultEntry
+```entity ReviewResultEntry
 expert_id: "EXPERT-ZHANG"
 response_item_id: "SCORE-BIZ-01" # 业绩
 score: 6.0

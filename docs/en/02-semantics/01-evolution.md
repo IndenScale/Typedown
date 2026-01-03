@@ -24,13 +24,13 @@ Example
 ````markdown
 ## Version 1
 
-```entity:Feature id=login_v1
+```entity Feature: id=login_v1
 status: planned
 ```
 
 ## Version 2
 
-```entity:Feature id=login_v2
+```entity Feature: id=login_v2
 former: "login_v1"
 status: in_progress
 ```

@@ -1,7 +1,6 @@
 # Alpha Project
 
-```entity:Project alpha
-id: "projects/alpha"
+```entity Project: projects/alpha
 name: "Alpha Infrastructure Upgrade"
 code: "INFRA-2026-001"
 status: "Execution"

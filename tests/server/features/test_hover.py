@@ -38,7 +38,7 @@ def test_hover_entity_reference():
 def test_hover_model_header():
     ls = MockLS()
     doc = MagicMock()
-    doc.source = "```entity:UserAccount"
+    doc.source = "```entity UserAccount"
     ls.workspace.get_text_document.return_value = doc
     
     params = HoverParams(

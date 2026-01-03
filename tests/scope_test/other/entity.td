@@ -1,5 +1,4 @@
-```entity:Simple invalid_entity
-id: "invalid"
+```entity Simple: invalid
 name: [[root_var]]
 value: [[sub_var]] # Should fail, sub_var is not in this scope
 ```

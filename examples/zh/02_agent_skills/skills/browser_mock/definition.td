@@ -1,4 +1,4 @@
-```entity:Skill
+```entity Skill
 name: "browser_action"
 description: "控制无头浏览器与网页进行交互。"
 version: "1.2.0"

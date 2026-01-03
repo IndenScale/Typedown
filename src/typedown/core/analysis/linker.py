@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from enum import Enum
 
 from typedown.core.ast.document import Document
+from typedown.core.ast.base import SourceLocation
 from typedown.core.base.errors import TypedownError
 from typedown.core.analysis.compiler_context import CompilerContext
 from typedown.core.base.config import TypedownConfig
@@ -80,7 +81,7 @@ class Linker:
         for path, doc in documents.items():
             # Unified Symbol Table population
             # We add Entities and Specs. Models are executed, not just linked by ID (usually).
-            for collection in [doc.entities, doc.specs]:
+            for collection in [doc.entities, doc.specs, doc.models]:
                 for node in collection:
                     if node.id:
                         try:
@@ -176,7 +177,7 @@ class Linker:
                 self.dir_contexts[config_dir] = current_locals
                 
                 # 4. Extract Exports -> SymbolTable & ModelRegistry
-                self._harvest_exports(current_locals, path)
+                self._harvest_exports(current_locals, path, cfg.location)
 
     def _execute_models(self, documents: Dict[Path, Document]):
         """
@@ -259,7 +260,7 @@ class Linker:
                     except Exception as e:
                         self.diagnostics.append(TypedownError(f"Model execution failed: {e}", location=model.location))
 
-    def _harvest_exports(self, scope: Dict[str, Any], source_path: Path):
+    def _harvest_exports(self, scope: Dict[str, Any], source_path: Path, location: Optional[SourceLocation] = None):
         """
         Extract variables from a scope and register them into SymbolTable and ModelRegistry.
         """
@@ -273,36 +274,11 @@ class Linker:
                 self.model_registry[name] = val
             
             # 2. Register Everything as a Handle in the current scope
-            # We wrap it in a pseudo-Node or just raw value?
-            # SymbolTable supports Any.
-            # But we must ensure specific types (like EntityBlock) are preserved.
-            # Here 'val' is a Python object (str, int, class instance).
-            
-            # Create a simple wrapper if needed, or store raw.
-            # Storing raw is fine for now.
-            try:
-                # We construct a synthetic 'Node' or just store it.
-                # But SymbolTable.add expects something with .id if it's a Node?
-                # The generic add() method I wrote checks `if hasattr(node, "id")`.
-                # That was for AST Nodes.
-                
-                # For Config Variables, we need a different entry point in SymbolTable
-                # OR we synthesize an object with .id
-                
-                # Let's extend SymbolTable usage. 
-                # Actually, my SymbolTable.add implementation relies on node.id.
-                # If I want to add `db = ...` as handle "db", I need to tell SymbolTable explicitly.
-                pass
-            except Exception:
-                pass
-
-            # Since the current SymbolTable.add() relies on node.id, 
-            # I cannot easily add arbitrary python variables without refactoring SymbolTable 
-            # or creating a wrapper.
-            # BUT, the user requirement was specifically about "Config Execution".
-            # "每个目录应有独立的 Context".
-            # "Resolve handles".
-            
-            # Let's use a wrapper.
-            wrapper = type("HandleWrapper", (), {"id": name, "value": val, "type": "variable"})
+            # Use a wrapper instance with basic Node-like attributes
+            wrapper = AttributeWrapper({
+                "id": name, 
+                "value": val, 
+                "type": "variable",
+                "location": location
+            })
             self.symbol_table.add(wrapper, source_path)

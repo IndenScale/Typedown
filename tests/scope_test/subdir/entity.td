@@ -1,5 +1,4 @@
-```entity:Simple valid_entity
-id: "valid"
+```entity Simple: valid
 name: [[root_var]]
 value: [[sub_var]]
 ```
