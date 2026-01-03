@@ -52,12 +52,8 @@ class SymbolTable:
         if not hasattr(node, "id") or not node.id:
             return
 
-        # 2. Determine if it is a Logical ID (Global) or Handle (Scoped)
-        # ... (rest of logic)
-        is_global = "/" in node.id
-        
-        if is_global:
-            self._global_index[node.id] = node
+        # 2. Register in Global Index (L1/L2)
+        self._global_index[node.id] = node
         
         # 3. Register Explicit L2 (Slug) & L3 (UUID) identifiers from AST
         # These are always global.

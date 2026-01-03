@@ -2,7 +2,7 @@
 
 ## Development Team
 
-```entity Employee: alice
+```entity StaffMember: emp_alice
 name: "Alice Chen"
 role: "ARCHITECT"
 email: "alice@monoco.io"
@@ -11,7 +11,7 @@ base_cost_per_day: 2000.0
 tags: ["cloud-native", "python"]
 ```
 
-```entity Employee: bob
+```entity StaffMember: emp_bob
 name: "Bob Wang"
 role: "DEVELOPER"
 email: "bob@monoco.io"
@@ -22,7 +22,7 @@ tags: ["frontend", "react"]
 
 ## Management Team
 
-```entity Employee: charlie
+```entity StaffMember: emp_charlie
 name: "Charlie Zhang"
 role: "MANAGER"
 level: "P5"

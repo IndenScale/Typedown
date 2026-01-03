@@ -15,7 +15,7 @@ class Level(str, Enum):
     P4 = "P4"
     P5 = "P5"
 
-class Employee(BaseModel):
+class StaffMember(BaseModel):
     id: str
     name: str
     role: Role
