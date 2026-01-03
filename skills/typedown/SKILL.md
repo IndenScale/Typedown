@@ -34,9 +34,9 @@ This skill provides expert knowledge for writing **Typedown** files (`.td`). Typ
 - **Syntax**: `entity <Type>: <Identifier>`
 - **The Identifier**:
   - The string after the colon is the **System ID (L1)**.
-  - It works as a Handle (L2) within the local scope, but it is primarily the global identity.
-  - **Styles**: Can be a simple name (`alice`)，a slug (`users-alice-v1`) or a UUID (`550e84...`).
+  - **Styles**: Can be a simple name (`alice`), a slug (`user-alice-v1`) or a UUID (`550e84...`).
 - **Content**: Valid YAML matching the Pydantic model.
+  - **Reference Rule**: When referencing other entities within an entity block, you **MUST** use the `[[Identifier]]` (Wiki Link) syntax.
 
 5. **References (`[[...]]`)**:
 
@@ -45,11 +45,11 @@ This skill provides expert knowledge for writing **Typedown** files (`.td`). Typ
   1. **L0 (Cryptographic Truth)**: `[[sha256:...]]`
      - Matches content hash exactly. Immutable and absolute.
   2. **L1 (Exact System ID)**: `[[<ID>]]`
-     - Matches the defined System ID exactly (e.g., `[[users-alice-v1]]` or `[[alice]]`).
+     - Matches the defined System ID exactly (e.g., `[[user-alice-v1]]` or `[[alice]]`).
      - **Recommendation**: Always use **Slug Style** for stable, long-term L1 references.
   3. **L2 (Contextual Handle)**: `[[<Handle>]]`
      - Matches the System ID via **Fuzzy Lookup** in the current scope.
-     - Example: `[[alice]]` might resolve to `users-alice-v1` if configured in `config.td`.
+     - Example: `[[alice]]` might resolve to `user-alice-v1` if configured in `config.td`.
 
 6. **Evolution Semantics (`former`)**:
 

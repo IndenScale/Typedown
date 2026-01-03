@@ -9,7 +9,7 @@ We recommend dividing identity into three clear levels, from physical hashes at 
 | Level  | Term             | Example          | Property       | Responsibility                                                                                                                                                                    |
 | :----- | :--------------- | :--------------- | :------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **L0** | **Content Hash** | `sha256:8f4b...` | **Immutable**  | **Integrity Anchor**. A deterministic fingerprint based on content calculation. Regardless of how the ID changes, as long as the content is unchanged, the Hash remains the same. |
-| **L1** | **System ID**    | `users-alice-v1` | **Stable**     | **System Identity**. A globally unique logical identifier (Slug) or machine identifier (UUID). It acts as a stable contract for cross-system interaction.                         |
+| **L1** | **System ID**    | `user-alice-v1`  | **Stable**     | **System Identity**. A globally unique logical identifier (Slug) or machine identifier (UUID). It acts as a stable contract for cross-system interaction.                         |
 | **L2** | **Handle**       | `alice`          | **Contextual** | **Developer Experience (DX)**. Semantic, short, valid locally. Use Handles for rapid prototyping, but harden them to L1 for persistence.                                          |
 
 ## 2. Robust Addressing Strategy
@@ -50,7 +50,7 @@ When the entity structure stabilizes or needs to be referenced externally, you s
 The IDE plugin should provide a `Fix ID` feature to automatically generate a Slug based on the Handle.
 
 ````markdown
-```entity User: users-alice-v1
+```entity User: user-alice-v1
 # Uniquify: Assign a global, stable logical ID (L1)
 # ID is promoted to Block Signature; 'id' field is removed from Body
 name: "Alice"
@@ -64,7 +64,7 @@ When you need to modify an entity, link the old version via `former`.
 ````markdown
 ```entity User: users-alice-v2
 # Updated ID to v2
-former: "users-alice-v1"  # Link to the old L1 ID
+former: "user-alice-v1"  # Link to the old L1 ID
 name: "Alice (Updated)"
 ```
 ````
@@ -87,7 +87,7 @@ If Typedown serves as a configuration source for an existing SQL database, UUIDs
 **Do not write UUIDs in the ID field**. It is recommended to store them as hidden metadata or dedicated fields.
 
 ```yaml
-# Signature: entity User: users-alice-v1
+# Signature: entity User: user-alice-v1
 # Body:
 # Use a dedicated extension field to store the physical ID
 meta:

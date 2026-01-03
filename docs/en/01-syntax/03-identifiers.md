@@ -14,15 +14,15 @@ We define identifiers as three distinct **Resolution States**, rather than just 
 
 > **Core Insight**: The essential difference between L2 (Handle) and L1 (System ID) lies in **whether fuzzy matching is allowed**.
 >
-> - During **IDE Input**, you type `alice` (L2), and the completion tool identifies it as `users-alice-v1`.
-> - During **File Save**, the code must settle into `users-alice-v1` (L1) for precise compiler resolution.
+> - During **IDE Input**, you type `alice` (L2), and the completion tool identifies it as `user-alice-v1`.
+> - During **File Save**, the code must settle into `user-alice-v1` (L1) for precise compiler resolution.
 
 ### System ID Styles
 
 For the compiler kernel, **Name, Slug, and UUID make no difference**; they are all string Keys serving as **L1 System ID**. The choice of style depends purely on project conventions:
 
 - **Name Style**: `alice` (Short, but prone to conflict in large projects)
-- **Slug Style**: `users-alice-v1` (Recommended, clear namespace)
+- **Slug Style**: `user-alice-v1` (Recommended, clear namespace)
 - **UUID Style**: `550e84...` (Machine-generated, no semantics)
 
 Regardless of the style chosen, as long as it is globally unique and precisely referenced, it is an **L1 System ID**.

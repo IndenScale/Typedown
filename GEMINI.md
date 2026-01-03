@@ -54,7 +54,7 @@ Typedown 质量控制体系遵循分层原则。详见：[质量控制](docs/zh/
 ## 开发约束与最佳实践
 
 - **禁止嵌套列表**: 严禁在 Entity Body 使用嵌套数组。详见：[核心理念 #2](docs/zh/00-核心理念.md#2-为什么禁止多层列表)
-- **ID 风格晋升**: 稳定后的实体应从 Name 风格（`alice`）晋升为 Slug 风格（`users-alice-v1`），修改 Block Signature 即可。
+- **ID 风格晋升**: 稳定后的实体应从 Name 风格（`alice`）晋升为 Slug 风格（`user-alice-v1`），修改 Block Signature 即可。
 - **环境即场域**: 文件的物理位置决定其语义。移动文件即重构。
 - **脚本系统**: 通过 Front Matter 定义可执行脚本。详见：[脚本系统](docs/zh/03-运行/01-脚本系统.md)
 

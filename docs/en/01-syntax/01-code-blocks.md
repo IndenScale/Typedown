@@ -50,7 +50,7 @@ The `entity` block is the primary way to declare "data" in Typedown. We adopt a 
 ````markdown
 <!-- UserAccount is the type reference; alice is the instance Handle -->
 
-```entity UserAccount: users-alice-v1
+```entity UserAccount: user-alice-v1
 # 1. Signature as Identity:
 # ID is injected from the Header; do not repeat 'id' in the Body.
 
