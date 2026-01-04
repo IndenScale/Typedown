@@ -15,6 +15,13 @@
       "source": "./",
       "strict": false,
       "skills": ["./skills/typedown"]
+    },
+    {
+      "name": "workflows",
+      "description": "Standard operating procedures for project management",
+      "source": "./",
+      "strict": false,
+      "skills": ["./skills/task-expert", "./skills/git-reference-manager"]
     }
   ]
 }

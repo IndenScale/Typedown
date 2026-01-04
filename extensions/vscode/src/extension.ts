@@ -53,7 +53,92 @@ export async function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Client-side Bracket Decoration (to handle [[ and ]] styling independently of LSP)
+  const bracketDecorationType = vscode.window.createTextEditorDecorationType({
+    color: "#6e7681", // Subtle Gray (GitHub dimmed text color)
+  });
+
+  function updateDecorations(activeEditor: vscode.TextEditor) {
+    if (!activeEditor) {
+      return;
+    }
+    const regEx = /\[\[|\]\]/g;
+    const text = activeEditor.document.getText();
+    const bracketRanges: vscode.Range[] = [];
+    let match;
+    while ((match = regEx.exec(text))) {
+      const startPos = activeEditor.document.positionAt(match.index);
+      const endPos = activeEditor.document.positionAt(
+        match.index + match[0].length
+      );
+      const decoration = { range: new vscode.Range(startPos, endPos) };
+      bracketRanges.push(decoration.range);
+    }
+    activeEditor.setDecorations(bracketDecorationType, bracketRanges);
+  }
+
+  // Trigger decorations on activation
+  if (vscode.window.activeTextEditor) {
+    updateDecorations(vscode.window.activeTextEditor);
+  }
+
+  // Trigger on editor change
+  context.subscriptions.push(
+    vscode.window.onDidChangeActiveTextEditor((editor) => {
+      if (editor) {
+        updateDecorations(editor);
+      }
+    })
+  );
+
+  // Trigger on document change
+  context.subscriptions.push(
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      if (
+        vscode.window.activeTextEditor &&
+        event.document === vscode.window.activeTextEditor.document
+      ) {
+        updateDecorations(vscode.window.activeTextEditor);
+      }
+    })
+  );
+
   await startServer(context);
+
+  // Debug Command: Inspect Scope
+  context.subscriptions.push(
+    vscode.commands.registerCommand(
+      "typedown.triggerScopeInspection",
+      async () => {
+        const editor = vscode.window.activeTextEditor;
+        if (!editor) {
+          vscode.window.showErrorMessage("No active editor");
+          return;
+        }
+        const position = editor.selection.active;
+        // We cannot directly access TextMate scopes from extension API easily without third party libs or complex logic.
+        // But we can trigger the built-in command which is "Developer: Inspect Editor Tokens and Scopes"
+        // However, that opens a widget. The user wants LOGS.
+        // Since we can't get scopes programmatically easily, we will log what we CAN see:
+        // - Language ID
+        // - Current Line Text
+
+        const langId = editor.document.languageId;
+        const lineText = editor.document.lineAt(position.line).text;
+
+        outputChannel.appendLine(`[Debug] Inspector Triggered:`);
+        outputChannel.appendLine(`[Debug] Language ID: ${langId}`);
+        outputChannel.appendLine(`[Debug] Line Text: ${lineText}`);
+        outputChannel.appendLine(
+          `[Debug] NOTE: To see exact Scopes, please run 'Developer: Inspect Editor Tokens and Scopes' from the Command Palette.`
+        );
+
+        vscode.window.showInformationMessage(
+          `Language: ${langId}. Check Output Channel for details. Please also run 'Developer: Inspect Editor Tokens and Scopes'.`
+        );
+      }
+    )
+  );
 }
 async function startServer(context: vscode.ExtensionContext) {
   // Ensure we don't leak clients if startServer is called multiple times

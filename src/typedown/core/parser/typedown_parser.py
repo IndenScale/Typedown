@@ -19,6 +19,11 @@ class TypedownParser:
         )
         # Wiki link pattern: [[Target]]
         self.wiki_link_pattern = re.compile(r'\[\[(.*?)\]\]')
+        # Strict Reference Pattern (L0 Hash | L1 System ID)
+        # L0: sha256:...
+        # L1: Alphanumeric, dots, dashes, underscores (no spaces)
+        self.strict_ref_pattern = re.compile(r'^(?:sha256:[a-fA-F0-9]+|[a-zA-Z0-9_\.-]+)$')
+        
         # Front Matter pattern: ---\n...\n---
         self.front_matter_pattern = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 
@@ -107,7 +112,10 @@ class TypedownParser:
             # Check Entities
             for ent in doc.entities:
                 if ent.location and self._is_loc_contained(ref.location, ent.location):
-                    ent.references.append(ref)
+                    # Strict validation for Entity Blocks: Only L0/L1 allowed
+                    if self.strict_ref_pattern.match(ref.target):
+                        ent.references.append(ref)
+                    # Else: Ignore loose query refs inside Entity Blocks (treat as text)
             
             # Check Specs
             for spec in doc.specs:

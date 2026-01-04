@@ -3,7 +3,7 @@
   "displayName": "Typedown Integration",
   "icon": "icon.png",
   "description": "Progressive Formalization for Markdown",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "repository": {
     "type": "git",
     "url": "https://github.com/IndenScale/Typedown.git"
@@ -29,34 +29,33 @@
   "contributes": {
     "languages": [
       {
-        "id": "markdown",
+        "id": "typedown",
+        "aliases": [
+          "Typedown",
+          "td"
+        ],
         "extensions": [
-          ".md",
-          ".markdown",
-          ".mdown",
-          ".mkdn",
-          ".mkd",
-          ".mdwn",
-          ".mdtxt",
-          ".mdtext",
           ".td"
-        ]
+        ],
+        "configuration": "./language-configuration.json"
       }
     ],
     "grammars": [
       {
-        "language": "markdown",
-        "scopeName": "markdown.typedown.injection",
-        "path": "./syntaxes/typedown.tmLanguage.json",
-        "injectTo": [
-          "text.html.markdown"
-        ]
+        "language": "typedown",
+        "scopeName": "source.typedown",
+        "path": "./syntaxes/typedown.tmLanguage.json"
       }
     ],
     "commands": [
       {
         "command": "typedown.restartLsp",
         "title": "Typedown: Restart Language Server",
+        "category": "Typedown"
+      },
+      {
+        "command": "typedown.triggerScopeInspection",
+        "title": "Typedown: Debug Scopes & Content",
         "category": "Typedown"
       }
     ],
