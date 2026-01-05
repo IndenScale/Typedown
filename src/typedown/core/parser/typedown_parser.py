@@ -1,6 +1,7 @@
 import mistune
 import yaml
 import re
+import ast
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 
@@ -177,6 +178,29 @@ class TypedownParser:
 
         if block_type == 'model':
             if block_arg:
+                # 1. Strict Content Validation for Model
+                try:
+                    tree = ast.parse(code)
+                    
+                    # A. Check for Imports (Scanning all nodes)
+                    for node in ast.walk(tree):
+                        if isinstance(node, (ast.Import, ast.ImportFrom)):
+                            raise ValueError(f"Imports are forbidden in model block '{block_arg}'. Please configure globals in 'config.td'.")
+                    
+                    # B. Check Signature (First Statement must be ClassDef matching ID)
+                    # We look at the first body element
+                    if not tree.body or not isinstance(tree.body[0], ast.ClassDef):
+                         raise ValueError(f"Model block '{block_arg}' must start with a class definition.")
+                    
+                    first_class = tree.body[0]
+                    if first_class.name != block_arg:
+                         raise ValueError(f"Model block ID '{block_arg}' mismatch. First class defined is '{first_class.name}'.")
+
+                except SyntaxError as e:
+                    # Let later stages handle python syntax errors, or fail here?
+                    # Faling here is safer for "Strict Mode"
+                    raise ValueError(f"Syntax Error in model block '{block_arg}': {e}")
+
                 doc.models.append(ModelBlock(id=block_arg, code=code, location=loc))
 
         elif block_type == 'entity':
@@ -210,6 +234,14 @@ class TypedownParser:
                                     location=loc,
                                     references=block_refs # To be filled
                                 ))
+                                
+                                # Enforce ID Syntax (L1 Strict)
+                                if not self.strict_ref_pattern.match(entity_id):
+                                     # We allow it for now but warn? Or strictly fail?
+                                     # Context says "StrictID prohibited special chars". 
+                                     # Given this is Parser v2, let's be strict or at least consistent with User Intent.
+                                     # For Entity, dots/dashes ARE allowed.
+                                     raise ValueError(f"Invalid Entity ID '{entity_id}'. Must be alphanumeric, dot, dash or underscore.")
                             except yaml.YAMLError:
                                 pass
 

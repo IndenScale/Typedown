@@ -7,7 +7,7 @@
       "request": "launch",
       "args": [
         "--extensionDevelopmentPath=${workspaceFolder}/extensions/vscode",
-        "${workspaceFolder}/examples/demo_v2"
+        "${workspaceFolder}/examples"
       ],
       "runtimeExecutable": "${execPath}",
       "sourceMaps": true,

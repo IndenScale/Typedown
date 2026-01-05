@@ -1,12 +1,12 @@
 # Alpha Project
 
-```entity Project: projects/alpha
+```entity Project: project-alpha
 name: "Alpha Infrastructure Upgrade"
 code: "INFRA-2026-001"
 status: "Execution"
 
 # Cross-module reference using Slug
-manager: [[employees/alice]]
+manager: [[employee-alice]]
 
 # Embedded Value Object (Money)
 budget:

@@ -1,6 +1,6 @@
 # Policy Checks
 
-```spec:project_budget_policy
+```spec:check_budget_positive
 @target(type="Project")
 def check_budget_positive(project):
     # project is an AttributeWrapper around resolved_data
@@ -13,7 +13,7 @@ def check_budget_positive(project):
     assert project.budget.currency in ["CNY", "USD", "EUR"], f"Invalid Currency: {project.budget.currency}"
 ```
 
-```spec:manager_assignment
+```spec:check_manager_assigned
 @target(type="Project")
 def check_manager_assigned(project):
     # project.manager should be resolved to the EntityBlock (if Reference resolution worked)

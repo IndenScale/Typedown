@@ -8,8 +8,8 @@ title: 逻辑规范
 
 ## 语法签名
 
-````markdown
-```spec:<TestID>
+````typedown
+```spec: <TestID>
 @target(...)
 def test_function(subject):
     ...

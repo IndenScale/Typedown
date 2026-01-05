@@ -61,9 +61,9 @@ import sys
 def test_parse_spec_block():
     parser = TypedownParser()
     content = """
-```spec:check_adult
+```spec: check_adult
 @target(type="UserAccount")
-def validate_age(subject: UserAccount):
+def check_adult(subject: UserAccount):
     assert subject.age >= 18
 ```
 """

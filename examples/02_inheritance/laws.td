@@ -3,12 +3,12 @@
 ## 1. The Royal Class (Schema)
 First, we define the data structure for our domain.
 
-```model:Character
+```model: Character
 class Character(BaseModel):
     name: str
 ```
 
-```model:King
+```model: King
 class King(Character):
     # The King class inherits from Character
     pass
@@ -17,7 +17,7 @@ class King(Character):
 ## 2. The Uniqueness Constraint (Spec)
 Then, we define the rules. This spec ensures only one King exists.
 
-```spec:test_there_can_be_only_one
+```spec: test_there_can_be_only_one
 @target(type="King")
 def test_there_can_be_only_one(subject):
     # Correct True King check

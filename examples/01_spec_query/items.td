@@ -1,6 +1,6 @@
 # RPG Inventory System
 
-```model:Item
+```model: Item
 class Item(BaseModel):
     name: str
     weight: float

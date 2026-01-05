@@ -6,7 +6,7 @@ Welcome to your first Typedown project. This file demonstrates the core concept:
 
 We use `model` block (powered by Pydantic) to define the shape of our data.
 
-```model:Greeting
+```model: Greeting
 from pydantic import BaseModel, Field
 from datetime import datetime
 

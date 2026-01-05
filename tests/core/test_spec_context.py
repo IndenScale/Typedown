@@ -30,9 +30,9 @@ manager: "charlie"
 
     # 3. Create a Spec using Query to look up manager
     (tmp_path / "specs.td").write_text("""
-```spec:check_manager
+```spec: check_manager
 @target(type="User")
-def check_manager_exists(subject):
+def check_manager(subject):
     # This query uses the injected 'query' function
     # It resolves the manager string (e.g. "bob") to an entity
     if subject.name == "Alice":
@@ -67,9 +67,9 @@ def test_spec_query_complex(tmp_path):
 items: ["a", "b"]
 ```
 
-```spec:check_config
+```spec: check_config
 @target(id="config")
-def check_items(subject):
+def check_config(subject):
     # Helper function check
     assert len(subject.items) == 2
 ```
