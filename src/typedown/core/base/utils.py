@@ -121,12 +121,15 @@ def find_project_root(path: Path) -> Path:
 
 class AttributeWrapper:
     """Helper to allow accessing dictionary keys as attributes."""
-    def __init__(self, data: dict):
+    def __init__(self, data: dict, entity_id: Optional[str] = None):
         self._data = data
+        self._entity_id = entity_id
 
     def __getattr__(self, item):
         if item == "resolved_data":
             return self
+        if item == "_entity_id":
+            return self._entity_id
         if item in self._data:
             val = self._data[item]
             if isinstance(val, list):
@@ -137,5 +140,18 @@ class AttributeWrapper:
             return val
         raise AttributeError(f"'AttributeWrapper' object has no attribute '{item}'")
         
+    def __getitem__(self, item):
+        if item in self._data:
+            val = self._data[item]
+            if isinstance(val, list):
+                 return [AttributeWrapper(x) if isinstance(x, dict) else x for x in val]
+            if isinstance(val, dict):
+                return AttributeWrapper(val)
+            return val
+        raise KeyError(item)
+
+    def __contains__(self, item):
+        return item in self._data
+
     def __repr__(self):
         return repr(self._data)

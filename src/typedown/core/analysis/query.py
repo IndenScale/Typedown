@@ -1,7 +1,15 @@
 import re
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from rich.console import Console
+
+try:
+    import duckdb
+    HAS_DUCKDB = True
+except ImportError:
+    HAS_DUCKDB = False
+
 from typedown.core.ast import EntityBlock
 from typedown.core.base.errors import ReferenceError, QueryError
 from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
@@ -13,6 +21,31 @@ class QueryError(Exception):
     pass
 
 class QueryEngine:
+    @staticmethod
+    def execute_sql(query: str, symbol_table: Any) -> List[Any]:
+        # We assume symbol_table has get_duckdb_connection
+        if not hasattr(symbol_table, "get_duckdb_connection"):
+             raise QueryError("SymbolTable does not support SQL execution.")
+        
+        try:
+            con = symbol_table.get_duckdb_connection()
+            con.execute(query)
+            
+            if not con.description:
+                return []
+            
+            columns = [desc[0] for desc in con.description]
+            rows = con.fetchall()
+            
+            results = []
+            for row in rows:
+                results.append(dict(zip(columns, row)))
+            
+            return results
+            
+        except Exception as e:
+            raise QueryError(f"SQL Execution failed: {e}")
+
     @staticmethod
     def evaluate_data(data: Any, symbol_table: Any, context_path: Optional[Path] = None) -> Any:
         """

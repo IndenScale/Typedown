@@ -64,10 +64,8 @@ class Compiler:
             self.dependency_graph = validator.dependency_graph
             
             # Stage 3.5: Specs (Internal Self-Validation)
-            # REMOVED: Specs are now L4 and should be triggered on-demand (CLI/LSP), 
-            # not during standard compilation/startup.
-            # if not any(d.severity == "error" for d in self.diagnostics):
-            #     specs_passed = self._run_specs() 
+            if not any(d.severity == "error" for d in self.diagnostics):
+                self._run_specs() 
 
 
             # Check for Errors

@@ -120,8 +120,34 @@ class DiagnosticCollector:
                     "spec": spec,
                     "entity": entity,
                     "message": msg,
-                    "detail": longrepr
+                    "detail": longrepr,
+                    "test_id": test_id
                 })
+
+class BlameRegistry:
+    """Stores explicit blame calls from specs."""
+    def __init__(self):
+        # Mapping: test_id -> List[{entity_id, reason}]
+        self.records: Dict[str, List[Dict[str, str]]] = {}
+        self.current_test_id: Optional[str] = None
+
+    def blame(self, target: Any, reason: str):
+        if not self.current_test_id:
+            return
+            
+        entity_id = None
+        if hasattr(target, "_entity_id"):
+            entity_id = target._entity_id
+        elif isinstance(target, str):
+            entity_id = target
+            
+        if entity_id:
+            if self.current_test_id not in self.records:
+                self.records[self.current_test_id] = []
+            self.records[self.current_test_id].append({
+                "entity_id": entity_id,
+                "reason": reason
+            })
 
 class SpecExecutor:
     """
@@ -197,10 +223,6 @@ class SpecExecutor:
         
         # Inject Query Function
         def query_wrapper(query_str: str) -> Any:
-            # We return a list from QueryEngine, but for Spec convenience we might want:
-            # - Single item if one match
-            # - List if multiple
-            # - AttributeWrapper for entities
             results = QueryEngine.resolve_query(
                 query_str, 
                 symbol_table, 
@@ -209,7 +231,7 @@ class SpecExecutor:
             wrapped_results = []
             for res in results:
                 if isinstance(res, EntityBlock):
-                    wrapped_results.append(AttributeWrapper(res.resolved_data))
+                    wrapped_results.append(AttributeWrapper(res.resolved_data, entity_id=res.id))
                 elif isinstance(res, dict):
                     wrapped_results.append(AttributeWrapper(res))
                 else:
@@ -221,19 +243,45 @@ class SpecExecutor:
             return wrapped_results
 
         ctx.query = query_wrapper
+
+        # Inject SQL Function
+        def sql_wrapper(query_str: str) -> Any:
+            # symbol_table is expected to be SymbolTable instance with get_duckdb_connection
+            results = QueryEngine.execute_sql(query_str, symbol_table)
+            # Wrap results for dot notation access
+            return [AttributeWrapper(row) for row in results]
+
+        ctx.sql = sql_wrapper
+        
+        # Inject Blame API
+        blame_registry = BlameRegistry()
+        ctx.blame_registry = blame_registry
+        ctx.blame = blame_registry.blame
         
         sys.modules[ctx_name] = ctx
         
         # 3. Generate Test File
         mapping = {} 
+        test_id_tracker = []
         test_file_content = [
             "import pytest",
-            f"from {ctx_name} import models, subjects, AttributeWrapper, query",
+            f"from {ctx_name} import models, subjects, AttributeWrapper, query, sql, blame, blame_registry",
+            "",
+            "# Setup test hooks to track current test_id for blame attribution",
+            "@pytest.fixture(autouse=True)",
+            "def track_test_id(request):",
+            "    blame_registry.current_test_id = request.node.name",
+            "    yield",
+            "    blame_registry.current_test_id = None",
             "",
             "# Inject models into global scope",
             "globals().update(models)",
             "# Inject query into global scope",
             "globals()['query'] = query",
+            "# Inject sql into global scope",
+            "globals()['sql'] = sql",
+            "# Inject blame into global scope",
+            "globals()['blame'] = blame",
             "",
             "# Dummy target decorator",
             "# (we also replace it in code, but good as fallback)",
@@ -264,7 +312,7 @@ class SpecExecutor:
                 test_file_content.append(f"# Spec Architecture: {spec.id}")
                 test_file_content.append(clean_code)
                 test_file_content.append(f"def {test_id}():")
-                test_file_content.append(f"    subject = AttributeWrapper(subjects[{id(entity)}])")
+                test_file_content.append(f"    subject = AttributeWrapper(subjects[{id(entity)}], entity_id='{entity.id}')")
                 test_file_content.append(f"    {unique_spec_func}(subject)")
                 test_file_content.append("")
             else:
@@ -311,26 +359,49 @@ class SpecExecutor:
             # 5. Process Results
             for fail in collector.failures:
                 spec = fail["spec"]
-                entity = fail["entity"]
+                default_entity = fail["entity"]
                 reason = fail["message"]
+                test_id = fail["test_id"]
+                
+                # Check for explicit blame
+                blamed_records = blame_registry.records.get(test_id, [])
                 
                 # 1. Spec-side diagnostic (Rule perspective)
+                # Always show the error on the spec itself
                 self.diagnostics.append(TypedownError(
-                    f"Spec '{spec.id}' failed for entity '{entity.id}': {reason}",
+                    f"Spec '{spec.id}' failed: {reason}",
                     location=spec.location,
                     severity="error"
                 ))
                 
-                # 2. Entity-side diagnostic (Data perspective) - NEW
-                if entity.location:
-                     self.diagnostics.append(TypedownError(
-                        f"Violates spec '{spec.id}': {reason}",
-                        location=entity.location,
-                        severity="error"
-                    ))
+                if blamed_records:
+                    # Explicit blame: only highlight blamed entities
+                    for record in blamed_records:
+                        target_id = record["entity_id"]
+                        blame_reason = record["reason"]
+                        
+                        # Find the entity object for location
+                        target_entity = symbol_table.get(target_id)
+                        if target_entity and target_entity.location:
+                            self.diagnostics.append(TypedownError(
+                                f"Violates spec '{spec.id}': {blame_reason}",
+                                location=target_entity.location,
+                                severity="error"
+                            ))
+                        else:
+                            # Fallback if entity not found in symbol table (might be dynamic)
+                            self.console.print(f"    [yellow]⚠[/yellow] Blamed entity '{target_id}' not found in symbol table.")
+                else:
+                    # No explicit blame: broadcast to default subject (legacy behavior)
+                    if default_entity.location:
+                         self.diagnostics.append(TypedownError(
+                            f"Violates spec '{spec.id}': {reason}",
+                            location=default_entity.location,
+                            severity="error"
+                        ))
 
                 self.console.print(
-                    f"    [red]✗[/red] Spec '{spec.id}' failed for entity '{entity.id}': {reason}"
+                    f"    [red]✗[/red] Spec '{spec.id}' failed (attributed to {len(blamed_records) or 1} entities): {reason}"
                 )
 
             if ret == 0:

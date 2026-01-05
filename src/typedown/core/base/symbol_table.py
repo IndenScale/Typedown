@@ -1,6 +1,9 @@
 from pathlib import Path
 from typing import Dict, Optional, List, Any, Union
 import hashlib
+import json
+import tempfile
+import os
 
 from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
 
@@ -29,6 +32,12 @@ class SymbolTable:
 
         # Hash Registry: "sha256:..." -> Node (L0 Cache)
         self._hash_index: Dict[str, Any] = {}
+
+        # Type Index: "User" -> [Node, Node]
+        self._type_index: Dict[str, List[Any]] = {}
+        
+        # DuckDB Connection Cache
+        self._db_conn = None
 
     def add(self, node: Any, scope_path: Path):
         """
@@ -80,6 +89,12 @@ class SymbolTable:
             self._scoped_index[scope_dir] = {}
         
         self._scoped_index[scope_dir][node.id] = node
+
+        # 4. Register Type Index (Optimization for SQL/Collections)
+        if hasattr(node, "class_name") and node.class_name:
+            if node.class_name not in self._type_index:
+                self._type_index[node.class_name] = []
+            self._type_index[node.class_name].append(node)
 
     def resolve(self, query: str, context_path: Optional[Path] = None) -> Optional[Any]:
         """
@@ -186,7 +201,57 @@ class SymbolTable:
 
     def get_all_globals(self) -> Dict[str, Any]:
         return self._global_index
+
+    def get_by_type(self, type_name: str) -> List[Any]:
+        return self._type_index.get(type_name, [])
+
+    def get_duckdb_connection(self):
+        """
+        Returns a DuckDB connection with all types registered as tables.
+        Lazily initialized.
+        """
+        if self._db_conn:
+            return self._db_conn
+
+        try:
+            import duckdb
+        except ImportError:
+            raise ImportError("DuckDB is required for SQL features. Install 'typedown[sql]' or 'duckdb'.")
+
+        self._db_conn = duckdb.connect(":memory:")
         
+        for type_name, nodes in self._type_index.items():
+            # Flatten to list of dicts
+            data = []
+            for node in nodes:
+                row = getattr(node, "resolved_data", None) or getattr(node, "raw_data", {})
+                row_copy = row.copy() if row else {}
+                if hasattr(node, "id"):
+                    row_copy["_id"] = node.id
+                data.append(row_copy)
+            
+            if not data:
+                continue
+
+            # Table name cleanup: "models.User" -> "User"
+            table_name = type_name.split(".")[-1]
+            
+            # Use JSON file for robust schema inference
+            with tempfile.NamedTemporaryFile(mode='w+', suffix='.json', delete=False) as tmp:
+                json.dump(data, tmp, default=str)
+                tmp_path = tmp.name
+            
+            try:
+                self._db_conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_json_auto('{tmp_path}')")
+            except Exception:
+                # Ignore table creation errors (e.g. invalid data)
+                pass
+            finally:
+                if os.path.exists(tmp_path):
+                    os.unlink(tmp_path)
+        
+        return self._db_conn
+
     def get_scope_handles(self, path: Path) -> Dict[str, Any]:
         """Debug helper to see what's visible in a specific exact directory."""
         return self._scoped_index.get(path, {})

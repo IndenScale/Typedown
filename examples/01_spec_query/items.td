@@ -29,6 +29,10 @@ def check_total_inventory_cap(subject):
     total_weight = sum(item.weight for item in all_items)
     
     if total_weight > CAPACITY:
+        # 智能聚合：找出最重的实体并责令整改
+        heaviest = max(all_items, key=lambda x: x.weight)
+        blame(heaviest, f"Capacity {CAPACITY} exceeded. This item is the heaviest ({heaviest.weight}).")
+        
         raise ValueError(f"Global inventory capacity exceeded! Current: {total_weight}, Max: {CAPACITY}")
 ```
 

@@ -9,9 +9,10 @@ from typedown.core.compiler import Compiler
 console = Console()
 
 def query(
-    query_str: str = typer.Argument(..., help="The query string to execute (e.g., 'User.alice')"),
+    query_str: str = typer.Argument(..., help="The query string to execute (e.g., 'User.alice' or 'SELECT * FROM User')"),
     path: Path = typer.Option(Path("."), "--path", "-p", help="Project root directory"),
     scope: Optional[Path] = typer.Option(None, "--scope", "-s", help="Limit search to this directory"),
+    is_sql: bool = typer.Option(False, "--sql", help="Treat query as SQL"),
 ):
     """
     Execute a query against the Typedown project.
@@ -27,12 +28,33 @@ def query(
     # Resolve scope relative to CWD if provided
     resolved_scope = scope.resolve() if scope else None
     
-    # Execute Query
-    # Note: Compiler.query now returns List[Any]
-    # We need to update compiler.query signature to pass resources/scope or call QueryEngine directly here.
-    # Let's use the compiler wrapper but we need to update it first or invoke engine directly.
-    # Invoking engine directly gives more control over arguments.
+    # Execute SQL Query
+    if is_sql:
+        from typedown.core.analysis.query import QueryEngine, QueryError
+        try:
+            results = QueryEngine.execute_sql(query_str, compiler.symbol_table)
+            
+            if not results:
+                console.print(f"[yellow]No results found for SQL: {query_str}[/yellow]")
+                return
+
+            table = Table(title=f"SQL Results: {query_str}")
+            if results:
+                columns = results[0].keys()
+                for col in columns:
+                    table.add_column(str(col))
+                
+                for row in results:
+                    table.add_row(*[str(row.get(col, "")) for col in columns])
+            
+            console.print(table)
+            return
+            
+        except QueryError as e:
+            console.print(f"[red]SQL Error: {e}[/red]")
+            raise typer.Exit(code=1)
     
+    # Execute Standard Query
     from typedown.core.analysis.query import QueryEngine
     
     results = QueryEngine.resolve_query(
