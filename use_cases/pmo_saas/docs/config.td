@@ -1,7 +1,7 @@
 ---
 ---
 
-```config:python
+```config python
 import sys
 from pathlib import Path
 

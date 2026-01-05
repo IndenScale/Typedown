@@ -1,4 +1,4 @@
-```config:python id=global_imports
+```config python id=global_imports
 from enum import Enum
 from typing import List, Optional, Any
 from pydantic import BaseModel, Field

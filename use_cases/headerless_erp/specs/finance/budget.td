@@ -5,12 +5,4 @@
 定义了什么是合法的预算编制。
 
 
-```model
-from use_cases.headerless_erp.models.finance.budget import DepartmentBudget as _PyDB
-
-class DepartmentBudget(_PyDB):
-    """
-    Inherits validation logic (Cap < 10M) from Python model.
-    """
-    pass
-```
+具体模型定义已在全局 `config.td` 中通过 `DepartmentBudget` 导出。

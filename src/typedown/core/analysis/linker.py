@@ -1,9 +1,10 @@
 import sys
 import importlib
 import typing
+import datetime
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 from typedown.core.ast.document import Document
@@ -100,13 +101,18 @@ class Linker:
         self.base_globals = {
             "BaseModel": BaseModel,
             "Field": Field,
+            "field_validator": field_validator,
+            "model_validator": model_validator,
             "Ref": Ref,
             "typing": typing,
             "List": typing.List,
             "Optional": typing.Optional,
             "Dict": typing.Dict,
             "Any": typing.Any,
-            "Union": typing.Union
+            "Union": typing.Union,
+            "date": datetime.date,
+            "datetime": datetime.datetime,
+            "Enum": Enum
         }
 
         # Load Prelude Symbols

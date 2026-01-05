@@ -64,7 +64,7 @@ The visibility range of symbols. Typedown uses Lexical Scoping, with the followi
 4. **Global Scope**: Project global configuration (`typedown.yaml`).
 
 ### Config Block
-- **Block Signature**: ` ```config:python ``` `
+- **Block Signature**: ` ```config python ``` `
 - **Definition**: A code block used to dynamically configure the compilation context, usually only allowed in `config.td` files. Used to import Schemas, define global variables, or register scripts.
 
 ### Environment Overlay

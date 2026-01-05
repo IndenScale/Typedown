@@ -177,7 +177,16 @@ class TypedownParser:
         block_refs = [] 
 
         if block_type == 'model':
-            if block_arg:
+            model_id = block_arg
+            # Fallback for "model: Book" (space delimiter)
+            if not model_id:
+                header_parts = info_str.split()
+                if len(header_parts) >= 2:
+                    possible_id = header_parts[1]
+                    if '=' not in possible_id:
+                        model_id = possible_id
+
+            if model_id:
                 # 1. Strict Content Validation for Model
                 try:
                     tree = ast.parse(code)
@@ -185,23 +194,23 @@ class TypedownParser:
                     # A. Check for Imports (Scanning all nodes)
                     for node in ast.walk(tree):
                         if isinstance(node, (ast.Import, ast.ImportFrom)):
-                            raise ValueError(f"Imports are forbidden in model block '{block_arg}'. Please configure globals in 'config.td'.")
+                            raise ValueError(f"Imports are forbidden in model block '{model_id}'. Please configure globals in 'config.td'.")
                     
                     # B. Check Signature (First Statement must be ClassDef matching ID)
                     # We look at the first body element
                     if not tree.body or not isinstance(tree.body[0], ast.ClassDef):
-                         raise ValueError(f"Model block '{block_arg}' must start with a class definition.")
+                         raise ValueError(f"Model block '{model_id}' must start with a class definition.")
                     
                     first_class = tree.body[0]
-                    if first_class.name != block_arg:
-                         raise ValueError(f"Model block ID '{block_arg}' mismatch. First class defined is '{first_class.name}'.")
+                    if first_class.name != model_id:
+                         raise ValueError(f"Model block ID '{model_id}' mismatch. First class defined is '{first_class.name}'.")
 
                 except SyntaxError as e:
                     # Let later stages handle python syntax errors, or fail here?
                     # Faling here is safer for "Strict Mode"
-                    raise ValueError(f"Syntax Error in model block '{block_arg}': {e}")
+                    raise ValueError(f"Syntax Error in model block '{model_id}': {e}")
 
-                doc.models.append(ModelBlock(id=block_arg, code=code, location=loc))
+                doc.models.append(ModelBlock(id=model_id, code=code, location=loc))
 
         elif block_type == 'entity':
             if block_arg is None:
@@ -246,7 +255,19 @@ class TypedownParser:
                                 pass
 
         elif block_type == 'config':
-            if block_arg == 'python':
+            lang = block_arg
+            # Fallback for "config: python" or "config python"
+            if not lang:
+                header_parts = info_str.split()
+                if len(header_parts) >= 2:
+                    possible_lang = header_parts[1]
+                    if '=' not in possible_lang:
+                        lang = possible_lang
+                else:
+                    # Default to python if no lang specified: ```config
+                    lang = 'python'
+
+            if lang == 'python':
                  meta = InfoStringParser.parse(info_str)[2]
                  config_id = meta.get('id')
                  doc.configs.append(ConfigBlock(

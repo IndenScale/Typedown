@@ -73,11 +73,12 @@
       ]
     },
     "config-python-block": {
-      "begin": "^(\\s*)(```)(config:python)(.*)$",
+      "begin": "^(\\s*)(```)(config)(?:(?:\\s*:\\s*|\\s+)(python))?(.*)$",
       "beginCaptures": {
         "2": { "name": "markup.fenced_code.block.markdown" },
         "3": { "name": "keyword.control.directive.typedown" },
-        "4": { "name": "meta.attribute.typedown" }
+        "4": { "name": "keyword.other.language.python.typedown" },
+        "5": { "name": "meta.attribute.typedown" }
       },
       "end": "^(\\s*)(```)$",
       "endCaptures": {
@@ -112,11 +113,12 @@
       ]
     },
     "model-block": {
-      "begin": "^(\\s*)(```)(model:[a-zA-Z0-9_]+)(.*)$",
+      "begin": "^(\\s*)(```)(model)(?:\\s*:\\s*)([a-zA-Z0-9_]+)(.*)$",
       "beginCaptures": {
         "2": { "name": "markup.fenced_code.block.markdown" },
-        "3": { "name": "entity.name.class.typedown" },
-        "4": { "name": "meta.attribute.typedown" }
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "entity.name.class.typedown" },
+        "5": { "name": "meta.attribute.typedown" }
       },
       "end": "^(\\s*)(```)$",
       "endCaptures": {

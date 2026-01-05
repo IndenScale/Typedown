@@ -113,14 +113,12 @@ Never assume your code is correct. Always verify with the compiler.
 - Step 2: Typedown Modeling
 
 ```model:ComplianceStandard
-from enum import Enum
 class ComplianceStandard(str, Enum):
     ISO_27001 = "ISO-27001"
     SOC2 = "SOC2"
 ```
 
 ```model:Server
-from pydantic import model_validator
 class Server(BaseModel):
     hostname: str
     compliance: List[ComplianceStandard]

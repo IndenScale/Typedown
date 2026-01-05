@@ -64,7 +64,7 @@ title: 术语表
 4. **Global Scope**: 项目全局配置 (`typedown.yaml`)。
 
 ### Config Block (配置块)
-- **Block Signature**: ` ```config:python ``` `
+- **Block Signature**: ` ```config python ``` `
 - **定义**: 用于动态配置编译上下文的代码块，通常仅允许出现在 `config.td` 文件中。可以在其中导入 Schema、定义全局变量或注册脚本。
 
 ### Environment Overlay (环境叠加)

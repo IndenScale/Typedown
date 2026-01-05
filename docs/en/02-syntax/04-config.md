@@ -9,7 +9,7 @@ The `config` block is used to configure the compiler's runtime environment. It i
 ## Syntax Signature
 
 ```markdown
-```config:python
+```config python
 <Setup Script>
 ```
 ```

@@ -9,7 +9,7 @@ title: 环境配置
 ## 语法签名
 
 ```markdown
-```config:python
+```config python
 <Setup Script>
 ```
 ```

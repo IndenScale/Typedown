@@ -113,14 +113,12 @@ Typedown 不仅仅是一种语法，它是一套将松散的自然语言转化�
 - 步骤 2：Typedown 建模
 
 ```model:ComplianceStandard
-from enum import Enum
 class ComplianceStandard(str, Enum):
     ISO_27001 = "ISO-27001"
     SOC2 = "SOC2"
 ```
 
 ```model:Server
-from pydantic import model_validator
 class Server(BaseModel):
     hostname: str
     compliance: List[ComplianceStandard]

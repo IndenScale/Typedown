@@ -1,4 +1,4 @@
-```config:python
+```config python
 import sys
 import os
 from pathlib import Path
