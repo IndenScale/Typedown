@@ -1,0 +1,23 @@
+{
+  "scopeName": "text.html.markdown",
+  "name": "Markdown",
+  "patterns": [
+    {
+      "match": "^#{1,6}\\s+.*$",
+      "name": "markup.heading.markdown"
+    },
+    {
+      "begin": "```",
+      "end": "```",
+      "name": "markup.fenced_code.block.markdown"
+    },
+    {
+        "match": "\\[.*?\\]\\(.*?\\)",
+        "name": "markup.underline.link.markdown"
+    },
+    {
+        "match": "\\*\\*.*?\\*\\*",
+        "name": "markup.bold.markdown"
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+<svg width="128" height="128" viewBox="-64 -64 128 128" xmlns="http://www.w3.org/2000/svg">
+    <!-- Main Background Shape (Large Inverted Triangle Fragmented) -->
+    <path d="
+        M -56 -48 L 0 -48 L -28 0 Z
+        M 0 -48 L 56 -48 L 28 0 Z
+        M -28 0 L 28 0 L 0 48 Z" 
+        fill="#262626" 
+        stroke="#525252" 
+        stroke-width="1.5" 
+        stroke-linejoin="round"/>
+    
+    <!-- Central Focus (The "Truth" Core) -->
+    <path d="
+        M -28.5 0.5 L 28.5 0.5 L 0 -49 Z" 
+        fill="#ffffff" 
+        stroke="none"/>
+</svg>

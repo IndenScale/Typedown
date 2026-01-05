@@ -225,7 +225,36 @@ class TypedownParser:
 
         elif block_type == 'spec':
             spec_id = block_arg
+            
+            # Fallback for "spec: name" (space delimiter) which InfoStringParser parses as arg=""
+            if not spec_id:
+                header_parts = info_str.split()
+                # header_parts[0] is "spec:" (if it ended with colon)
+                # If there's a second part and it's not a kv pair, take it as id
+                if len(header_parts) >= 2:
+                    possible_id = header_parts[1]
+                    if '=' not in possible_id:
+                        spec_id = possible_id
+
+            # Enforce naming consistency between Block ID and Python Function Name
+            # Pattern: ```spec:weight_limit -> def weight_limit(subject):
+            
+            # Extract function name from code
+            func_name_match = re.search(r'def\s+(\w+)\s*\(', code)
+            func_name = func_name_match.group(1) if func_name_match else None
+            
             if spec_id:
+                # 1. Strict Charset Validation (Equivalent to Variable Name)
+                if not re.match(r'^[a-zA-Z_]\w*$', spec_id):
+                    # We raise ValueError here, assuming upper layers might catch it, 
+                    # or it fails the parsing of this file (which is intended for bad syntax).
+                    raise ValueError(f"Invalid spec ID '{spec_id}'. spec ID must be a valid identifier (alphanumeric + underscore).")
+
+                # 2. Consistency: Must contain at least one function matching the spec_id
+                # Pattern: def <spec_id>(...
+                if not re.search(rf'def\s+{spec_id}\s*\(', code):
+                    raise ValueError(f"Spec '{spec_id}' definition missing. The code block must contain a function named 'def {spec_id}(...):'.")
+
                 doc.specs.append(SpecBlock(
                     id=spec_id, 
                     name=spec_id, 

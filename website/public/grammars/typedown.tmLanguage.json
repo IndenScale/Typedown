@@ -1,0 +1,133 @@
+{
+  "scopeName": "source.typedown",
+  "name": "Typedown",
+  "patterns": [
+    {
+      "include": "#entity-block"
+    },
+    {
+      "include": "#config-python-block"
+    },
+    {
+      "include": "#spec-block"
+    },
+    {
+      "include": "#model-block"
+    },
+    {
+      "include": "text.html.markdown"
+    }
+  ],
+  "injections": {
+    "text.html.markdown": {
+      "patterns": []
+    }
+  },
+  "repository": {
+    "entity-block": {
+      "begin": "^(\\s*)(```)(entity)(?:\\s+([a-zA-Z0-9_\\.-]+))?(?:\\s*:\\s*([a-zA-Z0-9_\\.-]+))?(.*)$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "entity.name.type.class.typedown" },
+        "5": { "name": "variable.name.instance.typedown" },
+        "6": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.typedown",
+      "patterns": [
+        {
+          "comment": "YAML Key (Custom simplified)",
+          "match": "^\\s*([\\w\\.-]+)(:)",
+          "captures": {
+            "1": { "name": "entity.name.tag.yaml" },
+            "2": { "name": "punctuation.separator.key-value.mapping.yaml" }
+          }
+        },
+        {
+          "comment": "YAML List Dash",
+          "match": "^\\s*(-)\\s+",
+          "captures": {
+            "1": { "name": "punctuation.definition.entry.yaml" }
+          }
+        },
+        {
+          "comment": "YAML Comment",
+          "match": "#.*$",
+          "name": "comment.line.number-sign.yaml"
+        },
+        {
+          "comment": "Numbers",
+          "match": "\\b\\d+(\\.\\d+)?\\b",
+          "name": "constant.numeric.yaml"
+        },
+        {
+          "comment": "Strings (Double Quote)",
+          "begin": "\"",
+          "end": "\"",
+          "name": "string.quoted.double.yaml"
+        }
+      ]
+    },
+    "config-python-block": {
+      "begin": "^(\\s*)(```)(config:python)(.*)$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.python",
+      "contentName": "source.python",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    "spec-block": {
+      "begin": "^(\\s*)(```)(spec(?::[a-zA-Z0-9_\\.-]+)?)(.*)$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.python",
+      "contentName": "source.python",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    },
+    "model-block": {
+      "begin": "^(\\s*)(```)(model:[a-zA-Z0-9_\\.]+)(.*)$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "entity.name.class.typedown" },
+        "4": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.python",
+      "contentName": "source.python",
+      "patterns": [
+        {
+          "include": "source.python"
+        }
+      ]
+    }
+  }
+}

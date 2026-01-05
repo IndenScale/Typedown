@@ -38,6 +38,7 @@ Documentation = "https://typedown.io/docs"
 server = [
     "pygls>=1.0.0",
     "watchdog>=3.0.0",
+    "websockets>=10.0",
 ]
 
 [project.scripts]

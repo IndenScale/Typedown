@@ -1,0 +1,36 @@
+{
+  "scopeName": "source.python",
+  "name": "Python",
+  "patterns": [
+    {
+      "match": "\\b(def|class|if|else|elif|for|while|return|import|from|as|pass|try|except|raise|with)\\b",
+      "name": "keyword.control.python"
+    },
+    {
+      "match": "\\b(True|False|None)\\b",
+      "name": "constant.language.python"
+    },
+    {
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+      "name": "support.function.python"
+    },
+    {
+      "match": "#.*$",
+      "name": "comment.line.number-sign.python"
+    },
+    {
+      "begin": "\"",
+      "end": "\"",
+      "name": "string.quoted.double.python"
+    },
+    {
+      "begin": "'",
+      "end": "'",
+      "name": "string.quoted.single.python"
+    },
+    {
+      "match": "\\b\\d+(\\.\\d+)?\\b",
+      "name": "constant.numeric.python"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
   "name": "typedown",
   "owner": {
     "name": "Typedown Team",
-    "email": "support@typedown.org"
+    "email": "hfu7565ytru@gmail.com"
   },
   "metadata": {
     "description": "Skills for writing and validating Typedown code",
@@ -12,16 +12,16 @@
     {
       "name": "core",
       "description": "Core skills for writing Typedown files correctly",
-      "source": "./",
+      "source": "https://github.com/IndenScale/Typedown.git",
       "strict": false,
-      "skills": ["./skills/typedown"]
+      "skills": ["skills/typedown"]
     },
     {
       "name": "workflows",
       "description": "Standard operating procedures for project management",
-      "source": "./",
+      "source": "https://github.com/IndenScale/Typedown.git",
       "strict": false,
-      "skills": ["./skills/task-expert", "./skills/git-reference-manager"]
+      "skills": ["skills/task-expert", "skills/git-reference-manager"]
     }
   ]
 }

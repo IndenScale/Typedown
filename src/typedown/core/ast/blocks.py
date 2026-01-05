@@ -70,8 +70,6 @@ class EntityBlock(Node):
 
     # Evolution Semantics
     former_ids: List[str] = Field(default_factory=list)  # from `former`
-    # Evolution Semantics
-    former_ids: List[str] = Field(default_factory=list)  # from `former`
     derived_from_id: Optional[str] = None  # from `derived_from`
     
     # Internal Analysis
@@ -100,8 +98,6 @@ class SpecBlock(Node):
     target: Optional[str] = None
     description: Optional[str] = None
     params: Dict[str, Any] = Field(default_factory=dict)
-    severity: Union[str, Dict[str, str]] = "warning"
-    
     severity: Union[str, Dict[str, str]] = "warning"
     
     data: Dict[str, Any] = Field(default_factory=dict)

@@ -7,12 +7,26 @@ from lsprotocol.types import (
     Command,
     Range,
     Position,
+    ShowMessageParams,
+    MessageType,
 )
 from typedown.server.application import server, TypedownLanguageServer
 from typedown.server.managers.diagnostics import uri_to_path
 from pathlib import Path
 
-# Command constants
+from pydantic import BaseModel
+
+from typing import Any
+
+# Pydantic models used for serialization construction only
+class SpecCommandArgs(BaseModel):
+    file_path: str
+    spec_id: str
+
+class EntityCommandArgs(BaseModel):
+    file_path: str
+    entity_id: str
+
 CMD_RUN_SPEC = "typedown.runSpec"
 CMD_VIEW_FORMER = "typedown.viewFormer"
 
@@ -42,7 +56,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
                 command=Command(
                     title="▶ Run Spec",
                     command=CMD_RUN_SPEC,
-                    arguments=[str(path), spec.id]
+                    arguments=[SpecCommandArgs(file_path=str(path), spec_id=spec.id).model_dump()]
                 )
             ))
             
@@ -57,7 +71,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
                 command=Command(
                     title="📜 View Evolution",
                     command=CMD_VIEW_FORMER,
-                    arguments=[str(path), entity.id]
+                    arguments=[EntityCommandArgs(file_path=str(path), entity_id=entity.id).model_dump()]
                 )
             ))
             
@@ -66,27 +80,87 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
 @server.command(CMD_RUN_SPEC)
 def run_spec_command(ls: TypedownLanguageServer, *args):
     """Callback for Run Spec lens."""
-    if not ls.compiler or len(args) < 2:
+    if not ls.compiler or not args:
         return
+
+    # Unpack arguments manually (Robust against pygls version diffs)
+    # expected args: [{'file_path': '...', 'spec_id': '...'}]
+    try:
+        if isinstance(args[0], list):
+             data = args[0][0] # sometimes flattened
+        else:
+             data = args[0]
         
-    file_path_str, spec_id = args[0], args[1]
-    ls.show_message(f"Running spec '{spec_id}'...", 3) # Info message
-    
+        # Determine if it's a dict (new style) or tuple (legacy fallback)
+        if isinstance(data, dict):
+             file_path_str = data.get("file_path")
+             spec_id = data.get("spec_id")
+        else:
+             # Fallback just in case
+             file_path_str = data[0]
+             spec_id = data[1]
+             
+    except (IndexError, KeyError, TypeError):
+        return
+
+    if not file_path_str or not spec_id:
+        return
+
     # compile() now triggers Stage 3.5 (Specs) automatically
     with ls.lock:
-        success = ls.compiler.compile()
+        # 1. Ensure L1/L2 state is fresh
+        # ls.compiler.compile() -> REMOVED: This forces disk scan and overwrites in-memory dirty buffers!
+        # Rely on did_change -> update_document -> _recompile_in_memory instead.
+        
+        # 2. Run L4 Specs explicitly
+        success = ls.compiler.verify_specs(spec_filter=spec_id)
+        
+        # 3. Publish ALL diagnostics (L1+L2+L4)
+        # This is critical: if we don't publish, the red squiggles won't show up.
+        # import moved to top-level to avoid circular dependency if possible, 
+        # but here we access via imported module
+        from typedown.server.managers.diagnostics import publish_diagnostics
+        publish_diagnostics(ls, ls.compiler)
     
     if success:
-        ls.show_message(f"Spec '{spec_id}' (and all other L3 checks) passed! ✓", 3)
+        ls.window_show_message(ShowMessageParams(
+            type=MessageType.Info, 
+            message=f"Spec passed."
+        ))
     else:
         # The specific failure will be shown as a diagnostic in the editor
-        ls.show_message(f"Validation failed. ✗ Check errors in '{spec_id}'.", 1)
+        # Get failure count if possible or just generic message
+        # TypedownError does not have source_id by default. 
+        # SpecExecutor messages are formatted 'Spec 'X' failed...'
+        failure_count = sum(1 for d in ls.compiler.diagnostics if f"Spec '{spec_id}'" in d.message and d.severity == "error")
+        msg = f"Spec failed with {failure_count} errors. See editor for details." if failure_count > 0 else "Spec failed."
+        
+        ls.window_show_message(ShowMessageParams(
+            type=MessageType.Error, 
+            message=msg
+        ))
 
 @server.command(CMD_VIEW_FORMER)
 def view_former_command(ls: TypedownLanguageServer, *args):
-    if not ls.compiler or len(args) < 2:
+    if not ls.compiler or not args:
         return
-        
-    file_path_str, entity_id = args[0], args[1]
+    
+    try:
+        if isinstance(args[0], list):
+             data = args[0][0]
+        else:
+             data = args[0]
+             
+        if isinstance(data, dict):
+             file_path_str = data.get("file_path")
+             entity_id = data.get("entity_id")
+        else:
+             file_path_str = data[0]
+             entity_id = data[1]
+    except (IndexError, KeyError, TypeError):
+        return
     # TODO: Implement a ghost text or peek view for evolution history
-    ls.show_message(f"Evolution history for '{entity_id}' (P0 implemented former field)", 3)
+    ls.window_show_message(ShowMessageParams(
+        type=MessageType.Info,
+        message=f"Evolution history for '{entity_id}' (P0 implemented former field)"
+    ))

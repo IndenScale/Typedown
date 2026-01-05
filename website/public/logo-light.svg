@@ -1,0 +1,22 @@
+<svg width="440" height="200" viewBox="0 0 440 200" xmlns="http://www.w3.org/2000/svg">
+  <!-- Content Group -->
+  <g transform="translate(37.5, 150) scale(1.25)">
+        <text x="10" y="-10" font-family="'ITC Avant Garde Gothic Std', 'Avant Garde', 'AvantGarde Bk BT', sans-serif" font-size="80" font-weight="300" fill="#ffffff">TYPE</text>
+        
+        <g transform="translate(250, -40) scale(1.15)">
+            <path d="
+                M -30 -26 L 0 -26 L -15 0 Z
+                M 0 -26 L 30 -26 L 15 0 Z
+                M -15 0 L 15 0 L 0 26 Z" 
+                fill="#f5f5f5" 
+                stroke="#d4d4d4" 
+                stroke-width="2" 
+                stroke-linejoin="round"/>
+            
+            <path d="
+                M -16.2 0.6 L 16.2 0.6 L 0 -27.2 Z" 
+                fill="#000000" 
+                stroke="none"/>
+        </g>
+  </g>
+</svg>

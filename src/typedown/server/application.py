@@ -48,29 +48,30 @@ server = TypedownLanguageServer("typedown-server", "0.2.8")
 @server.feature("initialize")
 def initialize(ls: TypedownLanguageServer, params: InitializeParams):
     root_uri = params.root_uri or params.root_path
+    root_path = Path('.') # Default to current dir if no root specified
     if root_uri:
         if not root_uri.startswith('file://') and not root_uri.startswith('/'):
              root_path = Path(root_uri).resolve()
         else:
              root_path = uri_to_path(root_uri)
              
-        try:
-            # Configure logging to file (optional, for debugging)
-            # logging.basicConfig(filename='/tmp/typedown_lsp.log', level=logging.INFO)
+    try:
+        # Configure logging to file (optional, for debugging)
+        # logging.basicConfig(filename='/tmp/typedown_lsp.log', level=logging.INFO)
             
-            # Use stderr for Compiler output to avoid polluting stdout (LSP protocol)
-            stderr_console = Console(stderr=True)
-            ls.compiler = Compiler(target=root_path, console=stderr_console)
-            
-            # Warm up: Initial compilation
-            ls.compiler.compile()
-            
-            logging.info(f"Typedown Engine Ready at {root_path}")
-            # ls.show_message(f"Typedown: Engine ready at {root_path}", MessageType.Info)
-            
-        except Exception as e:
-            logging.error(f"Failed to initialize compiler: {e}")
-            ls.show_message(f"Typedown: Initialization failed - {e}", MessageType.Error)
+        # Use stderr for Compiler output to avoid polluting stdout (LSP protocol)
+        stderr_console = Console(stderr=True)
+        ls.compiler = Compiler(target=root_path, console=stderr_console)
+        
+        # Warm up: Initial compilation
+        ls.compiler.compile()
+        
+        logging.info(f"Typedown Engine Ready at {root_path}")
+        # ls.show_message(f"Typedown: Engine ready at {root_path}", MessageType.Info)
+        
+    except Exception as e:
+        logging.error(f"Failed to initialize compiler: {e}")
+        ls.show_message_log(f"Typedown: Initialization failed - {e}", MessageType.Error)
 
     # Start Filesystem Watcher
     try:
@@ -95,7 +96,7 @@ def initialize(ls: TypedownLanguageServer, params: InitializeParams):
         
     except Exception as e:
         logging.error(f"Failed to start FS watcher: {e}")
-        ls.show_message(f"Typedown: Watcher failed - {e}", MessageType.Warning)
+        ls.show_message_log(f"Typedown: Watcher failed - {e}", MessageType.Warning)
 
 @server.feature("shutdown")
 def shutdown(ls: TypedownLanguageServer, *args):
@@ -106,7 +107,29 @@ def shutdown(ls: TypedownLanguageServer, *args):
 def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
     # Publish diagnostics immediately upon opening a file
     if ls.compiler:
+        uri = params.text_document.uri
+        path = uri_to_path(uri)
+        content = params.text_document.text
+        
+        # DEBUG: Verify content arrival
+        print(f"DEBUG: did_open {path} (URI: {uri})")
+        print(f"DEBUG: Content Length: {len(content)}")
+        # print(f"DEBUG: Content Preview: {content[:50]}...")
+        
         with ls.lock:
+            # IMPORTANT: For memory-only files (Playground), we must manually feed 
+            # the content to the compiler as it won't be found during disk scan.
+            ls.compiler.update_document(path, content)
+            
+            # Verify compilation result
+            if path in ls.compiler.documents:
+                doc = ls.compiler.documents[path]
+                print(f"DEBUG: Document compiled. Entities found: {len(doc.entities)}")
+                # for ent in doc.entities:
+                #    print(f"DEBUG: Entity: {ent.name} ({ent.kind})")
+            else:
+                print(f"DEBUG: Document {path} NOT found in compiler after update!")
+
             publish_diagnostics(ls, ls.compiler)
 
 @server.feature(TEXT_DOCUMENT_DID_CHANGE)

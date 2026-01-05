@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "mermaid": "^11.12.2",
+    "remark-gfm": "^4.0.1",
+    "unist-util-visit": "^5.0.0",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0"
+  }
+}

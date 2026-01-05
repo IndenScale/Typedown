@@ -34,7 +34,7 @@ class InfoStringParser:
                 k, v = p.split('=', 1)
                 meta[k] = v.strip('"\'')
             # Handle strict arg parsing if arg wasn't in colon syntax
-            elif not block_arg and not '=' in p:
+            elif not block_arg and '=' not in p:
                 # e.g. ```entity User``` -> type=entity, arg=User
                 # But this depends on caller logic. 
                 # For this parser, we just return parts.

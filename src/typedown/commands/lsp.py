@@ -4,8 +4,9 @@ import logging
 
 
 def lsp(
-    port: int = typer.Option(None, "--port", help="Run in TCP mode on this port instead of stdio"),
-    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to for TCP mode"),
+    port: int = typer.Option(None, "--port", help="Run in TCP/WebSocket mode on this port instead of stdio"),
+    host: str = typer.Option("127.0.0.1", "--host", help="Host to bind to for TCP/WebSocket mode"),
+    ws: bool = typer.Option(False, "--ws", help="Run in WebSocket mode (requires --port)"),
 ):
     """
     Start the Typedown Language Server.
@@ -20,7 +21,10 @@ def lsp(
     # Setup basic logging to stderr so it doesn't interfere with stdio communication
     # logging.basicConfig(stream=sys.stderr, level=logging.INFO)
 
-    if port:
+    if ws:
+        typer.echo(f"Starting LSP server on ws://{host}:{port}...", err=True)
+        server.start_ws(host, port)
+    elif port:
         typer.echo(f"Starting LSP server on {host}:{port}...", err=True)
         server.start_tcp(host, port)
     else:

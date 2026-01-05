@@ -20,8 +20,23 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
     - Inside Entity Blocks: Enforce STRICT pattern (L0/L1 identifiers only).
     - Outside (Free Text): Allow LOOSE pattern (Query strings).
     """
-    doc = ls.workspace.get_text_document(params.text_document.uri)
-    lines = doc.source.splitlines()
+    try:
+        doc = ls.workspace.get_text_document(params.text_document.uri)
+        
+        # Try to get in-memory content first (works in both browser and desktop)
+        # The workspace maintains a cache of open documents
+        if hasattr(ls.workspace, '_text_documents') and params.text_document.uri in ls.workspace._text_documents:
+            # Get from in-memory cache
+            text_content = ls.workspace._text_documents[params.text_document.uri].source
+        else:
+            # Fallback to doc.source (will read from disk on desktop, may fail in browser)
+            text_content = doc.source
+        
+        lines = text_content.splitlines()
+    except Exception as e:
+        # Fallback: return empty tokens if we can't get document content
+        print(f"ERROR: Failed to get document content for {params.text_document.uri}: {e}")
+        return SemanticTokens(data=[])
     
     data = []
     last_line = 0

@@ -87,14 +87,28 @@ class Compiler:
 
     def _run_specs(self) -> bool:
         """Execute internal specs with @target binding."""
+        return self.verify_specs()
+
+    def verify_specs(self, spec_filter: Optional[str] = None) -> bool:
+        """
+        Public API to trigger L4 Spec Validation.
+        Can run all specs or filter by ID.
+        """
         from typedown.core.analysis.spec_executor import SpecExecutor
         
         spec_executor = SpecExecutor(self.console)
         specs_passed = spec_executor.execute_specs(
             self.documents,
             self.symbol_table,
-            self.model_registry
+            self.model_registry,
+            project_root=self.project_root,
+            spec_filter=spec_filter
         )
+        # Extend diagnostics with L4 errors
+        # Note: We might want to clear previous Spec-related diagnostics first?
+        # For now, append is fine as compile() clears all diagnostics usually.
+        # BUT if we run this ad-hoc (CodeLens), currently diagnostics are NOT cleared before this call 
+        # unless compile() was called.
         self.diagnostics.extend(spec_executor.diagnostics)
         return specs_passed
 

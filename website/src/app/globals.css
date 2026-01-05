@@ -1,0 +1,180 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Palette from design-tokens.json */
+  --color-primary: #000000;
+  --color-primary-inverse: #ffffff;
+
+  --background: #ffffff;
+  --foreground: #000000;
+
+  --gray-100: #f5f5f5;
+  --gray-300: #d4d4d4;
+  --gray-500: #737373;
+  --gray-700: #404040;
+  --gray-900: #171717;
+
+  /* Functional Tokens */
+  --color-error: #ff3333;
+  --color-success: #00f0ff;
+  --color-reference: #888888;
+
+  /* Memo: Ghost Blue Accent (Vercel-inspired) */
+  --color-ghost-blue: hsla(212, 100%, 48%, 0.15);
+  --color-ghost-blue-glow: linear-gradient(135deg, #00dfd8 0%, #007cf0 100%);
+}
+
+.dark {
+  --background: #000000; /* Pure Black */
+  --foreground: #ffffff; /* Pure White */
+
+  --color-primary: #ffffff;
+  --color-primary-inverse: #000000;
+
+  --gray-900: #f5f5f5;
+  --gray-700: #d4d4d4;
+  --gray-500: #737373;
+  --gray-100: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-ghost-blue: var(--color-ghost-blue);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+
+  --font-sans: var(--font-geist-sans), "Inter", "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: var(--font-geist-mono), "JetBrains Mono", Menlo, monospace;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* TypeScript-style Red Wave */
+.red-wave {
+  text-decoration: underline wavy var(--color-error);
+}
+
+.ghost-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+
+.ghost-shimmer::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-ghost-blue),
+    transparent
+  );
+  animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+/* Markdown Content Styling */
+.markdown-content {
+  @apply text-gray-700 dark:text-gray-300 leading-relaxed;
+}
+
+.markdown-content table {
+  display: table !important;
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  margin: 2rem 0 !important;
+}
+
+.markdown-content th {
+  @apply text-left font-semibold text-foreground whitespace-nowrap;
+  padding: 0.75rem 1.5rem !important;
+  border-bottom: 2px solid var(--gray-300) !important;
+  min-width: 120px;
+}
+
+.dark .markdown-content th {
+  border-bottom-color: var(--gray-700) !important;
+}
+
+.markdown-content td {
+  padding: 1rem 1.5rem !important;
+  border-bottom: 1px solid var(--gray-100) !important;
+  vertical-align: top !important;
+}
+
+.dark .markdown-content td {
+  border-bottom-color: var(--gray-100) !important; /* Note: adjust if gray-100 is too bright in dark mode */
+}
+
+.markdown-content tr:last-child td {
+  @apply border-b-0;
+}
+
+.markdown-content h1 {
+  @apply text-3xl font-bold text-foreground mt-12 mb-6;
+}
+
+.markdown-content h2 {
+  @apply text-2xl font-semibold text-foreground mt-10 mb-4 border-b border-black/5 dark:border-white/5 pb-2;
+}
+
+.markdown-content h3 {
+  @apply text-xl font-semibold text-foreground mt-8 mb-3;
+}
+
+.markdown-content p {
+  @apply mb-4;
+}
+
+.markdown-content ul, .markdown-content ol {
+  @apply mb-4 ml-6 list-outside;
+}
+
+.markdown-content ul {
+  @apply list-disc;
+}
+
+.markdown-content ol {
+  @apply list-decimal;
+}
+
+.markdown-content li {
+  @apply mb-2;
+}
+
+.markdown-content code:not(pre code) {
+  @apply bg-black/5 dark:bg-white/10 px-1.5 py-0.5 rounded text-sm font-mono text-foreground;
+}
+
+.markdown-content pre {
+  @apply bg-black/5 dark:bg-white/5 p-4 rounded-lg mb-6 overflow-x-auto border border-black/5 dark:border-white/5;
+}
+
+.markdown-content blockquote {
+  @apply border-l-4 border-success/30 pl-4 italic my-6 text-gray-500;
+}
+
+.markdown-content a {
+  @apply text-success hover:underline;
+}

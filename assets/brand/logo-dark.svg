@@ -8,8 +8,8 @@
                 M -30 -26 L 0 -26 L -15 0 Z
                 M 0 -26 L 30 -26 L 15 0 Z
                 M -15 0 L 15 0 L 0 26 Z" 
-                fill="#333333" 
-                stroke="#999999" 
+                fill="#171717" 
+                stroke="#404040" 
                 stroke-width="2" 
                 stroke-linejoin="round"/>
             
