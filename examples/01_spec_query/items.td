@@ -17,14 +17,14 @@ def check_single_item_weight(subject):
 ```
 
 ```spec: check_total_inventory_cap
-@target(type="Item")
+@target(type="Item", scope="global")
 def check_total_inventory_cap(subject):
     """Ensure total inventory weight does not exceed capacity."""
     CAPACITY = 140.0
     
     # query() returns wrappers around strict dicts or objects
     # We query all entities of type Item to calculate sum
-    all_items = query("@Item")
+    all_items = sql("SELECT * FROM Item")
     
     total_weight = sum(item.weight for item in all_items)
     

@@ -13,6 +13,7 @@ import sys
 import types
 import tempfile
 import pytest
+import contextvars
 from typing import Dict, List, Any, Optional, Tuple
 from pathlib import Path
 from rich.console import Console
@@ -22,6 +23,9 @@ from typedown.core.base.errors import TypedownError
 from typedown.core.base.utils import AttributeWrapper
 from typedown.core.analysis.query import QueryEngine
 
+# ContextVar to track the current test ID safely across async/threaded contexts
+current_test_id_var = contextvars.ContextVar("current_test_id", default=None)
+
 
 class TargetSelector:
     """
@@ -29,6 +33,7 @@ class TargetSelector:
     
     Supported syntax:
     - @target(type="UserAccount")  # Match by entity type
+    - @target(type="Item", scope="global") # Match globally (run once)
     - @target(tag="critical")       # Match by entity tag (future)
     - @target(id="users/alice")     # Match specific entity (future)
     """
@@ -38,6 +43,7 @@ class TargetSelector:
         self.type_filter: Optional[str] = None
         self.tag_filter: Optional[str] = None
         self.id_filter: Optional[str] = None
+        self.scope: str = "local"  # local (default) | global
         
         self._parse()
     
@@ -66,6 +72,8 @@ class TargetSelector:
                     self.tag_filter = value
                 elif key == 'id':
                     self.id_filter = value
+                elif key == 'scope':
+                    self.scope = value.lower()
     
     def matches(self, entity: EntityBlock) -> bool:
         """Check if an entity matches this selector."""
@@ -129,10 +137,10 @@ class BlameRegistry:
     def __init__(self):
         # Mapping: test_id -> List[{entity_id, reason}]
         self.records: Dict[str, List[Dict[str, str]]] = {}
-        self.current_test_id: Optional[str] = None
 
     def blame(self, target: Any, reason: str):
-        if not self.current_test_id:
+        test_id = current_test_id_var.get()
+        if not test_id:
             return
             
         entity_id = None
@@ -142,9 +150,9 @@ class BlameRegistry:
             entity_id = target
             
         if entity_id:
-            if self.current_test_id not in self.records:
-                self.records[self.current_test_id] = []
-            self.records[self.current_test_id].append({
+            if test_id not in self.records:
+                self.records[test_id] = []
+            self.records[test_id].append({
                 "entity_id": entity_id,
                 "reason": reason
             })
@@ -206,9 +214,15 @@ class SpecExecutor:
                     self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw}")
                     continue
 
-                    
-                for entity in matches:
-                    tasks.append((spec, entity))
+                # Handle scope="global": Run ONCE with the first entity as representative
+                if selector.scope == "global":
+                    # Use the first match as representative subject
+                    representative = matches[0]
+                    tasks.append((spec, representative))
+                else:
+                    # Default: Run for ALL matches
+                    for entity in matches:
+                        tasks.append((spec, entity))
         
         if not tasks:
             self.console.print("    [dim]ℹ[/dim] No matching spec/entity pairs found in the project.")
@@ -248,8 +262,8 @@ class SpecExecutor:
         def sql_wrapper(query_str: str) -> Any:
             # symbol_table is expected to be SymbolTable instance with get_duckdb_connection
             results = QueryEngine.execute_sql(query_str, symbol_table)
-            # Wrap results for dot notation access
-            return [AttributeWrapper(row) for row in results]
+            # Wrap results for dot notation access, preserving _id for blame()
+            return [AttributeWrapper(row, entity_id=row.get("_id")) for row in results]
 
         ctx.sql = sql_wrapper
         
@@ -257,6 +271,7 @@ class SpecExecutor:
         blame_registry = BlameRegistry()
         ctx.blame_registry = blame_registry
         ctx.blame = blame_registry.blame
+        ctx.current_test_id_var = current_test_id_var
         
         sys.modules[ctx_name] = ctx
         
@@ -265,14 +280,14 @@ class SpecExecutor:
         test_id_tracker = []
         test_file_content = [
             "import pytest",
-            f"from {ctx_name} import models, subjects, AttributeWrapper, query, sql, blame, blame_registry",
+            f"from {ctx_name} import models, subjects, AttributeWrapper, query, sql, blame, blame_registry, current_test_id_var",
             "",
             "# Setup test hooks to track current test_id for blame attribution",
             "@pytest.fixture(autouse=True)",
             "def track_test_id(request):",
-            "    blame_registry.current_test_id = request.node.name",
+            "    token = current_test_id_var.set(request.node.name)",
             "    yield",
-            "    blame_registry.current_test_id = None",
+            "    current_test_id_var.reset(token)",
             "",
             "# Inject models into global scope",
             "globals().update(models)",

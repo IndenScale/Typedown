@@ -1,7 +1,3 @@
----
-title: 上下文与作用域
----
-
 # 上下文与作用域 (Context & Scoping)
 
 Typedown 的执行依赖于一个强大的上下文环境。理解上下文的构成和解析顺序，是掌握 Typedown 模块化能力的关键。
@@ -30,7 +26,10 @@ Typedown 采用**词法作用域 (Lexical Scoping)**。解析器按照以下顺�
    - _Shadowing_: 子目录定义的 Handle 会遮蔽父目录的同名 Handle。
 4. **Global Scope (全局预设)**:
    - `typedown.yaml` 定义的全局配置。
-   - 运行时内置符号 (Built-ins)。
+   - **运行时内置符号 (Built-ins)**:
+     - `query()`: 全局符号查找（支持 ID 和 属性路径）。
+     - `sql()`: (仅限 Spec 块) 基于 DuckDB 的全域 SQL 查询。
+     - `blame()`: (仅限 Spec 块) 诊断错误归因。
 
 ```mermaid
 graph BT
@@ -82,6 +81,7 @@ graph BT
 ### 核心工具
 
 - **LSP Doc Lens (文档透镜)**:
+
   - 在编辑器中，Lens 应实时显示当前 Block 所处的 Environment 叠加状态（Inherited Configs, Available Handles）。
 
 - **`td get block query`**:

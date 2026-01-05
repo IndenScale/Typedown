@@ -1,19 +1,23 @@
----
-title: Model Definition
----
-
 # Model Definition (Model)
 
 The `model` block is used to define the structure (Schema) of data. It is the cornerstone of the Typedown system, determining the shape and constraints that entities must follow.
 
-## Syntax Signature
+## Syntax Signature (Block Signature)
 
-```markdown
+````typedown
 ```model:<ClassName>
 class <ClassName>(BaseModel):
     ...
 ```
-```
+````
+
+### Signature Strictness Requirements
+
+In version v0.2.13+, Typedown has strengthened the block signature validation logic:
+
+- **Signature Consistency**: The **Block ID** (`ClassName`) must **exactly match** the Pydantic class name defined on the first line of the Python code within the block. This ensures a strong binding between the document structure and code logic.
+- **ID Character Restrictions**: Identifiers are only allowed to contain letters, numbers, underscores `_`, and hyphens `-` (regex: `[a-zA-Z0-9_\-]+`).
+- **Space Insensitivity**: Spaces between the keyword `model` and the colon `:`, and between the colon and the ID, are no longer sensitive. For example, `model:User`, `model : User`, and `model: User` are all considered equivalent and compliant.
 
 - **Keyword**: `model`
 - **Identifier**: `<ClassName>` must match the Pydantic class name defined inside the code block exactly.
@@ -79,6 +83,18 @@ class Node(BaseModel):
 ```
 
 > **Note**: When defining a Reference, if the target type is not yet defined (or defined later), please use the string form of Forward Reference (e.g., `"User"`).
+
+## Import Restrictions
+
+To ensure the purity and portability of the data schema, `model` blocks enforce **strict import restrictions**:
+
+- **No explicit `import`**: You cannot use `import` statements within a `model` block.
+- **Preloaded Environment**: Typedown automatically injects common symbols for you:
+  - All core `pydantic` classes (e.g., `BaseModel`, `Field`).
+  - Frequently used generics from `typing` (e.g., `List`, `Optional`, `Dict`, `Union`).
+  - Typedown-specific types (e.g., `Reference`).
+
+If some logic is too complex and requires external libraries, move it to a `spec` block or consider using specific injection mechanisms in `config.td` (if supported).
 
 ## Scope
 

@@ -1,19 +1,39 @@
 # RPG Inventory System
 
-```model:Item
+```model: Item
 class Item(BaseModel):
     name: str
     weight: float
     value: int
 ```
 
-```spec:weight_limit
+```spec: check_single_item_weight
 @target(type="Item")
-def test_total_weight_limit(subject):
-    # This spec runs for every Item.
-    # To check TOTAL weight, we need aggregation capabilities (Global Context).
-    if subject.weight > 50.0:
-         raise ValueError(f"Item '{subject.name}' is too heavy! ({subject.weight})")
+def check_single_item_weight(subject):
+    """Ensure no single item is too heavy to carry."""
+    LIMIT = 50.0
+    if subject.weight > LIMIT:
+         # Use blame to pinpoint the exact entity causing the issue
+         blame(subject, f"Item is too heavy! ({subject.weight} > {LIMIT})")
+         raise ValueError(f"Item '{subject.name}' is too heavy!")
+```
+
+```spec: check_total_inventory_cap
+@target(type="Item", scope="global")
+def check_total_inventory_cap(subject):
+    """Ensure total inventory weight does not exceed capacity."""
+    CAPACITY = 100.0
+    
+    # Query all items using SQL for aggregation
+    all_items = sql("SELECT * FROM Item")
+    total_weight = sum(item.weight for item in all_items)
+    
+    if total_weight > CAPACITY:
+        # Smart aggregation: Find the heaviest item and blame it
+        heaviest = max(all_items, key=lambda x: x.weight)
+        blame(heaviest, f"Capacity {CAPACITY} exceeded. This item is the heaviest ({heaviest.weight}).")
+        
+        raise ValueError(f"Global inventory capacity exceeded! Current: {total_weight}, Max: {CAPACITY}")
 ```
 
 ```entity Item: sword
@@ -30,6 +50,6 @@ value: 30
 
 ```entity Item: heavy_armor
 name: "Plate Armor"
-weight: 80.0  # This will trigger the error (15+10+80 = 105 > 100)
+weight: 80.0  # (15 + 10 + 80 = 105) > 100
 value: 200
 ```

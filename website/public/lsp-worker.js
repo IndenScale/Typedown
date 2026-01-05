@@ -243,6 +243,7 @@ async function initPyodide() {
     "pygls>=2.0.0",
     "pydantic>=2.0.0",
     "packaging",
+    "duckdb",
   ]);
 
   // Install our built wheel

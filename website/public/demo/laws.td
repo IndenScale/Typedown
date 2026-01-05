@@ -15,15 +15,21 @@ class King(Character):
 ```
 
 ## 2. The Uniqueness Constraint (Spec)
-Then, we define the rules. This spec ensures only one King exists.
+Then, we define the rules. This spec ensures only one King exists using the new Global Context.
 
 ```spec:uniqueness_check
-@target(type="King")
-def test_there_can_be_only_one(subject):
-    # In a real environment, we would query the global graph here.
-    # For this demo, we can just assert on the subject or use a mock global check.
-    # assert subject.name == "Arthur Pendragon", "Only Arthur is the true King!"
-    pass 
+@target(type="King", scope="global")
+def uniqueness_check(subject):
+    # 使用 SQL 统计国王数量
+    count = sql("SELECT count(*) as total FROM King")[0]['total']
+    
+    if count > 1:
+        # 指出哪个是伪王
+        pretenders = sql("SELECT id, name FROM King WHERE name != 'Arthur Pendragon'")
+        for p in pretenders:
+            blame(p['id'], f"只有 Arthur 是真正的国王，{p['name']} 是篡位者！")
+            
+    assert count <= 1, f"这片土地上不能有两个国王！(当前: {count})"
 ```
 
 ## 3. The Conflict (Data)

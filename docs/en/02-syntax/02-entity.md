@@ -1,33 +1,28 @@
----
-title: Data Entity
----
-
 # Data Entity (Entity)
 
 The `entity` block is the primary way to instantiate data in Typedown. Each entity block represents a node in the knowledge graph.
 
-## Syntax Signature
+## Syntax Signature (Block Signature)
 
-```markdown
+````typedown
 ```entity <TypeName>: <SystemID>
 <YAML Body>
 ```
-```
+````
 
 - **Keyword**: `entity`
 - **Type**: `<TypeName>` must be a Model class name defined in the current context.
 - **Identifier**: `<SystemID>` is the globally unique identifier (L1 ID) for this entity.
-- **Separator**: Use a colon `:` to separate the type and ID.
+- **Space Insensitivity**: Spaces between the keywords, colons, and identifiers are no longer sensitive. For example, `entity User:alice` is equivalent to `entity User : alice`.
 
 ## Identifier Rules
 
-System ID is the **primary key** of the entity.
+System ID is the **primary key** of the entity, following these strict restrictions in v0.2.13+:
 
-- **Recommended Format**: `slug-style` (e.g., `user-alice-v1`).
-- **Constraints**:
-  - Globally unique.
-  - Can only contain letters, numbers, hyphens `-`, underscores `_`, and dots `.`.
-  - **Prohibited**: Spaces or slashes `/`.
+- **Character Restrictions**: Identifiers are only allowed to contain letters, numbers, underscores `_`, and hyphens `-` (regex: `[a-zA-Z0-9_\-]+`). Dot `.` is no longer supported.
+- **Naming Style**: Recommended to use `slug-style` (e.g., `user-alice-v1`).
+- **Globally Unique**: Must be unique across the entire project.
+- **Prohibited Characters**: Spaces, slashes `/`, or other special symbols are prohibited.
 
 ## Data Body (YAML Body)
 
@@ -52,7 +47,7 @@ friends:
   - [[charlie]]
 
 # Inline (Flow Style)
-reviewers: [ [[bob]], [[alice]] ]
+reviewers: [[[bob]], [[alice]]]
 ```
 
 ### Automatic Unpacking

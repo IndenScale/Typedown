@@ -1,7 +1,3 @@
----
-title: 质量控制
----
-
 # 质量控制 (Quality Control)
 
 Typedown 的质量控制体系分为四层，从底层的语法校验到顶层的外部事实核验。
@@ -43,11 +39,15 @@ graph TD
 
 - **对应命令**: `td validate` (默认包含 L1+L2)
 - **运行时机**: 编译时 / Build 前
-- **核心引擎**: Typedown Runtime + Spec System
+- **核心引擎**: Typedown Runtime + Spec System (基于 Pytest)
 - **检查内容**:
   - **Graph Resolution**: 确保所有引用指引向存在的实体。
   - **Selector Binding**: 运行 `spec` 块。
-  - **Complex Rules**: 验证跨实体约束或复杂的特定领域规则。
+  - **Complex Rules**: 验证跨实体约束或复杂的特定领域规则（支持 SQL 聚合查询）。
+  - **精准反馈**:
+    - **双向诊断**: 错误同时反馈在 `spec` 规则定义处和受影响的 `entity` 数据定义处。
+    - **精确定位**: 通过解析 Pytest Traceback，直接将错误波浪线标记在 `spec` 块中失败的 `assert` 行。
+    - **智能归因**: 支持通过 `blame()` 函数手动指定违规实体，降低聚合错误时的干扰。
   - **目标**: 逻辑自洽 (Internal Consistency)。**绝不**发起网络请求。
 
 ### L4: 外部事实核验 (External Verification)
