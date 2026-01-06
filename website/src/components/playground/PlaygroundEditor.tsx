@@ -416,6 +416,28 @@ export function PlaygroundEditor() {
     monaco.editor.setModelMarkers(model, "typedown", markers);
   }, [diagnostics, activeFileName]);
 
+  // Debounced Validation Trigger (5s inactivity)
+  // This ensures heavy checks (Specs/L3) run after the user stops typing
+  useEffect(() => {
+    if (lspStatus !== "connected" || !activeFileName) return;
+
+    const timer = setTimeout(() => {
+      const { client } = usePlaygroundStore.getState();
+      if (client) {
+        logger.debug("[PlaygroundEditor] Triggering delayed full validation (5s)...");
+        client
+          .sendRequest("workspace/executeCommand", {
+            command: "typedown.triggerValidation",
+          })
+          .catch((err) =>
+            logger.error("[PlaygroundEditor] Delayed validation failed:", err)
+          );
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [activeFile?.content, lspStatus, activeFileName]);
+
   return (
     <div className="flex h-full w-full flex-col">
       {/* Editor Tabs */}
