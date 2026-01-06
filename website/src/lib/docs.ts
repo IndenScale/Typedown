@@ -235,6 +235,7 @@ export function getSidebar(
   }
 
   // Base URL construction
-  const basePath = type === "docs" ? "/docs" : "/philosophy";
-  return getItems(baseDir, `${basePath}/${lang}`);
+  // The route structure is /[lang]/docs/... or /[lang]/philosophy/...
+  const urlType = type === "docs" ? "docs" : "philosophy";
+  return getItems(baseDir, `/${lang}/${urlType}`);
 }
