@@ -7,7 +7,7 @@ from types import ModuleType
 
 # Set CWD to root so we can find the files written to /world etc.
 os.chdir("/")
-print(f"DEBUG: CWD changed to: {os.getcwd()}")
+# print(f"DEBUG: CWD changed to: {os.getcwd()}")
 
 # --- HACK START: Mock watchdog ---
 m_watchdog = ModuleType("watchdog")
@@ -38,19 +38,45 @@ from pygls.protocol import LanguageServerProtocol
 try:
     from importlib.metadata import version
     ver = version("pygls")
-    print(f"DEBUG: Python Kernel 3, pygls version: {ver}")
+    # print(f"DEBUG: Python Kernel 3, pygls version: {ver}")
 except:
-    print("DEBUG: Python Kernel 3, pygls version: unknown")
+    # print("DEBUG: Python Kernel 3, pygls version: unknown")
+    pass
 
-# Redirect stdout/stderr
+# Redirect stdout/stderr with filtering
 class JSWriter:
+    def __init__(self, name="STDOUT"):
+        self.name = name
+
     def write(self, message):
         import js
-        js.console.log(message)
+        msg = message.strip()
+        if not msg:
+            return
+            
+        # Filter out noisy DEBUG messages unless explicitly requested
+        if msg.startswith("DEBUG:") or msg.startswith("INFO:pygls"):
+            return
+            
+        # Special handling for repetitive LSP notifications
+        if "semantic_tokens" in msg or "didChangeConfiguration" in msg:
+            return
+
+        js.console.log(f"[{self.name}] {msg}")
+
     def flush(self): pass
 
-sys.stdout = JSWriter()
-sys.stderr = JSWriter()
+sys.stdout = JSWriter("Kernel")
+sys.stderr = JSWriter("Error")
+
+# Configure logging to use our JSWriter
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(levelname)s: %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger("typedown")
+logger.setLevel(logging.INFO)
 
 # =========================================================
 #  LSP Transport for WASM (asyncio)
@@ -89,7 +115,8 @@ class WebTransport(asyncio.Transport):
                 js.post_lsp_message(body)
 
         except Exception as e:
-            print(f"Transport Write Error: {e}")
+            # Use logging instead of print for transport errors
+            logging.error(f"Transport Write Error: {e}")
 
 # =========================================================
 #  Wiring
@@ -100,7 +127,7 @@ transport = WebTransport()
 def wire_server():
     # 1. Ensure Protocol is Initialized
     if server.protocol is None:
-        print("DEBUG: server.protocol is None. Manually initializing LanguageServerProtocol...")
+        # print("DEBUG: server.protocol is None. Manually initializing LanguageServerProtocol...")
         server.protocol = LanguageServerProtocol(server)
     
     protocol = server.protocol
@@ -115,23 +142,24 @@ def wire_server():
     if hasattr(protocol, 'set_writer'):
         try:
             protocol.set_writer(transport)
-            print("DEBUG: Wired output via protocol.set_writer()")
+            # print("DEBUG: Wired output via protocol.set_writer()")
             success = True
         except Exception as e:
-             print(f"DEBUG: set_writer failed: {e}")
+             # print(f"DEBUG: set_writer failed: {e}")
+             pass
              
     # Fallback: asyncio connection_made
     if not success and hasattr(protocol, 'connection_made'):
         try:
              protocol.connection_made(transport)
-             print("DEBUG: Wired output via protocol.connection_made()")
+             # print("DEBUG: Wired output via protocol.connection_made()")
              success = True
         except: pass
 
     # Fallback: direct assignment
     if not success:
          protocol.transport = transport # Legacy/Backup
-         print("DEBUG: Wired output via protocol.transport assignment (Fallback)")
+         # print("DEBUG: Wired output via protocol.transport assignment (Fallback)")
 
 
 wire_server()
@@ -153,7 +181,7 @@ def consume_message(msg_json):
     """
     try:
         if not server.protocol:
-            print("ERROR: Protocol not initialized")
+            logging.error("Protocol not initialized")
             return
 
         # 1. Parse JSON
@@ -171,6 +199,6 @@ def consume_message(msg_json):
         server.protocol.handle_message(msg_obj)
         
     except Exception as e:
-        print(f"Consume Error during Direct Injection: {e}")
+        logging.error(f"Consume Error during Direct Injection: {e}")
         import traceback
         traceback.print_exc()

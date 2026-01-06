@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { MonacoLanguageClient } from "monaco-languageclient";
+import type { Diagnostic } from "vscode-languageserver-protocol";
 import { getDemos } from "@/lib/demos";
 
 interface PlaygroundFile {
@@ -20,6 +21,7 @@ interface PlaygroundState {
   lspStatus: "disabled" | "connecting" | "connected" | "error";
   client: MonacoLanguageClient | null;
   worker: Worker | null;
+  diagnostics: Record<string, Diagnostic[]>;
 
   // Demo State
   currentDemoId: string;
@@ -39,6 +41,7 @@ interface PlaygroundState {
     status: "disabled" | "connecting" | "connected" | "error"
   ) => void;
   setLspClient: (client: MonacoLanguageClient, worker: Worker) => void;
+  setDiagnostics: (uri: string, diagnostics: Diagnostic[]) => void;
 }
 
 // Initial State Logic (default to 'en')
@@ -64,6 +67,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
   lspStatus: "disabled",
   client: null,
   worker: null,
+  diagnostics: {},
 
   setFiles: (files) => set({ files }),
 
@@ -156,8 +160,6 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       // Use get().files to ensure we have the hydrated content
       const currentFiles = get().files;
 
-      console.log("[Playground] Syncing all files to LSP Worker FS...");
-
       // 0. Reset FS to prevent ghost files from previous demos
       client.sendNotification("typedown/resetFileSystem", {});
 
@@ -177,7 +179,6 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       });
 
       await Promise.all(syncPromises);
-      console.log("[Playground] All files synced. Triggering validation...");
 
       // 2. Trigger Validation (Server will Scan disk)
       client
@@ -222,4 +223,11 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
   setLspStatus: (status) => set({ lspStatus: status }),
   setLspClient: (client, worker) =>
     set({ client, worker, lspStatus: "connected" }),
+  setDiagnostics: (uri, diagnostics) =>
+    set((state) => ({
+      diagnostics: {
+        ...state.diagnostics,
+        [uri]: diagnostics,
+      },
+    })),
 }));

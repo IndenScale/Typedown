@@ -30,57 +30,65 @@ const messageQueue = [];
 
 // 4. Initialize Pyodide & LSP
 async function initPyodide() {
-  console.log("[LSP Worker] Loading Pyodide...");
-  pyodide = await loadPyodide();
+  console.groupCollapsed("[LSP Worker] Bootstrapping Kernel...");
+  try {
+    console.log("Loading Pyodide...");
+    pyodide = await loadPyodide();
 
-  console.log("[LSP Worker] Installing dependencies...");
-  await pyodide.loadPackage("micropip");
-  const micropip = pyodide.pyimport("micropip");
+    console.log("Installing dependencies...");
+    await pyodide.loadPackage("micropip");
+    const micropip = pyodide.pyimport("micropip");
 
-  // Install PyGLS and dependencies
-  await micropip.install([
-    "typing-extensions",
-    "pygls>=2.0.0",
-    "pydantic>=2.0.0",
-    "packaging",
-  ]);
+    // Install PyGLS and dependencies
+    await micropip.install([
+      "typing-extensions",
+      "pygls>=2.0.0",
+      "pydantic>=2.0.0",
+      "packaging",
+    ]);
 
-  // Install Typedown Wheel
-  const wheelName = "typedown-0.0.0-py3-none-any.whl";
-  const wheelUrl = new URL(`/${wheelName}`, self.location.origin).href;
-  console.log(`[LSP Worker] Fetching wheel: ${wheelUrl}`);
+    // Install Typedown Wheel
+    const wheelName = "typedown-0.0.0-py3-none-any.whl";
+    const wheelUrl = new URL(`/${wheelName}`, self.location.origin).href;
+    console.log(`Fetching wheel: ${wheelUrl}`);
 
-  const wheelResp = await fetch(wheelUrl);
-  if (!wheelResp.ok)
-    throw new Error(`Failed to fetch wheel: ${wheelResp.status}`);
+    const wheelResp = await fetch(wheelUrl);
+    if (!wheelResp.ok)
+      throw new Error(`Failed to fetch wheel: ${wheelResp.status}`);
 
-  const wheelBuffer = await wheelResp.arrayBuffer();
-  const mountPath = `/tmp/${wheelName}`;
-  pyodide.FS.writeFile(mountPath, new Uint8Array(wheelBuffer));
-  await micropip.install(`emfs:${mountPath}`);
+    const wheelBuffer = await wheelResp.arrayBuffer();
+    const mountPath = `/tmp/${wheelName}`;
+    pyodide.FS.writeFile(mountPath, new Uint8Array(wheelBuffer));
+    await micropip.install(`emfs:${mountPath}`);
 
-  // 5. Fetch and Run LSP Server Script
-  const serverScriptUrl = new URL("/lsp-server.py", self.location.origin).href;
-  console.log(`[LSP Worker] Fetching server script: ${serverScriptUrl}`);
+    // 5. Fetch and Run LSP Server Script
+    const serverScriptUrl = new URL("/lsp-server.py", self.location.origin).href;
+    console.log(`Fetching server script: ${serverScriptUrl}`);
 
-  const scriptResp = await fetch(serverScriptUrl);
-  if (!scriptResp.ok)
-    throw new Error(`Failed to fetch lsp-server.py: ${scriptResp.status}`);
+    const scriptResp = await fetch(serverScriptUrl);
+    if (!scriptResp.ok)
+      throw new Error(`Failed to fetch lsp-server.py: ${scriptResp.status}`);
 
-  const pythonScript = await scriptResp.text();
+    const pythonScript = await scriptResp.text();
 
-  // Expose callback for Python -> JS communication
-  self.post_lsp_message = (msg) => {
-    try {
-      const jsonObj = JSON.parse(msg);
-      writer.write(jsonObj);
-    } catch (e) {
-      console.error("[LSP Worker] Failed to parse LSP response:", e);
-    }
-  };
+    // Expose callback for Python -> JS communication
+    self.post_lsp_message = (msg) => {
+      try {
+        const jsonObj = JSON.parse(msg);
+        writer.write(jsonObj);
+      } catch (e) {
+        console.error("[LSP Worker] Failed to parse LSP response:", e);
+      }
+    };
 
-  await pyodide.runPythonAsync(pythonScript);
-  console.log("[LSP Worker] Typedown Kernel Ready.");
+    await pyodide.runPythonAsync(pythonScript);
+    console.groupEnd();
+    console.log("🚀 [LSP Worker] Typedown Kernel Ready.");
+  } catch (e) {
+    console.groupEnd();
+    console.error("❌ [LSP Worker] Initialization Failed:", e);
+    throw e;
+  }
 }
 
 // 5. Message Handling
@@ -135,11 +143,11 @@ function processMessage(message) {
 
   // Handle FS Reset
   if (message.method === "typedown/resetFileSystem") {
-    console.log("[LSP Worker] Resetting FileSystem...");
     try {
       pyodide.runPython(`
 import shutil
 import os
+import logging
 keep = {'.', '..', 'tmp', 'home', 'dev', 'proc', 'lib', 'bin', 'etc', 'usr', 'var', 'sys'}
 for item in os.listdir('/'):
     if item not in keep:
@@ -150,7 +158,7 @@ for item in os.listdir('/'):
             elif os.path.isdir(path):
                 shutil.rmtree(path)
         except Exception as e:
-            print(f"Failed to clean {path}: {e}")
+            logging.error(f"Failed to clean {path}: {e}")
 `);
     } catch (e) {
       console.error("[LSP Worker] FS Reset Failed:", e);
@@ -170,11 +178,10 @@ for item in os.listdir('/'):
 // Start
 initPyodide().then(async () => {
   isLspReady = true;
-  console.log(
-    `[LSP Worker] Flushing ${messageQueue.length} buffered messages...`
-  );
-  for (const msg of messageQueue) {
-    processMessage(msg);
+  if (messageQueue.length > 0) {
+    for (const msg of messageQueue) {
+      processMessage(msg);
+    }
+    messageQueue.length = 0;
   }
-  messageQueue.length = 0;
 });

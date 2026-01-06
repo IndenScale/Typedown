@@ -20,6 +20,7 @@ export function PlaygroundEditor() {
     closeFile,
     lspStatus,
     lang,
+    diagnostics,
   } = usePlaygroundStore();
 
   const activeFile = activeFileName ? files[activeFileName] : undefined;
@@ -371,6 +372,49 @@ export function PlaygroundEditor() {
       );
     }, 200); // Slightly longer delay to ensure LSP is fully ready
   }, [lspStatus, activeFileName]); // Re-run when LSP status changes OR active file changes
+
+  // Sync Diagnostics to Monaco Markers
+  useEffect(() => {
+    if (!monacoRef.current || !editorRef.current || !activeFileName) return;
+
+    const monaco = monacoRef.current;
+    const editor = editorRef.current;
+    const model = editor.getModel();
+
+    if (!model) return;
+
+    // The store uses params.uri from the server (file:///...)
+    // Monaco model.uri.toString() should match this.
+    const activeFileUri = model.uri.toString();
+    const fileDiagnostics = diagnostics[activeFileUri] || [];
+
+    logger.debug(
+      `[PlaygroundEditor] Syncing diagnostics for ${activeFileUri}:`,
+      fileDiagnostics
+    );
+
+    const markers: MonacoTypes.editor.IMarkerData[] = fileDiagnostics.map(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (diag: any) => ({
+        severity:
+          diag.severity === 1
+            ? monaco.MarkerSeverity.Error
+            : diag.severity === 2
+            ? monaco.MarkerSeverity.Warning
+            : diag.severity === 3
+            ? monaco.MarkerSeverity.Info
+            : monaco.MarkerSeverity.Hint,
+        startLineNumber: diag.range.start.line + 1,
+        startColumn: diag.range.start.character + 1,
+        endLineNumber: diag.range.end.line + 1,
+        endColumn: diag.range.end.character + 1,
+        message: diag.message,
+        source: diag.source || "typedown",
+      })
+    );
+
+    monaco.editor.setModelMarkers(model, "typedown", markers);
+  }, [diagnostics, activeFileName]);
 
   return (
     <div className="flex h-full w-full flex-col">

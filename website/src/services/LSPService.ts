@@ -123,6 +123,12 @@ export class LSPService {
         messageTransports: { reader, writer },
       });
 
+      // Capture diagnostics for global store
+      client.onNotification("textDocument/publishDiagnostics", (params) => {
+        // @ts-ignore - The types are compatible but strict check might fail on minor version mismatch
+        usePlaygroundStore.getState().setDiagnostics(params.uri, params.diagnostics);
+      });
+
       // E. Start Client
       logger.debug("[LSPService] Starting Client...");
       await client.start();
