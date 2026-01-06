@@ -481,6 +481,7 @@ export function PlaygroundEditor() {
           ) : (
             <Editor
               height="100%"
+              path={activeFile.path || `/${activeFile.name}`} // CRITICAL FIX: Ensure Editor Model URI matches LSP Sync URI
               language={activeFile.language}
               value={activeFile.content}
               theme={
@@ -504,7 +505,6 @@ export function PlaygroundEditor() {
               }}
               // CRITICAL: Match the URI used by LSP Worker (Logical Path)
               // e.g. /examples/03_simple_rules/rules.td
-              path={activeFile.path || activeFile.name}
             />
           )
         ) : (

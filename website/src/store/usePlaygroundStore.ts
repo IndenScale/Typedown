@@ -169,6 +169,23 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
         // Use the full logical path to avoid collisions (e.g. multiple README.md)
         // and match the Editor's URI (see PlaygroundEditor updates).
         const logicalPath = file.path || `/${name}`;
+        
+        // FIX: Remove 'examples' prefix for cleaner virtual paths if desired, 
+        // OR ensure consistency. For now, we trust file.path.
+        // However, Editor model URI is created from file.name or logicalPath?
+        // PlaygroundEditor uses activeFile.name or similar.
+        // Let's ensure URI matches what LSP expects.
+        
+        // NOTE: The issue is that the Editor might be using `file:///rules.td` (basename)
+        // while the Server sees `file:///examples/03_simple_rules/rules.td`.
+        // We must unify them.
+        
+        // Let's FORCE a flat structure for now to avoid confusion, OR strictly use file.path.
+        // But demos.ts has paths like /examples/03_simple_rules/rules.td.
+        // If we use that, the URI is file:///examples/03_simple_rules/rules.td.
+        // But the Monaco Model might be created with just 'rules.td'.
+        
+        // Let's use the file.path as the Source of Truth.
         const uri = `file://${logicalPath}`;
         const text = file.content || "";
 
@@ -180,13 +197,13 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
 
       await Promise.all(syncPromises);
 
-      // 2. Trigger Validation (Server will Scan disk)
+      // 2. Trigger Hard Recompile (Server will Scan disk to find new files)
       client
         .sendRequest("workspace/executeCommand", {
-          command: "typedown.triggerValidation",
+          command: "typedown.recompile",
         })
         .catch((err) =>
-          console.error("[Playground] Validation trigger failed:", err)
+          console.error("[Playground] Recompile failed:", err)
         );
     }
   },

@@ -102,14 +102,39 @@ reader.listen((message) => {
 
 function processMessage(message) {
   // Sync TextDocument updates to Virtual FS
+  let uri = null;
+  let text = null;
+  let shouldSync = false;
+
+  // 1. Extract URI and Text based on method
   if (
-    (message.method === "textDocument/didOpen" ||
-      message.method === "typedown/syncFile") &&
-    message.params
+    message.method === "textDocument/didOpen" ||
+    message.method === "typedown/syncFile"
   ) {
-    const { textDocument } = message.params;
-    if (textDocument) {
-      const { uri, text } = textDocument;
+    if (message.params?.textDocument) {
+      uri = message.params.textDocument.uri;
+      text = message.params.textDocument.text;
+      shouldSync = true;
+    }
+  } else if (message.method === "textDocument/didChange") {
+    if (message.params?.textDocument && message.params?.contentChanges) {
+      uri = message.params.textDocument.uri;
+      // Only handle Full Sync (text is present in the first change event and no range)
+      // Note: monaco-languageclient sends Full Sync if server capability says so.
+      const changes = message.params.contentChanges;
+      if (changes.length > 0) {
+        const change = changes[0];
+        // If 'range' is undefined/null, it's a full text replace
+        if (!change.range && typeof change.text === "string") {
+          text = change.text;
+          shouldSync = true;
+        }
+      }
+    }
+  }
+
+  // 2. Perform File Write
+  if (shouldSync && uri && typeof text === "string") {
       let filePath = uri;
 
       // Basic URI cleanup
@@ -138,27 +163,46 @@ function processMessage(message) {
       } catch (e) {
         console.error(`[LSP Worker] FS Sync Error for ${filePath}:`, e);
       }
-    }
   }
 
   // Handle FS Reset
   if (message.method === "typedown/resetFileSystem") {
+    console.log("[LSP Worker] Resetting FileSystem...");
     try {
       pyodide.runPython(`
 import shutil
 import os
 import logging
+
+# Define keep set
 keep = {'.', '..', 'tmp', 'home', 'dev', 'proc', 'lib', 'bin', 'etc', 'usr', 'var', 'sys'}
+
+# 1. Clean Root
+deleted_count = 0
 for item in os.listdir('/'):
     if item not in keep:
         path = os.path.join('/', item)
         try:
             if os.path.isfile(path) or os.path.islink(path):
                 os.unlink(path)
+                deleted_count += 1
             elif os.path.isdir(path):
                 shutil.rmtree(path)
+                deleted_count += 1
         except Exception as e:
             logging.error(f"Failed to clean {path}: {e}")
+
+# 2. Double Check for .td files (Ghost Files)
+for item in os.listdir('/'):
+    if item.endswith('.td') or item.endswith('.md'):
+        path = os.path.join('/', item)
+        try:
+            os.unlink(path)
+            logging.warning(f"Force deleted persistent ghost file: {path}")
+        except:
+            pass
+            
+print(f"[LSP Worker] FS Reset Complete. Deleted {deleted_count} items.")
 `);
     } catch (e) {
       console.error("[LSP Worker] FS Reset Failed:", e);
