@@ -8,8 +8,9 @@
 
 *   **操作步骤**:
     1.  进入 `website` 目录：`cd website`
-    2.  如果修改了 `package.json`，**必须**运行 `npm install` 更新锁文件。
-    3.  **强制同步**: 如果遇到 `npm ci` 报错 "Missing ... from lock file" 或 "EUSAGE"，请执行以下彻底清理命令：
+    2.  **新增依赖检查**: 如果代码中引入了新的第三方库（如 `import ... from 'lib'`），必须确保已通过 `npm install lib` 安装并记录在 `package.json` 中。
+    3.  如果修改了 `package.json`，**必须**运行 `npm install` 更新锁文件。
+    4.  **强制同步**: 如果遇到 `npm ci` 报错 "Missing ... from lock file" 或 "EUSAGE"，请执行以下彻底清理命令：
         ```bash
         rm -rf node_modules package-lock.json
         npm install
