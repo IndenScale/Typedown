@@ -8,6 +8,9 @@ from typedown.core.graph import DependencyGraph
 from typedown.core.analysis.query import QueryEngine, QueryError, REF_PATTERN
 from typedown.core.base.types import ReferenceMeta
 from typedown.core.base.identifiers import Identifier
+from typedown.core.base.symbol_table import SymbolTable
+from typedown.core.base.utils import AttributeWrapper
+from pydantic import BaseModel
 
 class Validator:
     def __init__(self, console: Console):
@@ -15,7 +18,29 @@ class Validator:
         self.diagnostics: List[TypedownError] = []
         self.dependency_graph: DependencyGraph = DependencyGraph()
 
-    def validate(self, documents: Dict[Path, Document], symbol_table: Any, model_registry: Dict[str, Any]):
+    def _resolve_model_class(self, entity: EntityBlock, symbol_table: SymbolTable, model_registry: Dict[str, Any]) -> Any:
+        """
+        Resolve the Pydantic model class for an entity, prioritizing local scope.
+        """
+        # 1. Try Scoped Lookup via SymbolTable (lexical scoping)
+        if entity.location and entity.location.file_path:
+            context_path = Path(entity.location.file_path)
+            # Linker registers models as AttributeWrapper in SymbolTable
+            wrapper = symbol_table.resolve_handle(entity.class_name, context_path)
+            
+            if wrapper and isinstance(wrapper, AttributeWrapper):
+                val = wrapper.value
+                # Verify it is a Pydantic Model
+                if isinstance(val, type) and issubclass(val, BaseModel):
+                    return val
+            elif wrapper and isinstance(wrapper, type) and issubclass(wrapper, BaseModel):
+                # Direct registration (future proofing)
+                return wrapper
+
+        # 2. Fallback to Global Registry
+        return model_registry.get(entity.class_name)
+
+    def validate(self, documents: Dict[Path, Document], symbol_table: SymbolTable, model_registry: Dict[str, Any]):
         """
         L3: Materialize data and resolve references using topological sort to support cross-entity refs.
         """
@@ -79,7 +104,7 @@ class Validator:
         
         self.console.print(f"    [green]✓[/green] Resolved references for {total_resolved} entities.")
 
-    def check_schema(self, documents: Dict[Path, Document], model_registry: Dict[str, Any]):
+    def check_schema(self, documents: Dict[Path, Document], symbol_table: SymbolTable, model_registry: Dict[str, Any]):
         """
         L2: Schema Compliance Check. 
         Validates structure without resolving the graph.
@@ -90,13 +115,13 @@ class Validator:
         total_checked = 0
         for doc in documents.values():
             for entity in doc.entities:
-                if entity.class_name not in model_registry:
+                model_cls = self._resolve_model_class(entity, symbol_table, model_registry)
+                
+                if not model_cls:
                     # Missing model is handled by Linker usually, but we can log error here too if helpful
                     continue
                 
                 from typedown.core.parser.desugar import Desugarer
-                
-                model_cls = model_registry[entity.class_name]
                 
                 # Pre-process: Desugar YAML artifacts (e.g. [['ref']] -> "[[ref]]")
                 data = Desugarer.desugar(entity.raw_data)
@@ -146,14 +171,14 @@ class Validator:
                          self.diagnostics.append(TypedownError(
                              f"Schema Violation in {entity.id or 'anonymous'}: {e}", 
                              location=entity.location,
-                             severity="warning"
+                             severity="error"
                          ))
                     else:
                         total_checked += 1
 
         self.console.print(f"    [green]✓[/green] Checked schema for {total_checked} entities.")
 
-    def _resolve_entity(self, entity: EntityBlock, symbol_table: Dict[str, EntityBlock], model_registry: Dict[str, Any]):
+    def _resolve_entity(self, entity: EntityBlock, symbol_table: SymbolTable, model_registry: Dict[str, Any]):
         from typedown.core.parser.desugar import Desugarer
         
         # Start resolution from raw data
@@ -209,15 +234,16 @@ class Validator:
         except (QueryError, ReferenceError) as e:
             err = ReferenceError(str(e), location=entity.location)
             self.diagnostics.append(err)
+            # FALLBACK: Preserve data to avoid total loss
+            entity.resolved_data = current_data
 
-    def _check_semantic_types(self, entity: EntityBlock, symbol_table: Dict[str, EntityBlock], model_registry: Dict[str, Any]):
+    def _check_semantic_types(self, entity: EntityBlock, symbol_table: SymbolTable, model_registry: Dict[str, Any]):
         """
         Validate that Ref[T] fields actually point to entities of type T.
         """
-        if entity.class_name not in model_registry:
+        model_cls = self._resolve_model_class(entity, symbol_table, model_registry)
+        if not model_cls:
             return
-
-        model_cls = model_registry[entity.class_name]
         
         for field_name, field_info in model_cls.model_fields.items():
             if field_name not in entity.resolved_data:
@@ -229,7 +255,7 @@ class Validator:
 
             self._check_field_annotation(field_name, field_info.annotation, value, entity, symbol_table)
 
-    def _check_field_annotation(self, field_name: str, annotation: Any, value: Any, entity: EntityBlock, symbol_table: Dict[str, EntityBlock]):
+    def _check_field_annotation(self, field_name: str, annotation: Any, value: Any, entity: EntityBlock, symbol_table: SymbolTable):
         # Ref[T] is Annotated[str, ReferenceMeta(T)]
         if get_origin(annotation) is Annotated:
             args = get_args(annotation)

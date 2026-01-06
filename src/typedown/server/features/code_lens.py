@@ -30,6 +30,7 @@ class EntityCommandArgs(BaseModel):
 CMD_RUN_SPEC = "typedown.runSpec"
 CMD_VIEW_FORMER = "typedown.viewFormer"
 CMD_TRIGGER_VALIDATION = "typedown.triggerValidation"
+CMD_RECOMPILE = "typedown.recompile"
 
 @server.feature(TEXT_DOCUMENT_CODE_LENS)
 def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLens]:
@@ -57,7 +58,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
                 command=Command(
                     title="▶ Run Spec",
                     command=CMD_RUN_SPEC,
-                    arguments=[SpecCommandArgs(file_path=str(path), spec_id=spec.id).model_dump()]
+                    arguments=[SpecCommandArgs(file_path=str(path), spec_id=spec.id or "").model_dump()]
                 )
             ))
             
@@ -72,7 +73,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
                 command=Command(
                     title="📜 View Evolution",
                     command=CMD_VIEW_FORMER,
-                    arguments=[EntityCommandArgs(file_path=str(path), entity_id=entity.id).model_dump()]
+                    arguments=[EntityCommandArgs(file_path=str(path), entity_id=entity.id or "").model_dump()]
                 )
             ))
             
@@ -168,37 +169,49 @@ def view_former_command(ls: TypedownLanguageServer, *args):
 
 @server.command(CMD_TRIGGER_VALIDATION)
 def trigger_validation_command(ls: TypedownLanguageServer, *args):
-    """
-    Triggers a full validation pipeline (L1-L4) including Specs.
-    Useful for client-side triggers (e.g. Playground section switch).
-    """
+    if not ls.compiler:
+        return
+    
+    # "Soft" Validation: Recompile in-memory documents only.
+    # Used during editing to avoid overwriting unsaved changes with disk content.
+    with ls.lock:
+        try:
+            ls.compiler._recompile_in_memory()
+            
+            # DEBUG: Log in-memory documents
+            ls.compiler.console.print(f"[bold yellow]DEBUG: Memory Documents:[/bold yellow]")
+            for path in ls.compiler.documents.keys():
+                 ls.compiler.console.print(f" - {path}")
+
+            # Run L4 Specs
+            ls.compiler.verify_specs()
+            
+        except Exception as e:
+            ls.compiler.console.print(f"[bold red]Validation Error:[/bold red] {e}")
+
+        # Publish ALL diagnostics
+        from typedown.server.managers.diagnostics import publish_diagnostics
+        publish_diagnostics(ls, ls.compiler)
+
+
+@server.command(CMD_RECOMPILE)
+def recompile_command(ls: TypedownLanguageServer, *args):
     if not ls.compiler:
         return
 
-    # User feedback that validation started (optional, maybe too noisy?)
-    # ls.window_show_message(ShowMessageParams(
-    #     type=MessageType.Info, 
-    #     message="Running tests..."
-    # ))
-    
-
-
+    # "Hard" Reset: Scan disk for new files.
+    # Used when switching demos/projects to discover new file structure.
+    # WARNING: This discards any in-memory unsaved changes (didOpen overlays).
     with ls.lock:
-        # 1. Reset & Recompile L1-L3 (Syntax, Schema, Logic)
-        # CHANGE: Use compile() instead of _recompile_in_memory() to force Disk Scan.
-        # This ensures files synced via 'typedown/syncFile' but not 'didOpen' are found.
-        ls.compiler.compile()
+        ls.compiler.console.print(f"[bold blue]COMMAND: Recompile (Disk Scan)[/bold blue]")
+        success = ls.compiler.compile()
         
+        ls.compiler.console.print(f"[bold yellow]DEBUG: Scanned Documents:[/bold yellow]")
+        for path in ls.compiler.documents.keys():
+             ls.compiler.console.print(f" - {path}")
 
-        # 2. Run L4 Specs
-        # Run all specs project-wide to catch regressions
-        ls.compiler.verify_specs()
+        if success:
+            ls.compiler.verify_specs()
         
-        # 3. Publish ALL diagnostics (L1+L2+L3+L4)
         from typedown.server.managers.diagnostics import publish_diagnostics
         publish_diagnostics(ls, ls.compiler)
-        
-    ls.window_show_message(ShowMessageParams(
-        type=MessageType.Info,
-        message="Tests completed."
-    ))

@@ -255,13 +255,34 @@ class Linker:
                             
                             # Register the model
                             self.model_registry[model.id] = defined_class
+                            
+                            # Register in SymbolTable (Scoped)
+                            wrapper = AttributeWrapper({
+                                "id": model.id,
+                                "value": defined_class,
+                                "type": "model",
+                                "location": model.location
+                            })
+                            self.symbol_table.add(wrapper, doc.path)
                         
                         # Also harvest any other BaseModel classes defined in the block
                             for name, val in local_scope.items():
+                                 if name.startswith("_") or name in context:
+                                     continue
+                                     
                                  is_valid_type = isinstance(val, type) and (issubclass(val, BaseModel) or issubclass(val, Enum))
                                  if is_valid_type and val is not BaseModel and val is not Enum:
                                      if name not in self.model_registry:
                                          self.model_registry[name] = val
+                                     
+                                     # Also register in SymbolTable
+                                     wrapper = AttributeWrapper({
+                                         "id": name,
+                                         "value": val,
+                                         "type": "model",
+                                         "location": model.location
+                                     })
+                                     self.symbol_table.add(wrapper, doc.path)
                         
                     except Exception as e:
                         self.diagnostics.append(TypedownError(f"Model execution failed: {e}", location=model.location))

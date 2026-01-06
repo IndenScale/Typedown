@@ -78,17 +78,15 @@ class SymbolTable:
                  self._global_index[former] = node
             
         # ALWAYS register as a handle in the local scope.
-        if scope_path.suffix and not scope_path.is_dir():
-            scope_dir = scope_path.parent
-        else:
-            scope_dir = scope_path
+        # If scope_path is a file, we register in that FILE's scope.
+        # If scope_path is a directory, we register in that DIRECTORY's scope.
         
-        scope_dir = scope_dir.resolve()
+        scope_target = scope_path.resolve()
         
-        if scope_dir not in self._scoped_index:
-            self._scoped_index[scope_dir] = {}
+        if scope_target not in self._scoped_index:
+            self._scoped_index[scope_target] = {}
         
-        self._scoped_index[scope_dir][node.id] = node
+        self._scoped_index[scope_target][node.id] = node
 
         # 4. Register Type Index (Optimization for SQL/Collections)
         if hasattr(node, "class_name") and node.class_name:
@@ -128,14 +126,15 @@ class SymbolTable:
             return self._global_index.get(name)
 
         if context_path.suffix and not context_path.is_dir():
-            current_dir = context_path.parent
+            current_path = context_path
         else:
-            current_dir = context_path
+            current_path = context_path
         
-        current_dir = current_dir.resolve()
+        current_path = current_path.resolve()
         
-        # Scoped Lookup: Current Dir -> Parents
-        search_paths = [current_dir] + list(current_dir.parents)
+        # Scoped Lookup: Current Path -> Parents
+        # This naturally handles File -> Directory -> Parent Directory
+        search_paths = [current_path] + list(current_path.parents)
         
         for scope in search_paths:
             if scope in self._scoped_index:

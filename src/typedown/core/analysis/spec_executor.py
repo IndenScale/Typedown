@@ -22,6 +22,7 @@ from typedown.core.ast import Document, SpecBlock, EntityBlock
 from typedown.core.base.errors import TypedownError
 from typedown.core.base.utils import AttributeWrapper
 from typedown.core.analysis.query import QueryEngine
+from typedown.core.base.symbol_table import SymbolTable
 
 # ContextVar to track the current test ID safely across async/threaded contexts
 current_test_id_var = contextvars.ContextVar("current_test_id", default=None)
@@ -122,6 +123,14 @@ class DiagnosticCollector:
             if test_id in self.mapping:
                 spec, entity = self.mapping[test_id]
                 msg = str(call.excinfo.value)
+                
+                # Enhance error message for missing attributes (AttributeWrapper)
+                if "'AttributeWrapper' object has no attribute" in msg:
+                    match = re.search(r"attribute '([^']+)'", msg)
+                    if match:
+                        attr_name = match.group(1)
+                        msg = f"Spec Error: Entity '{entity.id}' is missing required field '{attr_name}' (accessed via subject.{attr_name})"
+
                 # Capture the full pytest failure representation (assertion diffs etc)
                 longrepr = str(report.longrepr)
                 self.failures.append({
@@ -169,7 +178,7 @@ class SpecExecutor:
     def execute_specs(
         self, 
         documents: Dict[Path, Document],
-        symbol_table: Dict[str, EntityBlock],
+        symbol_table: SymbolTable,
         model_registry: Dict[str, Any],
         project_root: Optional[Path] = None,
         spec_filter: Optional[str] = None
@@ -231,9 +240,9 @@ class SpecExecutor:
         # 2. Setup Runtime Context (Module Bridge)
         ctx_name = "typedown_context"
         ctx = types.ModuleType(ctx_name)
-        ctx.AttributeWrapper = AttributeWrapper
-        ctx.models = model_registry
-        ctx.subjects = {id(entity): entity.resolved_data for _, entity in tasks}
+        setattr(ctx, "AttributeWrapper", AttributeWrapper)
+        setattr(ctx, "models", model_registry)
+        setattr(ctx, "subjects", {id(entity): entity.resolved_data for _, entity in tasks})
         
         # Inject Query Function
         def query_wrapper(query_str: str) -> Any:
@@ -256,7 +265,7 @@ class SpecExecutor:
                 return wrapped_results[0]
             return wrapped_results
 
-        ctx.query = query_wrapper
+        setattr(ctx, "query", query_wrapper)
 
         # Inject SQL Function
         def sql_wrapper(query_str: str) -> Any:
@@ -265,13 +274,13 @@ class SpecExecutor:
             # Wrap results for dot notation access, preserving _id for blame()
             return [AttributeWrapper(row, entity_id=row.get("_id")) for row in results]
 
-        ctx.sql = sql_wrapper
+        setattr(ctx, "sql", sql_wrapper)
         
         # Inject Blame API
         blame_registry = BlameRegistry()
-        ctx.blame_registry = blame_registry
-        ctx.blame = blame_registry.blame
-        ctx.current_test_id_var = current_test_id_var
+        setattr(ctx, "blame_registry", blame_registry)
+        setattr(ctx, "blame", blame_registry.blame)
+        setattr(ctx, "current_test_id_var", current_test_id_var)
         
         sys.modules[ctx_name] = ctx
         
@@ -305,7 +314,9 @@ class SpecExecutor:
         ]
         
         for idx, (spec, entity) in enumerate(tasks):
-            test_id = f"test_{spec.id.replace('-', '_')}_{entity.id.replace('-', '_')}_{idx}"
+            s_id = spec.id or f"anon_spec_{idx}"
+            e_id = entity.id or f"anon_entity_{idx}"
+            test_id = f"test_{s_id.replace('-', '_')}_{e_id.replace('-', '_')}_{idx}"
             mapping[test_id] = (spec, entity)
             
             # Clean spec code (remove @target)
@@ -449,7 +460,7 @@ class SpecExecutor:
     def _find_matching_entities(
         self, 
         selector: TargetSelector,
-        symbol_table: Any
+        symbol_table: SymbolTable
     ) -> List[EntityBlock]:
         """Find all entities matching the selector."""
         matches = []

@@ -6,6 +6,7 @@ from typedown.core.ast import Document, EntityBlock
 from typedown.core.base.utils import find_project_root, AttributeWrapper
 from typedown.core.base.config import TypedownConfig, ScriptConfig
 from typedown.core.base.errors import TypedownError, print_diagnostic
+from typedown.core.base.symbol_table import SymbolTable
 
 from typedown.core.analysis.scanner import Scanner
 from typedown.core.analysis.linker import Linker
@@ -22,7 +23,7 @@ class Compiler:
         # State
         self.documents: Dict[Path, Document] = {}
         self.target_files: Set[Path] = set()
-        self.symbol_table: Dict[str, EntityBlock] = {}
+        self.symbol_table: SymbolTable = SymbolTable()
         self.model_registry: Dict[str, Any] = {}
         self.active_script: Optional[ScriptConfig] = None
         self.diagnostics: List[TypedownError] = []
@@ -57,9 +58,15 @@ class Compiler:
             self.model_registry = linker.model_registry
             self.diagnostics.extend(linker.diagnostics)
             
-            # Stage 3: Validator (L3)
+            # Stage 2.5 & 3: Validator (L2 + L3)
             validator = Validator(self.console)
+            
+            # L2: Schema Check (Pydantic)
+            validator.check_schema(self.documents, self.symbol_table, self.model_registry)
+            
+            # L3: Reference Resolution & Graph
             validator.validate(self.documents, self.symbol_table, self.model_registry)
+            
             self.diagnostics.extend(validator.diagnostics)
             self.dependency_graph = validator.dependency_graph
             
@@ -267,6 +274,10 @@ class Compiler:
         
         # Validator
         validator = Validator(self.console)
+        # L2: Schema Check (Pydantic) - Ensure mandatory fields exist
+        validator.check_schema(self.documents, self.symbol_table, self.model_registry)
+        
+        # L3: Reference Resolution
         validator.validate(self.documents, self.symbol_table, self.model_registry)
         self.diagnostics.extend(validator.diagnostics)
         self.dependency_graph = validator.dependency_graph
