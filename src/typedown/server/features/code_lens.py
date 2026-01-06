@@ -29,6 +29,7 @@ class EntityCommandArgs(BaseModel):
 
 CMD_RUN_SPEC = "typedown.runSpec"
 CMD_VIEW_FORMER = "typedown.viewFormer"
+CMD_TRIGGER_VALIDATION = "typedown.triggerValidation"
 
 @server.feature(TEXT_DOCUMENT_CODE_LENS)
 def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLens]:
@@ -163,4 +164,41 @@ def view_former_command(ls: TypedownLanguageServer, *args):
     ls.window_show_message(ShowMessageParams(
         type=MessageType.Info,
         message=f"Evolution history for '{entity_id}' (P0 implemented former field)"
+    ))
+
+@server.command(CMD_TRIGGER_VALIDATION)
+def trigger_validation_command(ls: TypedownLanguageServer, *args):
+    """
+    Triggers a full validation pipeline (L1-L4) including Specs.
+    Useful for client-side triggers (e.g. Playground section switch).
+    """
+    if not ls.compiler:
+        return
+
+    # User feedback that validation started (optional, maybe too noisy?)
+    # ls.window_show_message(ShowMessageParams(
+    #     type=MessageType.Info, 
+    #     message="Running tests..."
+    # ))
+    
+
+
+    with ls.lock:
+        # 1. Reset & Recompile L1-L3 (Syntax, Schema, Logic)
+        # CHANGE: Use compile() instead of _recompile_in_memory() to force Disk Scan.
+        # This ensures files synced via 'typedown/syncFile' but not 'didOpen' are found.
+        ls.compiler.compile()
+        
+
+        # 2. Run L4 Specs
+        # Run all specs project-wide to catch regressions
+        ls.compiler.verify_specs()
+        
+        # 3. Publish ALL diagnostics (L1+L2+L3+L4)
+        from typedown.server.managers.diagnostics import publish_diagnostics
+        publish_diagnostics(ls, ls.compiler)
+        
+    ls.window_show_message(ShowMessageParams(
+        type=MessageType.Info,
+        message="Tests completed."
     ))

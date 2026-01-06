@@ -16,6 +16,7 @@ export function PlaygroundEditor() {
     openFile: selectFile,
     closeFile,
     lspStatus,
+    lang,
   } = usePlaygroundStore();
 
   const activeFile = activeFileName ? files[activeFileName] : undefined;
@@ -45,19 +46,46 @@ export function PlaygroundEditor() {
         root: [
           // Headers
           [/^#\s.*$/, "keyword.directive"],
-          // Code block markers
-          [/^```(model|entity|spec|config).*$/, "keyword.control"],
-          [/^```$/, "keyword.control"],
-          // Entity/Model/Spec declarations
-          [/\b(model|entity|spec|config):\s*\w+/, "type.identifier"],
-          // Python keywords (for code blocks)
+
+          // Code block markers (Consolidated for Monarch stability)
           [
-            /\b(class|def|if|else|elif|return|raise|import|from|pass|assert|try|except|finally|with|as|for|in|while|break|continue)\b/,
+            /^(\s*)(```)(entity)(\s+)([^:\s]+)(\s*:\s*)([^\s]+)(.*)$/,
+            [
+              "",
+              "keyword.control",
+              "keyword.control",
+              "",
+              "type.identifier",
+              "",
+              "variable.name",
+              "meta.attribute",
+            ],
+          ],
+          [
+            /^(\s*)(```)(entity|model|spec|config)(\s*[:\s]\s*)([^\s]+)(.*)$/,
+            [
+              "",
+              "keyword.control",
+              "keyword.control",
+              "",
+              "type.identifier",
+              "meta.attribute",
+            ],
+          ],
+          [
+            /^(\s*)(```)(entity|model|spec|config)(.*)$/,
+            ["", "keyword.control", "keyword.control", "meta.attribute"],
+          ],
+          [/^(\s*)(```)(\s*)$/, ["", "keyword.control", ""]],
+
+          // Python keywords (Using non-capturing groups to prevent Monarch "consecutive groups" errors)
+          [
+            /\b(?:class|def|if|else|elif|return|raise|import|from|pass|assert|try|except|finally|with|as|for|in|while|break|continue)\b/,
             "keyword",
           ],
           // Python types
           [
-            /\b(BaseModel|str|int|float|bool|list|dict|tuple|set|None|True|False)\b/,
+            /\b(?:BaseModel|Field|field_validator|model_validator|Literal|Optional|List|Dict|Union|Any|Annotated|str|int|float|bool|list|dict|tuple|set|None|True|False)\b/,
             "type",
           ],
           // Decorators
@@ -75,7 +103,7 @@ export function PlaygroundEditor() {
           // Wiki-style references
           [/\[\[.*?\]\]/, "string.link"],
           // Keys (YAML-style)
-          [/^\s*\w+:/, "variable.name"],
+          [/^\s*[\w\.-]+:/, "variable.name"],
         ],
         string_double: [
           [/[^\\"]+/, "string"],
@@ -388,14 +416,20 @@ export function PlaygroundEditor() {
               // CRITICAL: Enable Semantic Tokens
               "semanticHighlighting.enabled": true,
             }}
-            path={activeFile.name}
+            // CRITICAL: Match the URI used by LSP Worker (Logical Path)
+            // e.g. /examples/03_simple_rules/rules.td
+            path={activeFile.path || activeFile.name}
           />
         ) : (
           <div className="flex h-full items-center justify-center text-gray-500 text-sm">
             <div className="text-center">
-              <p className="mb-2">No file is open.</p>
+              <p className="mb-2">
+                {lang === "zh" ? "未打开文件" : "No file is open."}
+              </p>
               <p className="text-xs opacity-60">
-                Select a file from the explorer to start editing.
+                {lang === "zh"
+                  ? "从资源管理器中选择一个文件开始编辑。"
+                  : "Select a file from the explorer to start editing."}
               </p>
             </div>
           </div>

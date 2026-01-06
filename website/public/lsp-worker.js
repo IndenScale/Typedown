@@ -243,7 +243,6 @@ async function initPyodide() {
     "pygls>=2.0.0",
     "pydantic>=2.0.0",
     "packaging",
-    "duckdb",
   ]);
 
   // Install our built wheel
@@ -364,6 +363,69 @@ function processMessage(message) {
         );
       }
     }
+  }
+
+  // Handle FS Reset
+  if (message.method === "typedown/resetFileSystem") {
+    try {
+      console.log("[LSP Worker] Resetting FileSystem...");
+      const root = pyodide.FS.readdir("/");
+      const keep = new Set([
+        ".",
+        "..",
+        "tmp",
+        "home",
+        "dev",
+        "proc",
+        "lib",
+        "bin",
+        "etc",
+        "usr",
+        "var",
+        "sys",
+      ]);
+
+      for (const item of root) {
+        if (!keep.has(item)) {
+          const path = "/" + item;
+          try {
+            if (pyodide.FS.isDir(pyodide.FS.stat(path).mode)) {
+              // Recursive delete (rm -rf equivalent not standard in cheap FS, use Python or robust JS?)
+              // Emscripten FS doesn't have rm -rf easily exposed?
+              // Actually it might just be easier to let Python do it via runPython.
+              // But let's try JS first if simple.
+              // pyodide.FS.rmdir only works if empty.
+              // Simpler: Use Python to clean up.
+            } else {
+              pyodide.FS.unlink(path);
+            }
+          } catch (e) {
+            console.warn(`Failed to delete ${path}:`, e);
+          }
+        }
+      }
+
+      // Use Python for heavy lifting (recursive delete)
+      pyodide.runPython(`
+import shutil
+import os
+keep = {'.', '..', 'tmp', 'home', 'dev', 'proc', 'lib', 'bin', 'etc', 'usr', 'var', 'sys'}
+for item in os.listdir('/'):
+    if item not in keep:
+        path = os.path.join('/', item)
+        try:
+            if os.path.isfile(path) or os.path.islink(path):
+                os.unlink(path)
+            elif os.path.isdir(path):
+                shutil.rmtree(path)
+        except Exception as e:
+            print(f"Failed to clean {path}: {e}")
+`);
+      console.log("[LSP Worker] FileSystem Reset Complete.");
+    } catch (e) {
+      console.error("[LSP Worker] FS Reset Error:", e);
+    }
+    return; // Don't forward to Python LSP
   }
 
   // msg is a JSON-RPC object (Request/Notification)

@@ -20,18 +20,29 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
     - Inside Entity Blocks: Enforce STRICT pattern (L0/L1 identifiers only).
     - Outside (Free Text): Allow LOOSE pattern (Query strings).
     """
+    print(f"DEBUG: semantic_tokens called for {params.text_document.uri}")
     try:
-        doc = ls.workspace.get_text_document(params.text_document.uri)
+        from typedown.server.managers.diagnostics import uri_to_path
+        path = uri_to_path(params.text_document.uri)
         
-        # Try to get in-memory content first (works in both browser and desktop)
-        # The workspace maintains a cache of open documents
-        if hasattr(ls.workspace, '_text_documents') and params.text_document.uri in ls.workspace._text_documents:
-            # Get from in-memory cache
-            text_content = ls.workspace._text_documents[params.text_document.uri].source
+        text_content = ""
+        
+        # Priority 1: Use Compiler (Single Source of Truth)
+        if ls.compiler and path in ls.compiler.documents:
+            text_content = ls.compiler.documents[path].raw_content
+            # print(f"DEBUG: Retrieved content from Compiler ({len(text_content)} chars)")
+        
+        # Priority 2: Pygls Workspace
+        elif hasattr(ls.workspace, '_text_documents') and params.text_document.uri in ls.workspace._text_documents:
+             text_content = ls.workspace._text_documents[params.text_document.uri].source
+             # print(f"DEBUG: Retrieved content from Workspace Cache ({len(text_content)} chars)")
+             
+        # Priority 3: Disk (Fallback)
         else:
-            # Fallback to doc.source (will read from disk on desktop, may fail in browser)
-            text_content = doc.source
-        
+             doc = ls.workspace.get_text_document(params.text_document.uri)
+             text_content = doc.source
+             # print(f"DEBUG: Retrieved content from Workspace/Disk ({len(text_content)} chars)")
+
         lines = text_content.splitlines()
     except Exception as e:
         # Fallback: return empty tokens if we can't get document content
@@ -88,16 +99,20 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
             token_type_idx = 1 # Default: variable
             
             # Resolve Type (if compiler available)
-            if ls.compiler and ref_content in ls.compiler.symbol_table:
-                entity = ls.compiler.symbol_table[ref_content]
-                type_name = getattr(entity, 'class_name', '').lower()
-                
-                if 'character' in type_name or 'actor' in type_name:
-                    token_type_idx = 0 # class
-                elif 'item' in type_name or 'weapon' in type_name:
-                    token_type_idx = 3 # struct
-                elif 'loc' in type_name or 'map' in type_name:
-                    token_type_idx = 4 # interface
+            if ls.compiler.symbol_table and ref_content in ls.compiler.symbol_table:
+                # Use resolve_handle to support local context LOOKUP if needed, 
+                # but map index is by name/ID usually.
+                # Assuming symbol_table keys are IDs or Handles.
+                entity = ls.compiler.symbol_table.get(ref_content, None)
+                if entity:
+                     type_name = getattr(entity, 'class_name', '').lower()
+                     
+                     if 'character' in type_name or 'actor' in type_name:
+                         token_type_idx = 0 # class
+                     elif 'item' in type_name or 'weapon' in type_name:
+                         token_type_idx = 3 # struct
+                     elif 'loc' in type_name or 'map' in type_name:
+                         token_type_idx = 2 # property (fallback for interface, 4 was invalid)
             
             # Append Token
             delta_line = line_num - last_line

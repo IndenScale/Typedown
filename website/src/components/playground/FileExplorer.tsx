@@ -19,13 +19,14 @@ export function FileExplorer() {
     files: filesRecord,
     activeFileName,
     openFile: selectFile,
+    lang,
   } = usePlaygroundStore();
   const files = Object.values(filesRecord);
 
   return (
     <div className="flex flex-col w-64 border-r border-black/5 dark:border-white/5 bg-gray-50/50 dark:bg-[#0A0A0A]">
       <div className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-        Explorer
+        {lang === "zh" ? "资源管理器" : "Explorer"}
       </div>
       <div className="flex-1 overflow-y-auto">
         {files.map((file) => (

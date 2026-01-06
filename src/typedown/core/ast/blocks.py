@@ -84,7 +84,7 @@ class EntityBlock(Node):
     def content_hash(self) -> str:
         # Use raw_data for hashing as resolved_data depends on external factors
         # Sort keys to ensure deterministic hash
-        content = json.dumps(self.raw_data, sort_keys=True, ensure_ascii=False)
+        content = json.dumps(self.raw_data, sort_keys=True, ensure_ascii=False, default=str)
         # Optimization from TODOS: class_name + Handle/ID + Canonical YAML
         canonical = f"{self.class_name}:{self.id}:{content}"
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()

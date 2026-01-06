@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { MonacoLanguageClient } from "monaco-languageclient";
-import { DEMOS } from "@/lib/demos";
+import { getDemos, Demo } from "@/lib/demos";
 
 interface PlaygroundFile {
   name: string;
@@ -21,12 +21,18 @@ interface PlaygroundState {
   client: MonacoLanguageClient | null;
   worker: Worker | null;
 
+  // Demo State
+  currentDemoId: string;
+  lang: string;
+
   // Actions
   setFiles: (files: Record<string, PlaygroundFile>) => void;
   openFile: (fileName: string) => void;
   closeFile: (fileName: string) => void;
   updateFileContent: (fileName: string, content: string) => void;
   hydrateDemos: () => Promise<void>;
+  selectDemo: (demoId: string) => Promise<void>;
+  setLang: (lang: string) => void;
 
   // LSP Actions
   setLspStatus: (
@@ -35,10 +41,16 @@ interface PlaygroundState {
   setLspClient: (client: MonacoLanguageClient, worker: Worker) => void;
 }
 
-// Initial State Logic
-const INITIAL_DEMO = DEMOS[0];
+// Initial State Logic (default to 'en')
+const DEFAULT_LANG = "en";
+const INITIAL_DEMOS = getDemos(DEFAULT_LANG);
+const INITIAL_DEMO = INITIAL_DEMOS[0];
 const initialFiles = INITIAL_DEMO.files.reduce((acc, file) => {
-  acc[file.name] = file;
+  acc[file.name] = {
+    ...file,
+    content: file.content || "",
+    language: file.language as string,
+  };
   return acc;
 }, {} as Record<string, PlaygroundFile>);
 
@@ -46,12 +58,25 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
   files: initialFiles,
   openFiles: INITIAL_DEMO.files.slice(0, 3).map((f) => f.name),
   activeFileName: INITIAL_DEMO.activeFileName,
+  currentDemoId: INITIAL_DEMO.id,
+  lang: DEFAULT_LANG,
 
   lspStatus: "disabled",
   client: null,
   worker: null,
 
   setFiles: (files) => set({ files }),
+
+  setLang: (lang) => {
+    const currentLang = get().lang;
+    if (currentLang === lang) return;
+
+    set({ lang });
+
+    // Force re-select current demo to update localized content/paths
+    const currentDemoId = get().currentDemoId;
+    get().selectDemo(currentDemoId);
+  },
 
   openFile: (fileName) =>
     set((state) => {
@@ -97,6 +122,74 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       },
     })),
 
+  selectDemo: async (demoId) => {
+    const lang = get().lang;
+    const demos = getDemos(lang);
+    const demo = demos.find((d) => d.id === demoId);
+    if (!demo) return;
+
+    const newFiles = demo.files.reduce((acc, file) => {
+      acc[file.name] = {
+        ...file,
+        content: file.content || "",
+        language: file.language as string,
+      };
+      return acc;
+    }, {} as Record<string, PlaygroundFile>);
+
+    set({
+      currentDemoId: demoId,
+      files: newFiles,
+      openFiles: demo.files.slice(0, 3).map((f) => f.name),
+      activeFileName: demo.activeFileName,
+    });
+
+    // Trigger hydration for new files
+    // Await hydration to ensure content is ready
+    await get().hydrateDemos();
+
+    // Trigger full validation (LSP)
+    // We add a delay to ensure Monaco has processed the file switches (didOpen)
+    // and the worker has synced the new content.
+    const client = get().client;
+    if (client) {
+      // Use get().files to ensure we have the hydrated content
+      const currentFiles = get().files;
+
+      console.log("[Playground] Syncing all files to LSP Worker FS...");
+
+      // 0. Reset FS to prevent ghost files from previous demos
+      client.sendNotification("typedown/resetFileSystem", {});
+
+      // 1. Batch Sync all files to Pyodide FS
+      const syncPromises = Object.entries(currentFiles).map(([name, file]) => {
+        // RESTORE HIERARCHY:
+        // Use the full logical path to avoid collisions (e.g. multiple README.md)
+        // and match the Editor's URI (see PlaygroundEditor updates).
+        const logicalPath = file.path || `/${name}`;
+        const uri = `file://${logicalPath}`;
+        const text = file.content || "";
+
+        // Use raw notification to bypass Monaco constraints
+        return client.sendNotification("typedown/syncFile", {
+          textDocument: { uri, text },
+        });
+      });
+
+      await Promise.all(syncPromises);
+      console.log("[Playground] All files synced. Triggering validation...");
+
+      // 2. Trigger Validation (Server will Scan disk)
+      client
+        .sendRequest("workspace/executeCommand", {
+          command: "typedown.triggerValidation",
+        })
+        .catch((err) =>
+          console.error("[Playground] Validation trigger failed:", err)
+        );
+    }
+  },
+
   hydrateDemos: async () => {
     const { files } = get();
     const updates: Record<string, PlaygroundFile> = {};
@@ -105,8 +198,6 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
     for (const [name, file] of Object.entries(files)) {
       if (file.path && !file.content) {
         try {
-          // Determine absolute URL or relative?
-          // path is like /demo/laws.td (from public root)
           const response = await fetch(file.path);
           if (response.ok) {
             const text = await response.text();

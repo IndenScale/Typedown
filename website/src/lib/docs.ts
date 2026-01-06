@@ -22,11 +22,11 @@ async function getProcessor() {
       theme: "vitesse-dark",
     })
     .use(rehypeStringify);
-  
+
   return memoizedProcessor;
 }
 
-const docsDirectory = path.join(process.cwd(), "docs");
+const docsDirectory = path.join(process.cwd(), "public/docs");
 
 // Custom plugin to transform mermaid code blocks
 function rehypeMermaid() {
@@ -42,7 +42,7 @@ function rehypeMermaid() {
           codeNode.properties.className.includes("language-mermaid")
         ) {
           const value = codeNode.children[0].value;
-          
+
           parent.children[index] = {
             type: "element",
             tagName: "div",
@@ -84,20 +84,25 @@ function getOrder(name: string) {
 }
 
 const contentDirectories = {
-  docs: path.join(process.cwd(), "docs"),
+  docs: path.join(process.cwd(), "public/docs"),
   philosophy: path.join(process.cwd(), "philosophy"),
 };
 
-export async function getDocBySlug(slug: string[], type: keyof typeof contentDirectories = "docs"): Promise<DocContent | null> {
+export async function getDocBySlug(
+  slug: string[],
+  type: keyof typeof contentDirectories = "docs"
+): Promise<DocContent | null> {
   const baseDir = contentDirectories[type];
   // Decode slug components to handle URL-encoded characters
-  const decodedSlug = slug.map(s => decodeURIComponent(s));
+  const decodedSlug = slug.map((s) => decodeURIComponent(s));
 
   let currentPath = baseDir;
   for (const part of decodedSlug) {
     if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
       const entries = fs.readdirSync(currentPath);
-      const entry = entries.find(e => stripOrderPrefix(e).replace(/\.md$/, "") === part);
+      const entry = entries.find(
+        (e) => stripOrderPrefix(e).replace(/\.md$/, "") === part
+      );
       if (entry) {
         currentPath = path.join(currentPath, entry);
         continue;
@@ -109,7 +114,7 @@ export async function getDocBySlug(slug: string[], type: keyof typeof contentDir
   const fullPath = currentPath;
 
   let filePath = fullPath.endsWith(".md") ? fullPath : `${fullPath}.md`;
-  
+
   if (!fs.existsSync(filePath)) {
     const indexFallback = path.join(fullPath, "index.md");
     if (fs.existsSync(indexFallback)) {
@@ -126,7 +131,7 @@ export async function getDocBySlug(slug: string[], type: keyof typeof contentDir
 
   const processor = await getProcessor();
   const processedContent = await processor.process(content);
-  
+
   const contentHtml = processedContent.toString();
 
   return {
@@ -139,23 +144,26 @@ export async function getDocBySlug(slug: string[], type: keyof typeof contentDir
   };
 }
 
-export function getSidebar(lang: string, type: keyof typeof contentDirectories = "docs"): SidebarItem[] {
+export function getSidebar(
+  lang: string,
+  type: keyof typeof contentDirectories = "docs"
+): SidebarItem[] {
   const baseDir = contentDirectories[type];
   const langDir = path.join(baseDir, lang);
   if (!fs.existsSync(langDir)) return [];
 
   function buildSidebar(dir: string, baseSlug: string[] = []): SidebarItem[] {
     const entries = fs.readdirSync(dir, { withFileTypes: true });
-    
+
     const items: SidebarItem[] = entries
-      .filter(entry => {
+      .filter((entry) => {
         if (entry.name.startsWith(".")) return false;
         if (entry.name === "index.md") return false;
         if (entry.name === "_meta.json") return false;
         if (entry.name === "public") return false;
         return entry.isDirectory() || entry.name.endsWith(".md");
       })
-      .map(entry => {
+      .map((entry) => {
         const name = entry.name;
         const cleanName = stripOrderPrefix(name).replace(/\.md$/, "");
         const order = getOrder(name);
@@ -187,7 +195,9 @@ export function getSidebar(lang: string, type: keyof typeof contentDirectories =
         const { data } = matter(fileContents);
 
         return {
-          title: data.title || cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
+          title:
+            data.title ||
+            cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
           href,
           order,
         };
