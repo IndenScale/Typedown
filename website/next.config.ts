@@ -3,7 +3,7 @@ import path from "path";
 
 const nextConfig: NextConfig = {
   output: "export",
-  trailingSlash: true,
+  // trailingSlash: true, // Disable trailingSlash to ensure index.html is generated for root
   images: {
     unoptimized: true,
   },

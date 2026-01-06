@@ -37,6 +37,12 @@ async function initPyodide() {
 
     console.log("Installing dependencies...");
     await pyodide.loadPackage("micropip");
+    
+    // Workaround: Manually import micropip in Python to ensure it's registered
+    await pyodide.runPythonAsync(`
+        import micropip
+    `);
+    
     const micropip = pyodide.pyimport("micropip");
 
     // Install PyGLS and dependencies
