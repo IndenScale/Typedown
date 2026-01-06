@@ -1,5 +1,5 @@
 from typing import List, Dict
-from use_cases.bid_agent.models.review import (
+from templates.bid_agent.models.review import (
     SupplierEvaluationState, ReviewResultEntry, 
     ReviewStage, Criticality, ComplianceItem
 )

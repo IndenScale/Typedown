@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import type { MonacoLanguageClient } from "monaco-languageclient";
-import { getDemos, Demo } from "@/lib/demos";
+import { getDemos } from "@/lib/demos";
 
 interface PlaygroundFile {
   name: string;

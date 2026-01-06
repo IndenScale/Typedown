@@ -1,21 +1,33 @@
-import { RealCodeEditor } from "@/components/RealCodeEditor";
+import { LandingCodeEditor } from "@/components/landing/LandingCodeEditor";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import Link from 'next/link';
+import Link from "next/link";
 
-export default async function Home({ params }: { params: Promise<{ lang: string }> }) {
+export default async function Home({
+  params,
+}: {
+  params: Promise<{ lang: string }>;
+}) {
   const { lang } = await params;
 
-  const isZh = lang === 'zh';
+  const isZh = lang === "zh";
 
   const content = {
     title: isZh ? (
       <>
-        编写 Markdown 拥有<span className="text-success underline decoration-success/30 underline-offset-8">规模化</span>的能力。
+        编写 Markdown 拥有
+        <span className="text-success underline decoration-success/30 underline-offset-8">
+          规模化
+        </span>
+        的能力。
       </>
     ) : (
       <>
-        Markdown that <span className="text-success underline decoration-success/30 underline-offset-8">scales</span>.
+        Markdown that{" "}
+        <span className="text-success underline decoration-success/30 underline-offset-8">
+          scales
+        </span>
+        .
       </>
     ),
     description: isZh ? (
@@ -39,46 +51,51 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         title: isZh ? "结构先行 (Schema-First)" : "Schema-First",
         description: isZh ? (
           <>
-            使用 <span className="text-success">Pydantic</span> 模型定义知识库结构。终结无序的文档混乱。
+            使用 <span className="text-success">Pydantic</span>{" "}
+            模型定义知识库结构。终结无序的文档混乱。
           </>
         ) : (
           <>
-            Define the structure of your knowledge base using 
-            <span className="text-success"> Pydantic</span> models. 
-            No more unstructured chaos.
+            Define the structure of your knowledge base using
+            <span className="text-success"> Pydantic</span> models. No more
+            unstructured chaos.
           </>
-        )
+        ),
       },
       {
         title: isZh ? "逻辑约束" : "Logic Constraints",
         description: isZh ? (
           <>
-            使用原生 <span className="text-success">Python</span> 编写校验规则。只要逻辑在代码中成立，它在现实中就成立。
+            使用原生 <span className="text-success">Python</span>{" "}
+            编写校验规则。只要逻辑在代码中成立，它在现实中就成立。
           </>
         ) : (
           <>
-            Write validation rules in pure 
-            <span className="text-success"> Python</span>. 
-            If the logic holds in code, it holds in reality.
+            Write validation rules in pure
+            <span className="text-success"> Python</span>. If the logic holds in
+            code, it holds in reality.
           </>
-        )
+        ),
       },
       {
         title: isZh ? "即时反馈" : "Instant Feedback",
         description: isZh ? (
           <>
-            直接在 <span className="text-success">编辑器中</span> 捕获逻辑矛盾和数据错误，就像为你的笔记配备了编译器。
+            直接在 <span className="text-success">编辑器中</span>{" "}
+            捕获逻辑矛盾和数据错误，就像为你的笔记配备了编译器。
           </>
         ) : (
           <>
-            Catch logical contradictions and data errors 
-            <span className="text-success"> directly in the editor</span>, 
-            just like a compiler for your notes.
+            Catch logical contradictions and data errors
+            <span className="text-success"> directly in the editor</span>, just
+            like a compiler for your notes.
           </>
-        )
-      }
+        ),
+      },
     ],
-    exploreMore: isZh ? "在 Playground 中探索更多示例" : "Explore more examples in Playground",
+    exploreMore: isZh
+      ? "在 Playground 中探索更多示例"
+      : "Explore more examples in Playground",
     or: isZh ? "或" : "or",
     readDocs: isZh ? "阅读语法文档" : "Read syntax documentation",
     aiTitle: isZh ? (
@@ -90,26 +107,29 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
         Built for the <span className="text-success">AI Era</span>.
       </>
     ),
-    aiDesc: isZh 
+    aiDesc: isZh
       ? "Typedown 不仅仅是为人类设计的。我们提供预置的 Skills，教导 AI Agent 如何阅读、编写和校验 Typedown 文档。"
       : "Typedown isn't just for humans. We provide pre-built Skills that teach AI Agents how to read, write, and validate Typedown documents.",
     aiEnableTitle: isZh ? "如何启用 AI Skills" : "How to enable AI Skills",
     aiStep1Title: isZh ? "创建并放置 Skills" : "Create and Place Skills",
-    aiStep1Desc: isZh 
+    aiStep1Desc: isZh
       ? "在项目根目录创建 skills/typedown-expert 目录，并下载 skill.md 放入其中。"
       : "Create skills/typedown-expert directory in your project root, and download skill.md into it.",
     aiDownloadBtn: isZh ? "下载 skill.md" : "Download skill.md",
-    aiStep2Title: isZh ? "更新系统提示词 (System Prompt)" : "Update System Prompt",
-    aiStep2Desc: isZh 
+    aiStep2Title: isZh
+      ? "更新系统提示词 (System Prompt)"
+      : "Update System Prompt",
+    aiStep2Desc: isZh
       ? "在你的 Agents.md 或系统指令中添加指引，让 AI 发现该技能："
       : "Add instructions to your Agents.md or system prompt to let the AI discover the skill:",
     aiPrompt: isZh
       ? "阅读 ./skills 中的内容，了解如何与 Typedown 文件交互。"
       : "Read the content in ./skills to understand how to interact with Typedown files.",
-    aiSkillUrl: "/api/download-skill"
+    aiSkillUrl: "/api/download-skill",
   };
 
-  const kingCode = isZh ? `# 王国的法律
+  const kingCode = isZh
+    ? `# 王国的法律
 
 ## 1. 皇家类 (Schema)
 首先，我们为领域定义数据结构。
@@ -145,8 +165,8 @@ entity King: arthur
   name: "亚瑟·潘德拉贡"
 
 entity King: mordred
-  name: "篡位者莫德雷德"` 
-  : `# The Laws of the Kingdom
+  name: "篡位者莫德雷德"`
+    : `# The Laws of the Kingdom
 
 ## 1. The Royal Class (Schema)
 First, we define the data structure for our domain.
@@ -190,12 +210,12 @@ entity King: mordred
       startColumn: 1,
       endLineNumber: 37,
       endColumn: 28,
-      message: isZh 
+      message: isZh
         ? "Spec Error: 这片土地无法承载两顶王冠！ (由 test_there_can_be_only_one 触发)"
         : "Spec Error: The land cannot sustain two crowns! (Triggered by test_there_can_be_only_one)",
       severity: 8,
-    }
-  ]
+    },
+  ];
 
   return (
     <div className="flex min-h-screen flex-col items-center selection:bg-success selection:text-black">
@@ -215,27 +235,24 @@ entity King: mordred
 
         <div className="mt-12 flex flex-col items-center gap-6">
           <div className="flex items-center justify-center gap-4">
-            <a 
+            <a
               href="https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode-integration"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex h-12 w-48 items-center justify-center rounded-lg bg-foreground px-4 font-medium text-background transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-[0.97] active:opacity-100"
-            >
+              className="flex h-12 w-48 items-center justify-center rounded-lg bg-foreground px-4 font-medium text-background transition-all duration-200 hover:opacity-90 hover:shadow-lg active:scale-[0.97] active:opacity-100">
               {content.installBtn}
             </a>
-            <Link 
+            <Link
               href={`/${lang}/playground`}
-              className="flex h-12 w-48 items-center justify-center rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-4 font-medium text-foreground transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/20 dark:hover:border-white/20 active:scale-[0.97] active:bg-black/[0.08] dark:active:bg-white/[0.08]"
-            >
+              className="flex h-12 w-48 items-center justify-center rounded-lg border border-black/10 dark:border-white/10 bg-transparent px-4 font-medium text-foreground transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5 hover:border-black/20 dark:hover:border-white/20 active:scale-[0.97] active:bg-black/[0.08] dark:active:bg-white/[0.08]">
               {content.playgroundBtn}
             </Link>
           </div>
-          <a 
+          <a
             href="https://open-vsx.org/extension/Typedown/typedown-vscode-integration"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-gray-500 hover:text-foreground transition-colors"
-          >
+            className="text-sm text-gray-500 hover:text-foreground transition-colors">
             {content.openVsx}
           </a>
         </div>
@@ -244,7 +261,9 @@ entity King: mordred
         <div className="mt-24 grid w-full max-w-5xl grid-cols-1 gap-12 sm:grid-cols-3 text-left">
           {content.features.map((feature, index) => (
             <div key={index} className="space-y-4">
-              <h3 className="text-xl font-bold text-foreground">{feature.title}</h3>
+              <h3 className="text-xl font-bold text-foreground">
+                {feature.title}
+              </h3>
               <p className="text-gray-400 leading-relaxed">
                 {feature.description}
               </p>
@@ -254,20 +273,26 @@ entity King: mordred
 
         {/* The "TS-Style" Editor Showcase */}
         <div className="mt-24 w-full max-w-6xl">
-          <RealCodeEditor
+          <LandingCodeEditor
             fileName="world/laws.td"
             code={kingCode}
             markers={markers}
             autoHeight={true}
           />
           <div className="mt-10 flex flex-col items-center gap-4">
-            <Link href={`/${lang}/playground`} className="group flex items-center gap-2 text-lg font-medium text-success transition-all hover:text-success/80">
+            <Link
+              href={`/${lang}/playground`}
+              className="group flex items-center gap-2 text-lg font-medium text-success transition-all hover:text-success/80">
               {content.exploreMore}
-              <span className="transition-transform group-hover:translate-x-1">→</span>
+              <span className="transition-transform group-hover:translate-x-1">
+                →
+              </span>
             </Link>
             <div className="flex items-center gap-3 text-sm text-gray-500">
               <span>{content.or}</span>
-              <Link href={`/${lang}/docs`} className="hover:text-foreground transition-colors border-b border-gray-500/30 hover:border-foreground/30 pb-0.5">
+              <Link
+                href={`/${lang}/docs`}
+                className="hover:text-foreground transition-colors border-b border-gray-500/30 hover:border-foreground/30 pb-0.5">
                 {content.readDocs}
               </Link>
             </div>
@@ -282,49 +307,67 @@ entity King: mordred
           <p className="mt-6 text-lg text-gray-400 leading-relaxed">
             {content.aiDesc}
           </p>
-          
+
           <div className="mt-10 rounded-xl border border-black/10 bg-gray-50/50 p-6 dark:border-white/10 dark:bg-white/5 text-left">
             <h4 className="font-mono text-sm font-bold text-gray-500 uppercase tracking-wider mb-4">
               {content.aiEnableTitle}
             </h4>
             <div className="space-y-4">
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success font-bold text-sm">1</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success font-bold text-sm">
+                  1
+                </div>
                 <div className="flex-1">
                   <p className="font-medium">{content.aiStep1Title}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {content.aiStep1Desc.split('skills/typedown-expert')[0]}
-                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">skills/typedown-expert</code>
-                    {content.aiStep1Desc.split('skills/typedown-expert')[1]}
+                    {content.aiStep1Desc.split("skills/typedown-expert")[0]}
+                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
+                      skills/typedown-expert
+                    </code>
+                    {content.aiStep1Desc.split("skills/typedown-expert")[1]}
                   </p>
-                  <a 
+                  <a
                     href={content.aiSkillUrl}
                     download="skill.md"
-                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-success/10 px-3 py-1.5 text-xs font-semibold text-success transition-all hover:bg-success/20 active:scale-95"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    className="mt-3 inline-flex items-center gap-2 rounded-md bg-success/10 px-3 py-1.5 text-xs font-semibold text-success transition-all hover:bg-success/20 active:scale-95">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
                     {content.aiDownloadBtn}
                   </a>
                 </div>
               </div>
               <div className="flex gap-4">
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success font-bold text-sm">2</div>
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/10 text-success font-bold text-sm">
+                  2
+                </div>
                 <div>
                   <p className="font-medium">{content.aiStep2Title}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {content.aiStep2Desc.split('Agents.md')[0]}
-                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">Agents.md</code>
-                    {content.aiStep2Desc.split('Agents.md')[1]}
+                    {content.aiStep2Desc.split("Agents.md")[0]}
+                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
+                      Agents.md
+                    </code>
+                    {content.aiStep2Desc.split("Agents.md")[1]}
                   </p>
                   <div className="mt-3 rounded-md bg-black/5 dark:bg-black/40 p-3 font-mono text-xs text-gray-600 dark:text-gray-400">
-                    "{content.aiPrompt}"
+                    &quot;{content.aiPrompt}&quot;
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-
       </main>
 
       <Footer />

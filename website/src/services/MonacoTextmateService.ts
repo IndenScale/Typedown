@@ -2,6 +2,7 @@ import { loadWASM } from "vscode-oniguruma";
 import { Registry } from "monaco-textmate";
 import { wireTmGrammars } from "monaco-editor-textmate";
 import type { Monaco } from "@monaco-editor/react";
+import type { editor } from "monaco-editor";
 
 class MonacoTextmateService {
   private wasmLoaded = false;
@@ -46,7 +47,7 @@ class MonacoTextmateService {
           if (!path) {
             // Fallback or error
             console.warn(`Unknown scope name requested: ${scopeName}`);
-            return null as any;
+            return null as any; // eslint-disable-line @typescript-eslint/no-explicit-any
           }
 
           const res = await fetch(path);
@@ -68,7 +69,7 @@ class MonacoTextmateService {
   /**
    * Injects TextMate highlighting into the given editor instance.
    */
-  async wire(monaco: Monaco, editor: any) {
+  async wire(monaco: Monaco, editor: editor.IStandaloneCodeEditor) {
     if (!this.wasmLoaded || !this.registry) {
       await this.initialize();
     }

@@ -1,7 +1,7 @@
 "use client";
 
 import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { FileCode, FileJson, FileType } from "lucide-react";
+import { FileCode, FileType } from "lucide-react";
 import { clsx } from "clsx";
 
 function getFileIcon(fileName: string) {

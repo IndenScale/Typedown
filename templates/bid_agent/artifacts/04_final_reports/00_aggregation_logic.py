@@ -4,7 +4,7 @@
 """
 
 from typing import List
-from use_cases.bid_agent.models.review import ReviewResultEntry, Criticality
+from templates.bid_agent.models.review import ReviewResultEntry, Criticality
 
 def generate_report(project_id: str):
     # 1. 加载所有数据 (模拟 loader)

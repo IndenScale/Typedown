@@ -18,6 +18,12 @@ graph TD
     Editor -->|JSON-RPC| Client[LSP Client (monaco-languageclient)]
     Client -->|postMessage| Worker[Web Worker (lsp-worker.js)]
 
+    subgraph "Main Thread Services"
+        Hook[useLSPClient] -->|Sync State| Service[LSPService (Singleton)]
+        Service -->|Manage| Client
+        Service -->|Manage| Worker
+    end
+
     subgraph "Web Worker Realm"
         Worker -->|Intercept Writes| VFS[Pyodide MEMFS]
         Worker -->|Forward JSON| PyGlue[Python Glue Code]
@@ -34,11 +40,15 @@ graph TD
 
 ### 2.1 前端层 (Main Thread)
 
-主要逻辑位于 `website/src/components/playground/PlaygroundEditor.tsx`。
+主要逻辑位于 `website/src/services/LSPService.ts` 与 `website/src/hooks/useLSPClient.ts`。
 
-- **Monaco Editor**: 提供代码编辑界面。
-- **Language Client**: 使用 `monaco-languageclient` 库建立与 Worker 的连接。它并不感知后端是在本地 Worker 还是远程 Socket，只是单纯地通过 `MessageReader/Writer` 收发消息。
-- **状态同步**: React 组件负责管理当前选中的 Demo，并将其内容同步到 Editor Model 中。
+- **LSPService**: 全局单例服务，负责管理 Web Worker、Monaco Language Client 的生命周期。
+  - 封装了复杂的初始化逻辑（Pyodide 下载、VS Code API Polyfill）。
+  - 处理 HMR (Hot Module Replacement) 场景下的单例维持，防止开发环境下的重复初始化。
+- **useLSPClient**: React Hook，作为组件与 Service 的胶水层。
+  - 负责监听全局 LSP 状态并触发 React 全局重渲染。
+  - **文件同步**: 监听 Zustand Store 中的文件变化，通过 `typedown/syncFile` 协议实时推送给 Worker。
+- **Monaco Editor**: 提供代码编辑界面，通过 `monaco-languageclient` 与底层服务通信。
 
 ### 2.2 桥接层 (Web Worker)
 
@@ -52,18 +62,23 @@ graph TD
    - 安装 Python 依赖：`micropip`, `pygls`, `pydantic` 等。
    - **Wheel Injection**: 下载 `public/typedown-0.0.0-py3-none-any.whl` 并安装到环境中。
 
-2. **I/O 拦截 (I/O Interception)**:
+2. **Server Script Loading**:
+
+   - 之前版本中 Python 代码作为字符串内嵌在 Worker 中。
+   - 现重构为 **Fetch Execution**：Worker 启动时请求 `/lsp-server.py`，获取 Python 启动脚本并执行。
+
+3. **I/O 拦截 (I/O Interception)**:
 
    - 监听 LSP 消息。
    - **同步策略**: 当收到 `textDocument/didOpen` 或自定义的 `typedown/syncFile` 消息时，**优先**调用 `pyodide.FS.writeFile` 将文件内容写入虚拟文件系统。
    - 这是因为 Typedown Compiler 在解析 `config.td` 继承关系时，需要物理读取磁盘文件，而不仅仅依赖内存中的 `didChange` 事件。
 
-3. **消息转发**:
+4. **消息转发**:
    - 将 JSON-RPC 字符串传递给 Python 定义的全局函数 `consume_message`。
 
 ### 2.3 内核层 (Python/WASM)
 
-这是运行在 WASM 中的实际 Python 代码。我们在 `lsp-worker.js` 中通过 `PYTHON_LSP_SCRIPT` 常量注入了一段胶水代码。
+这是运行在 WASM 中的实际 Python 代码，源文件位于 `website/public/lsp-server.py`。
 
 **关键 Hack：**
 
@@ -80,7 +95,14 @@ graph TD
 3. **Direct Injection**:
    - 我们绕过了 TCP socket，直接将解析后的 JSON 对象注入到 `server.protocol.handle_message`，减少了序列化开销。
 
-## 3. 虚拟文件系统 (Virtual File System)
+## 3. 调试与日志 (Debugging & Logging)
+
+为了解决 Web Worker 调试困难的问题，我们引入了统一的日志系统 `src/lib/logger.ts`。
+
+- **Levels**: 支持 `debug`, `info`, `warn`, `error` 四种级别。
+- **Output**: 自动根据环境（Dev/Prod）调整输出策略。在开发环境下，LSP 通信日志会详细输出到 Console，方便排查 JSON-RPC 交互问题。
+
+## 4. 虚拟文件系统 (Virtual File System)
 
 Typedown 的设计假设是基于文件系统的。为了在浏览器中复用核心逻辑，我们利用了 Emscripten 的 MEMFS。
 
@@ -95,7 +117,7 @@ Pyodide 启动后，根目录 `/` 即为虚拟文件系统的根。
 
 当用户切换 Demo 时，我们需要清除上一个 Demo 的残留文件。Client 会发送 `typedown/resetFileSystem` 消息。Worker 收到后，会调用 Python 的 `shutil.rmtree` 清空 `/` 下除了系统目录（如 `/lib`, `/tmp`）以外的所有文件。
 
-## 4. 常见问题与调试
+## 5. 常见问题与调试
 
 ### Q: 为什么 `import` 报错？
 

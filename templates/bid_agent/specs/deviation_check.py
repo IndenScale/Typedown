@@ -2,7 +2,7 @@ from typing import List, Dict
 import statistics
 
 # 假设这些是从 typedown 上下文加载的数据
-# from use_cases.bid_agent.models.review import ExpertScoreEntry
+# from templates.bid_agent.models.review import ExpertScoreEntry
 
 def calculate_deviation(scores: List[float], threshold_percent: float = 0.2) -> Dict[int, bool]:
     """

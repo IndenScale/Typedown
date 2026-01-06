@@ -12,11 +12,11 @@ if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
 # Export Common Models (Registers them in Typedown Model Registry)
-from use_cases.headerless_erp.models.org.structure import Employee, FunctionalDepartment, BusinessUnit
-from use_cases.headerless_erp.models.pmo.project import Project
-from use_cases.headerless_erp.models.pmo.documents import AcceptanceReport, Contract, RFI, FeasibilityStudy, DesignDocument
-from use_cases.headerless_erp.models.core.primitives import Money
-from use_cases.headerless_erp.models.finance.budget import DepartmentBudget
-from use_cases.headerless_erp.models.infra.physical import Rack, NetworkDevice, CablingRecord
-from use_cases.headerless_erp.models.hr.competency import EmployeeCertification
+from templates.headerless_erp.models.org.structure import Employee, FunctionalDepartment, BusinessUnit
+from templates.headerless_erp.models.pmo.project import Project
+from templates.headerless_erp.models.pmo.documents import AcceptanceReport, Contract, RFI, FeasibilityStudy, DesignDocument
+from templates.headerless_erp.models.core.primitives import Money
+from templates.headerless_erp.models.finance.budget import DepartmentBudget
+from templates.headerless_erp.models.infra.physical import Rack, NetworkDevice, CablingRecord
+from templates.headerless_erp.models.hr.competency import EmployeeCertification
 ```

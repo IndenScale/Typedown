@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
-import { GlobalLSPManager } from "@/components/GlobalLSPManager";
-import { LSPStatusIndicator } from "@/components/LSPStatusIndicator";
+import { LSPClientWrapper } from "@/components/playground/LSPClientWrapper";
+
+import { LSPStatusIndicator } from "@/components/playground/LSPStatusIndicator";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +42,7 @@ export default function RootLayout({
           defaultTheme="system"
           enableSystem
           disableTransitionOnChange>
-          <GlobalLSPManager />
+          <LSPClientWrapper />
           {children}
 
           {/* Global Footer with LSP Status */}

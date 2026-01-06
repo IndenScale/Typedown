@@ -13,8 +13,8 @@ if str(project_root) not in sys.path:
 from datetime import date
 
 # Export Common Models
-from use_cases.bid_agent.models.core import BidProject, ProjectDomain, FileResource, DocumentType
-from use_cases.bid_agent.models.review import ScoringItem, ScoringType, BidResponseItem, ReviewResultEntry, Criticality
-from use_cases.bid_agent.models.evidence import Certificate, Achievement, EvidenceSource, DocLocation, ValidationStatus, Person
-from use_cases.bid_agent.models.verification import FactCheckRecord
+from templates.bid_agent.models.core import BidProject, ProjectDomain, FileResource, DocumentType
+from templates.bid_agent.models.review import ScoringItem, ScoringType, BidResponseItem, ReviewResultEntry, Criticality
+from templates.bid_agent.models.evidence import Certificate, Achievement, EvidenceSource, DocLocation, ValidationStatus, Person
+from templates.bid_agent.models.verification import FactCheckRecord
 ```

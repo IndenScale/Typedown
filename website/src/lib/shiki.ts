@@ -1,43 +1,47 @@
-import { createHighlighter, type Highlighter } from 'shiki'
-import typedownGrammar from './typedown.tmLanguage.json'
+import { createHighlighter, type Highlighter } from "shiki";
+import typedownGrammar from "./typedown.tmLanguage.json";
 
-let highlighterInstance: Highlighter | null = null
+let highlighterInstance: Highlighter | null = null;
 
 export async function getHighlighter() {
-  if (highlighterInstance) return highlighterInstance
+  if (highlighterInstance) return highlighterInstance;
 
   highlighterInstance = await createHighlighter({
-    themes: ['github-dark', 'github-light'],
+    themes: ["github-dark", "github-light"],
     langs: [
-      'python',
-      'markdown',
-      'yaml',
+      "python",
+      "markdown",
+      "yaml",
       {
-        ...(typedownGrammar as any),
-        name: 'typedown',
-      }
+        ...(typedownGrammar as any), // eslint-disable-line @typescript-eslint/no-explicit-any
+        name: "typedown",
+      },
     ],
-  })
-  return highlighterInstance
+  });
+  return highlighterInstance;
 }
 
-export async function highlight(code: string, lang: string = 'typedown', theme: string = 'github-dark') {
-  const highlighter = await getHighlighter()
-  
+export async function highlight(
+  code: string,
+  lang: string = "typedown",
+  theme: string = "github-dark"
+) {
+  const highlighter = await getHighlighter();
+
   // Ensure the language is loaded even if it's dynamic
   if (!highlighter.getLoadedLanguages().includes(lang)) {
-    if (lang === 'typedown') {
+    if (lang === "typedown") {
       await highlighter.loadLanguage({
-        ...(typedownGrammar as any),
-        name: 'typedown',
-      })
+        ...(typedownGrammar as any), // eslint-disable-line @typescript-eslint/no-explicit-any
+        name: "typedown",
+      });
     } else {
-      await highlighter.loadLanguage(lang as any)
+      await highlighter.loadLanguage(lang as any); // eslint-disable-line @typescript-eslint/no-explicit-any
     }
   }
 
   return highlighter.codeToHtml(code, {
     lang,
     theme,
-  })
+  });
 }

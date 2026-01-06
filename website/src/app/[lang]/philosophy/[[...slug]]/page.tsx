@@ -1,7 +1,6 @@
 import React from "react";
 import { getDocBySlug, getSidebar } from "@/lib/docs";
 import { notFound, redirect } from "next/navigation";
-import { MermaidInitializer } from "@/components/MermaidInitializer";
 
 interface PageProps {
   params: Promise<{
@@ -12,7 +11,7 @@ interface PageProps {
 
 export default async function PhilosophyPage({ params }: PageProps) {
   const { lang, slug = [] } = await params;
-  
+
   // If slug is empty, we are at /philosophy/[lang], redirect to the first item
   if (slug.length === 0) {
     const sidebar = getSidebar(lang, "philosophy");
@@ -41,9 +40,9 @@ export default async function PhilosophyPage({ params }: PageProps) {
           {doc.metadata.title}
         </h1>
       </header>
-      <div 
+      <div
         className="markdown-content"
-        dangerouslySetInnerHTML={{ __html: doc.content }} 
+        dangerouslySetInnerHTML={{ __html: doc.content }}
       />
     </article>
   );

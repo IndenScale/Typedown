@@ -1,46 +1,50 @@
-'use client'
+"use client";
 
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
-import { AlertCircle, FileCode } from 'lucide-react'
-import { clsx, type ClassValue } from 'clsx'
-import { twMerge } from 'tailwind-merge'
-import { highlight } from '@/lib/shiki'
+import { useEffect, useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { AlertCircle, FileCode } from "lucide-react";
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
+import { highlight } from "@/lib/shiki";
 
 function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
-interface CodeEditorProps {
-  fileName: string
-  code: string
-  errorLine?: number
-  errorMessage?: string
-  className?: string
+interface StaticCodeBlockProps {
+  fileName: string;
+  code: string;
+  errorLine?: number;
+  errorMessage?: string;
+  className?: string;
 }
 
-export function CodeEditor({
+export function StaticCodeBlock({
   fileName,
   code,
   errorLine,
   errorMessage,
   className,
-}: CodeEditorProps) {
-  const [highlightedHtml, setHighlightedHtml] = useState<string[]>([])
-  const lines = code.split('\n')
+}: StaticCodeBlockProps) {
+  const [highlightedHtml, setHighlightedHtml] = useState<string[]>([]);
+  const lines = useMemo(() => code.split("\n"), [code]);
 
   useEffect(() => {
     async function doHighlight() {
       const htmls = await Promise.all(
-        lines.map(line => highlight(line || ' ', 'typedown'))
-      )
-      setHighlightedHtml(htmls)
+        lines.map((line) => highlight(line || " ", "typedown"))
+      );
+      setHighlightedHtml(htmls);
     }
-    doHighlight()
-  }, [code])
+    doHighlight();
+  }, [lines]);
 
   return (
-    <div className={cn("w-full overflow-hidden rounded-xl border border-white/10 bg-[#0A0A0A] shadow-2xl", className)}>
+    <div
+      className={cn(
+        "w-full overflow-hidden rounded-xl border border-white/10 bg-[#0A0A0A] shadow-2xl",
+        className
+      )}>
       {/* Tab Header */}
       <div className="flex items-center gap-2 border-b border-white/5 bg-white/5 px-4 py-3">
         <div className="flex gap-1.5">
@@ -59,7 +63,9 @@ export function CodeEditor({
         {/* Line Numbers */}
         <div className="mr-6 flex flex-col text-gray-700 select-none text-right min-w-[2rem]">
           {lines.map((_, i) => (
-            <span key={i} className={cn(errorLine === i + 1 && "text-error/40 font-bold")}>
+            <span
+              key={i}
+              className={cn(errorLine === i + 1 && "text-error/40 font-bold")}>
               {i + 1}
             </span>
           ))}
@@ -68,18 +74,24 @@ export function CodeEditor({
         {/* Code Area */}
         <div className="flex-1 relative">
           {lines.map((line, i) => {
-            const isErrorLine = errorLine === i + 1
-            const html = highlightedHtml[i]
+            const isErrorLine = errorLine === i + 1;
+            const html = highlightedHtml[i];
 
             return (
               <div key={i} className="group relative min-h-[1.5rem]">
-                <span className={cn(
-                  "relative z-10 block",
-                  isErrorLine && "red-wave"
-                )}>
+                <span
+                  className={cn(
+                    "relative z-10 block",
+                    isErrorLine && "red-wave"
+                  )}>
                   {html ? (
-                    <span 
-                      dangerouslySetInnerHTML={{ __html: html.replace(/<pre[^>]*>|<\/pre>|<code>|<\/code>/g, '') }} 
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: html.replace(
+                          /<pre[^>]*>|<\/pre>|<code>|<\/code>/g,
+                          ""
+                        ),
+                      }}
                       className="[&>span]:bg-transparent!"
                     />
                   ) : (
@@ -93,21 +105,24 @@ export function CodeEditor({
                     <motion.div
                       initial={{ opacity: 0, y: 5, scale: 0.95 }}
                       animate={{ opacity: 1, y: 0, scale: 1 }}
-                      className="mt-2 relative z-20 inline-flex items-start gap-3 rounded-lg border border-error/20 bg-error/10 p-4 text-xs text-error shadow-2xl backdrop-blur-md max-w-sm"
-                    >
+                      className="mt-2 relative z-20 inline-flex items-start gap-3 rounded-lg border border-error/20 bg-error/10 p-4 text-xs text-error shadow-2xl backdrop-blur-md max-w-sm">
                       <AlertCircle size={16} className="mt-0.5 shrink-0" />
                       <div className="space-y-1">
-                        <p className="font-semibold leading-none">Typedown Validation Error</p>
-                        <p className="text-error/80 leading-relaxed">{errorMessage}</p>
+                        <p className="font-semibold leading-none">
+                          Typedown Validation Error
+                        </p>
+                        <p className="text-error/80 leading-relaxed">
+                          {errorMessage}
+                        </p>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
               </div>
-            )
+            );
           })}
         </div>
       </div>
     </div>
-  )
+  );
 }

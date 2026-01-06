@@ -9,6 +9,8 @@ import rehypeShiki from "@shikijs/rehype";
 import { visit } from "unist-util-visit";
 
 // Pre-initialize the processor to reuse it across requests
+// UNIFIED_TYPES_COMPLEXITY: The return type of remark().use(...) chains is excessively complex to type statically.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let memoizedProcessor: any = null;
 
 async function getProcessor() {
@@ -26,11 +28,11 @@ async function getProcessor() {
   return memoizedProcessor;
 }
 
-const docsDirectory = path.join(process.cwd(), "public/docs");
-
 // Custom plugin to transform mermaid code blocks
 function rehypeMermaid() {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   return (tree: any) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     visit(tree, "element", (node: any, index: any, parent: any) => {
       if (node.tagName === "pre" && node.children && node.children.length > 0) {
         const codeNode = node.children[0];
@@ -58,7 +60,7 @@ function rehypeMermaid() {
 export interface DocMetadata {
   title: string;
   order?: number;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface DocContent {
@@ -177,7 +179,7 @@ export function getSidebar(
               const metaContent = fs.readFileSync(metaPath, "utf8");
               const meta = JSON.parse(metaContent);
               if (meta.title) title = meta.title;
-            } catch (e) {
+            } catch {
               // Ignore error
             }
           }

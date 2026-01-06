@@ -5,5 +5,5 @@
 import sys
 from pathlib import Path
 
-from use_cases.rpg_campaign.models.schema import Character, Item, Monster
+from templates.rpg_campaign.models.schema import Character, Item, Monster
 ```
