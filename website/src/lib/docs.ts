@@ -98,115 +98,143 @@ export async function getDocBySlug(
   // Decode slug components to handle URL-encoded characters
   const decodedSlug = slug.map((s) => decodeURIComponent(s));
 
-  let currentPath = baseDir;
-  for (const part of decodedSlug) {
-    if (fs.existsSync(currentPath) && fs.statSync(currentPath).isDirectory()) {
-      const entries = fs.readdirSync(currentPath);
-      const entry = entries.find(
-        (e) => stripOrderPrefix(e).replace(/\.md$/, "") === part
+  // Try exact match first
+  let fullPath = path.join(baseDir, ...decodedSlug);
+  if (!fullPath.endsWith(".md")) {
+    fullPath += ".md";
+  }
+
+  // If exact match fails, try to find matching files/folders ignoring order prefix
+  if (!fs.existsSync(fullPath)) {
+    let currentPath = baseDir;
+    for (const segment of decodedSlug) {
+      if (!fs.existsSync(currentPath)) return null;
+      const items = fs.readdirSync(currentPath);
+      const match = items.find(
+        (item) => stripOrderPrefix(item.replace(/\.md$/, "")) === segment
       );
-      if (entry) {
-        currentPath = path.join(currentPath, entry);
-        continue;
-      }
+      if (!match) return null;
+      currentPath = path.join(currentPath, match);
     }
-    currentPath = path.join(currentPath, part);
+    fullPath = currentPath;
   }
 
-  const fullPath = currentPath;
-
-  let filePath = fullPath.endsWith(".md") ? fullPath : `${fullPath}.md`;
-
-  if (!fs.existsSync(filePath)) {
-    const indexFallback = path.join(fullPath, "index.md");
-    if (fs.existsSync(indexFallback)) {
-      filePath = indexFallback;
-    } else {
-      // Try to find file with original name (in case stripOrderPrefix logic failed or is needed differently)
-      // This is a simple fallback. The mapping logic above is usually correct.
-      return null;
-    }
+  if (!fs.existsSync(fullPath)) {
+    return null;
   }
 
-  const fileContents = fs.readFileSync(filePath, "utf8");
+  // Check if it's a directory, if so look for index.md or README.md?
+  // For now assuming fullPath points to a file
+  if (fs.statSync(fullPath).isDirectory()) {
+    return null;
+  }
+
+  const fileContents = fs.readFileSync(fullPath, "utf8");
   const { data, content } = matter(fileContents);
-
   const processor = await getProcessor();
   const processedContent = await processor.process(content);
-
   const contentHtml = processedContent.toString();
 
   return {
-    slug: decodedSlug,
+    slug,
     content: contentHtml,
-    metadata: {
-      title: data.title || stripOrderPrefix(path.basename(filePath, ".md")),
-      ...data,
-    },
+    metadata: data as DocMetadata,
   };
+}
+
+export function getAllDocs(
+  lang: string,
+  type: keyof typeof contentDirectories = "docs"
+): DocContent[] {
+  const baseDir = path.join(contentDirectories[type], lang);
+  if (!fs.existsSync(baseDir)) return [];
+
+  const docs: DocContent[] = [];
+
+  function traverse(currentPath: string, currentSlug: string[]) {
+    const items = fs.readdirSync(currentPath);
+
+    for (const item of items) {
+      if (item.startsWith(".")) continue;
+
+      const fullPath = path.join(currentPath, item);
+      const stat = fs.statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        const slugPart = stripOrderPrefix(item);
+        traverse(fullPath, [...currentSlug, slugPart]);
+      } else if (item.endsWith(".md")) {
+        const slugPart = stripOrderPrefix(item.replace(/\.md$/, ""));
+        // Skip index/README if necessary, or handle them
+        const slug = [...currentSlug, slugPart];
+        
+        // Simplified content loading (metadata only would be faster but we need full structure potentially)
+        // For getAllDocs we mainly need slugs
+        const fileContents = fs.readFileSync(fullPath, "utf8");
+        const { data } = matter(fileContents);
+        
+        docs.push({
+          slug,
+          content: "", // Content not needed for listing
+          metadata: data as DocMetadata,
+        });
+      }
+    }
+  }
+
+  traverse(baseDir, [lang]);
+  return docs;
 }
 
 export function getSidebar(
   lang: string,
   type: keyof typeof contentDirectories = "docs"
 ): SidebarItem[] {
-  const baseDir = contentDirectories[type];
-  const langDir = path.join(baseDir, lang);
-  if (!fs.existsSync(langDir)) return [];
+  const baseDir = path.join(contentDirectories[type], lang);
 
-  function buildSidebar(dir: string, baseSlug: string[] = []): SidebarItem[] {
-    const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-    const items: SidebarItem[] = entries
-      .filter((entry) => {
-        if (entry.name.startsWith(".")) return false;
-        if (entry.name === "index.md") return false;
-        if (entry.name === "_meta.json") return false;
-        if (entry.name === "public") return false;
-        return entry.isDirectory() || entry.name.endsWith(".md");
-      })
-      .map((entry) => {
-        const name = entry.name;
-        const cleanName = stripOrderPrefix(name).replace(/\.md$/, "");
-        const order = getOrder(name);
-        const href = `/${lang}/${type}/${[...baseSlug, cleanName].join("/")}`;
-
-        if (entry.isDirectory()) {
-          let title = cleanName.charAt(0).toUpperCase() + cleanName.slice(1);
-          const metaPath = path.join(dir, name, "_meta.json");
-          if (fs.existsSync(metaPath)) {
-            try {
-              const metaContent = fs.readFileSync(metaPath, "utf8");
-              const meta = JSON.parse(metaContent);
-              if (meta.title) title = meta.title;
-            } catch {
-              // Ignore error
-            }
-          }
-
-          return {
-            title,
-            href,
-            order,
-            items: buildSidebar(path.join(dir, name), [...baseSlug, cleanName]),
-          };
-        }
-
-        const filePath = path.join(dir, name);
-        const fileContents = fs.readFileSync(filePath, "utf8");
-        const { data } = matter(fileContents);
-
-        return {
-          title:
-            data.title ||
-            cleanName.charAt(0).toUpperCase() + cleanName.slice(1),
-          href,
-          order,
-        };
-      });
-
-    return items.sort((a, b) => a.order - b.order);
+  if (!fs.existsSync(baseDir)) {
+    return [];
   }
 
-  return buildSidebar(langDir);
+  function getItems(dir: string, baseUrl: string): SidebarItem[] {
+    const items = fs.readdirSync(dir);
+    const sidebarItems: SidebarItem[] = [];
+
+    items.forEach((item) => {
+      if (item.startsWith(".")) return;
+
+      const fullPath = path.join(dir, item);
+      const stat = fs.statSync(fullPath);
+      const order = getOrder(item);
+      const name = stripOrderPrefix(item.replace(/\.md$/, ""));
+
+      if (stat.isDirectory()) {
+        const children = getItems(fullPath, `${baseUrl}/${name}`);
+        if (children.length > 0) {
+          // Try to find a title from a localized meta file or directory name
+          // For now using directory name
+          sidebarItems.push({
+            title: name.charAt(0).toUpperCase() + name.slice(1),
+            href: `${baseUrl}/${name}`,
+            items: children.sort((a, b) => a.order - b.order),
+            order,
+          });
+        }
+      } else if (item.endsWith(".md")) {
+        const fileContents = fs.readFileSync(fullPath, "utf8");
+        const { data } = matter(fileContents);
+        sidebarItems.push({
+          title: data.title || name,
+          href: `${baseUrl}/${name}`,
+          order,
+        });
+      }
+    });
+
+    return sidebarItems.sort((a, b) => a.order - b.order);
+  }
+
+  // Base URL construction
+  const basePath = type === "docs" ? "/docs" : "/philosophy";
+  return getItems(baseDir, `${basePath}/${lang}`);
 }

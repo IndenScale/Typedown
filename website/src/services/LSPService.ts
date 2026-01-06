@@ -125,7 +125,7 @@ export class LSPService {
 
       // Capture diagnostics for global store
       client.onNotification("textDocument/publishDiagnostics", (params) => {
-        // @ts-ignore - The types are compatible but strict check might fail on minor version mismatch
+        // The types are compatible but strict check might fail on minor version mismatch
         usePlaygroundStore.getState().setDiagnostics(params.uri, params.diagnostics);
       });
 

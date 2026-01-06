@@ -145,7 +145,9 @@ export function PlaygroundEditor() {
         },
         provideDocumentSemanticTokens: async (
           model: MonacoTypes.editor.ITextModel,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _lastResultId: string | null,
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           _token: MonacoTypes.CancellationToken
         ) => {
           const client = usePlaygroundStore.getState().client;
@@ -175,7 +177,10 @@ export function PlaygroundEditor() {
             return null;
           }
         },
-        releaseDocumentSemanticTokens: (_resultId: string | undefined) => {
+        releaseDocumentSemanticTokens: (
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          _resultId: string | undefined
+        ) => {
           // No-op
         },
       });

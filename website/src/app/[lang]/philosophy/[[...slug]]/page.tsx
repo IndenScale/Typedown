@@ -1,5 +1,5 @@
 import React from "react";
-import { getDocBySlug, getSidebar } from "@/lib/docs";
+import { getDocBySlug, getSidebar, getAllDocs } from "@/lib/docs";
 import { notFound, redirect } from "next/navigation";
 
 interface PageProps {
@@ -7,6 +7,25 @@ interface PageProps {
     lang: string;
     slug?: string[];
   }>;
+}
+
+export async function generateStaticParams() {
+  const allParams = [];
+  const langs = ["en", "zh"];
+
+  for (const lang of langs) {
+    // Add the root philosophy page for each language
+    allParams.push({ lang, slug: [] });
+
+    const docs = getAllDocs(lang, "philosophy");
+    for (const doc of docs) {
+      // Remove the lang prefix from slug as it's handled by [lang] param
+      const slug = doc.slug.slice(1);
+      allParams.push({ lang, slug });
+    }
+  }
+
+  return allParams;
 }
 
 export default async function PhilosophyPage({ params }: PageProps) {

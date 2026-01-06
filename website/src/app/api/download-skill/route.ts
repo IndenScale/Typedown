@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 
+export const dynamic = 'force-static';
+
 export async function GET() {
   const SKILL_URL = 'https://raw.githubusercontent.com/IndenScale/typedown/main/skills/typedown/SKILL.md';
   

@@ -8,7 +8,7 @@ const nextConfig: NextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ["vscode-oniguruma"],
-  // @ts-ignore - Turbopack root configuration
+  // Turbopack root configuration
   turbopack: {
     root: path.resolve(__dirname, ".."),
   },
