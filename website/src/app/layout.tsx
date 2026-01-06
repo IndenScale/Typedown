@@ -1,20 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+// import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { LSPClientWrapper } from "@/components/playground/LSPClientWrapper";
 
 import { LSPStatusIndicator } from "@/components/playground/LSPStatusIndicator";
 
-const geistSans = Geist({
+// Fallback to system fonts since Google Fonts fetch fails in this environment
+const geistSans = {
   variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+};
 
-const geistMono = Geist_Mono({
+const geistMono = {
   variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+};
 
 export const metadata: Metadata = {
   title: "Typedown — Markdown that Scales",

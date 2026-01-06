@@ -8,6 +8,7 @@ import { X, FileCode2 } from "lucide-react";
 import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
+import { MarkdownPreview } from "./MarkdownPreview";
 
 export function PlaygroundEditor() {
   const {
@@ -409,33 +410,37 @@ export function PlaygroundEditor() {
       {/* Editor Area */}
       <div className="flex-1 min-h-0 relative">
         {activeFile ? (
-          <Editor
-            height="100%"
-            language={activeFile.language}
-            value={activeFile.content}
-            theme={
-              resolvedTheme === "dark" ? "typedown-dark" : "typedown-light"
-            }
-            onMount={handleEditorDidMount}
-            beforeMount={handleEditorWillMount}
-            onChange={(value) =>
-              updateFileContent(activeFile.name, value || "")
-            }
-            options={{
-              readOnly: activeFile.readOnly,
-              minimap: { enabled: false },
-              scrollBeyondLastLine: true,
-              fontSize: 14,
-              fontFamily: 'Menlo, Monaco, "Courier New", monospace',
-              wordWrap: "on",
-              padding: { top: 16 },
-              // CRITICAL: Enable Semantic Tokens
-              "semanticHighlighting.enabled": true,
-            }}
-            // CRITICAL: Match the URI used by LSP Worker (Logical Path)
-            // e.g. /examples/03_simple_rules/rules.td
-            path={activeFile.path || activeFile.name}
-          />
+          activeFile.language === "markdown" ? (
+            <MarkdownPreview content={activeFile.content} />
+          ) : (
+            <Editor
+              height="100%"
+              language={activeFile.language}
+              value={activeFile.content}
+              theme={
+                resolvedTheme === "dark" ? "typedown-dark" : "typedown-light"
+              }
+              onMount={handleEditorDidMount}
+              beforeMount={handleEditorWillMount}
+              onChange={(value) =>
+                updateFileContent(activeFile.name, value || "")
+              }
+              options={{
+                readOnly: activeFile.readOnly,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: true,
+                fontSize: 14,
+                fontFamily: 'Menlo, Monaco, "Courier New", monospace',
+                wordWrap: "on",
+                padding: { top: 16 },
+                // CRITICAL: Enable Semantic Tokens
+                "semanticHighlighting.enabled": true,
+              }}
+              // CRITICAL: Match the URI used by LSP Worker (Logical Path)
+              // e.g. /examples/03_simple_rules/rules.td
+              path={activeFile.path || activeFile.name}
+            />
+          )
         ) : (
           <div className="flex h-full items-center justify-center text-gray-500 text-sm">
             <div className="text-center">
