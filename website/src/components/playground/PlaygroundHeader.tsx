@@ -25,7 +25,7 @@ export function PlaygroundHeader() {
 
       <div className="flex items-center gap-2">
         {/* Placeholder for future actions like "Run" or "Export" */}
-        <div className="text-xs text-gray-400">v0.2.13</div>
+        <div className="text-xs text-gray-400">v0.2.14</div>
       </div>
     </header>
   );
