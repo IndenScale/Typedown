@@ -62,6 +62,14 @@ class JSWriter:
         # Filter out noisy DEBUG messages unless explicitly requested
         if msg.startswith("DEBUG:") or msg.startswith("INFO:pygls"):
             return
+        
+        # Filter out LSP protocol noise
+        if "Sending data" in msg or "publishDiagnostics" in msg:
+            return
+        
+        # Filter out WARNING messages for unknown methods (expected in Playground)
+        if msg.startswith("WARNING:"):
+            return
             
         # Special handling for repetitive LSP notifications
         if "semantic_tokens" in msg or "didChangeConfiguration" in msg:

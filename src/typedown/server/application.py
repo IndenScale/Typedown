@@ -59,9 +59,10 @@ def initialize(ls: TypedownLanguageServer, params: InitializeParams):
         # Configure logging to file (optional, for debugging)
         # logging.basicConfig(filename='/tmp/typedown_lsp.log', level=logging.INFO)
             
-        # Use stderr for Compiler output to avoid polluting stdout (LSP protocol)
-        stderr_console = Console(stderr=True)
-        ls.compiler = Compiler(target=root_path, console=stderr_console)
+        # Use a quiet console to suppress Compiler's verbose Stage logs
+        from io import StringIO
+        quiet_console = Console(file=StringIO(), stderr=False)
+        ls.compiler = Compiler(target=root_path, console=quiet_console)
         
         # Warm up: Initial compilation
         ls.compiler.compile()
@@ -111,25 +112,11 @@ def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
         path = uri_to_path(uri)
         content = params.text_document.text
         
-        # DEBUG: Verify content arrival
-        print(f"DEBUG: did_open {path} (URI: {uri})")
-        print(f"DEBUG: Content Length: {len(content)}")
-        # print(f"DEBUG: Content Preview: {content[:50]}...")
-        
         with ls.lock:
             # IMPORTANT: For memory-only files (Playground), we must manually feed 
             # the content to the compiler as it won't be found during disk scan.
             ls.compiler.update_document(path, content)
             
-            # Verify compilation result
-            if path in ls.compiler.documents:
-                doc = ls.compiler.documents[path]
-                print(f"DEBUG: Document compiled. Entities found: {len(doc.entities)}")
-                # for ent in doc.entities:
-                #    print(f"DEBUG: Entity: {ent.name} ({ent.kind})")
-            else:
-                print(f"DEBUG: Document {path} NOT found in compiler after update!")
-
             publish_diagnostics(ls, ls.compiler)
 
 @server.feature(TEXT_DOCUMENT_DID_CHANGE)
@@ -145,13 +132,8 @@ def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentParams):
         content = params.content_changes[0].text
         
         with ls.lock:
-            ls.show_message_log(f"DidChange: Updating {path}...")
             # Incremental Update -> Re-Link -> Re-Validate
-            # This updates the compiler's internal state for this file
             ls.compiler.update_document(path, content)
-            ls.show_message_log(f"DidChange: Update {path} complete. Doc entities: {len(ls.compiler.documents.get(path).entities) if path in ls.compiler.documents else 'None'}")
-            
-            # Publish new diagnostics after partial recompile
             publish_diagnostics(ls, ls.compiler)
 
 @server.feature(TEXT_DOCUMENT_DID_SAVE)

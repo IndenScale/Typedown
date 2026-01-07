@@ -34,6 +34,14 @@ def load_project(ls, params: LoadProjectParams):
         logging.error("Compiler not initialized")
         return
 
+    # 0. Extract files from params - Log type info FIRST
+    files_raw = params.files
+    logging.info(f"DEBUG: files_raw type: {type(files_raw)}")
+    logging.info(f"DEBUG: files_raw class: {files_raw.__class__.__name__}")
+    logging.info(f"DEBUG: has __dict__: {hasattr(files_raw, '__dict__')}")
+    logging.info(f"DEBUG: has items: {hasattr(files_raw, 'items')}")
+    logging.info(f"DEBUG: isinstance dict: {isinstance(files_raw, dict)}")
+
     try:
         # 0. Extract files from params
         # CRITICAL INSIGHT: In Pyodide/WASM, pygls converts JSON to pygls.protocol.Object.
