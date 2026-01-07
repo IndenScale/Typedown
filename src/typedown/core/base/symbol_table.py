@@ -72,16 +72,16 @@ class SymbolTable:
         if hasattr(node, "uuid") and node.uuid:
             self._global_index[node.uuid] = node
             
-        if hasattr(node, "former_ids") and node.former_ids:
-            for former in node.former_ids:
-                 # Register alias pointing to the *current* node (new state)
-                 self._global_index[former] = node
-            
         # ALWAYS register as a handle in the local scope.
-        # If scope_path is a file, we register in that FILE's scope.
-        # If scope_path is a directory, we register in that DIRECTORY's scope.
+        # If scope_path is a file, we register in that file's PARENT directory scope.
+        # This implements Directory-Level scoping (config.td + sibling visibility).
         
-        scope_target = scope_path.resolve()
+        # Determine scope target (Directory)
+        # We assume it's a file if it has a suffix or if it's a known file on disk.
+        if scope_path.suffix or (scope_path.exists() and not scope_path.is_dir()):
+            scope_target = scope_path.parent.resolve()
+        else:
+            scope_target = scope_path.resolve()
         
         if scope_target not in self._scoped_index:
             self._scoped_index[scope_target] = {}
@@ -125,16 +125,21 @@ class SymbolTable:
             # Fallback to global index if no context provided (legacy behavior support)
             return self._global_index.get(name)
 
-        if context_path.suffix and not context_path.is_dir():
-            current_path = context_path
+        # Ensure we are working with an absolute, normalized path
+        # Note: .resolve() can be flaky on non-existent paths on some systems, 
+        # but .absolute() + .normalize() (via resolve) is standard for CWD-relative.
+        current_path = context_path.resolve()
+        
+        # If the context is a file, the local scope IS its parent directory.
+        # We start searching from the parent directory to find sibling files or config.td exports.
+        if current_path.suffix or (current_path.exists() and not current_path.is_dir()):
+            start_dir = current_path.parent
         else:
-            current_path = context_path
-        
-        current_path = current_path.resolve()
-        
-        # Scoped Lookup: Current Path -> Parents
-        # This naturally handles File -> Directory -> Parent Directory
-        search_paths = [current_path] + list(current_path.parents)
+            start_dir = current_path
+            
+        # Scoped Lookup: Start Dir -> Parents
+        # list(start_dir.parents) returns [parent, grandparent, ..., root]
+        search_paths = [start_dir] + list(start_dir.parents)
         
         for scope in search_paths:
             if scope in self._scoped_index:

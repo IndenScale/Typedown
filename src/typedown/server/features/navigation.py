@@ -20,6 +20,7 @@ def definition(ls: TypedownLanguageServer, params: DefinitionParams):
         return _definition_impl(ls, params)
 
 def _definition_impl(ls: TypedownLanguageServer, params: DefinitionParams):
+    if not ls.is_ready: return None
     if not ls.compiler: 
         ls.show_message_log("Definition Request: Compiler not initialized.")
         return None
@@ -174,6 +175,7 @@ def _find_reference_at_position(doc, line: int, col: int):
 
 @server.feature(TEXT_DOCUMENT_REFERENCES)
 def references(ls: TypedownLanguageServer, params: ReferenceParams):
+    if not ls.is_ready: return None
     if not ls.compiler or not ls.compiler.dependency_graph: return None
 
     uri = params.text_document.uri

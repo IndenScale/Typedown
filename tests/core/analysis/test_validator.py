@@ -5,6 +5,7 @@ from typedown.core.analysis.validator import Validator
 from typedown.core.ast import Document, EntityBlock, SourceLocation, Reference
 from typedown.core.base.types import Ref # Annotated[str, ReferenceMeta]
 from typedown.core.base.identifiers import Identifier
+from typedown.core.base.symbol_table import SymbolTable
 from pydantic import BaseModel
 
 class UserAccount(BaseModel):
@@ -27,7 +28,9 @@ def test_validator_topological_resolution():
     doc2.entities.append(bob)
     
     docs = {doc1.path: doc1, doc2.path: doc2}
-    symbol_table = {"alice": alice, "bob": bob}
+    symbol_table = SymbolTable()
+    symbol_table.add(alice, doc1.path)
+    symbol_table.add(bob, doc2.path)
     model_registry = {"UserAccount": UserAccount}
     
     validator.validate(docs, symbol_table, model_registry)
@@ -52,7 +55,9 @@ def test_validator_former_linkage():
     docs[Path("v1.td")].entities.append(alice_v1)
     docs[Path("v2.td")].entities.append(alice_v2)
     
-    symbol_table = {"user-alice-v1": alice_v1, "users/alice-v2": alice_v2}
+    symbol_table = SymbolTable()
+    symbol_table.add(alice_v1, Path("v1.td"))
+    symbol_table.add(alice_v2, Path("v2.td"))
     
     validator.validate(docs, symbol_table, {})
     
@@ -74,7 +79,8 @@ def test_validator_former_invalid_identifier():
     docs = {Path("test.td"): Document(path=Path("test.td"), raw_content="")}
     docs[Path("test.td")].entities.append(entity)
     
-    symbol_table = {"alice-next": entity}
+    symbol_table = SymbolTable()
+    symbol_table.add(entity, Path("test.td"))
     
     validator.validate(docs, symbol_table, {})
     

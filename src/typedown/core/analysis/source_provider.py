@@ -81,8 +81,9 @@ class OverlayProvider(SourceProvider):
     Used for LSP 'dirty files' support.
     """
 
-    def __init__(self, base: SourceProvider):
+    def __init__(self, base: SourceProvider, memory_only: bool = False):
         self.base = base
+        self.memory_only = memory_only
         # Stores content of dirty files overlay
         self.overlay: Dict[Path, str] = {}
         # Stores explicitly deleted files (if we want to support 'deleted in memory but exists on disk')
@@ -98,27 +99,35 @@ class OverlayProvider(SourceProvider):
     def get_content(self, path: Path) -> str:
         if path in self.overlay:
             return self.overlay[path]
+        
+        if self.memory_only:
+            # In memory-only mode, we strictly deny access to base provider
+            raise FileNotFoundError(f"File not found in memory overlay: {path}")
+            
         return self.base.get_content(path)
 
     def exists(self, path: Path) -> bool:
         if path in self.overlay:
             return True
+            
+        if self.memory_only:
+            return False
+            
         return self.base.exists(path)
 
     def list_files(self, root: Path, extensions: Set[str], ignore_matcher=None) -> Iterator[Path]:
-        # 1. Get files from base
         seen = set()
         
-        # We need to handle the case where base might yield a file that is also in overlay
-        # (which is fine, we just want the list of paths)
-        try:
-            for path in self.base.list_files(root, extensions, ignore_matcher):
-                seen.add(path)
-                yield path
-        except Exception:
-            # Base provider might fail if root doesn't exist on disk, 
-            # but we might have overlay files 'inside' it virtually.
-            pass
+        # 1. Get files from base (Skip if memory_only)
+        if not self.memory_only:
+            try:
+                for path in self.base.list_files(root, extensions, ignore_matcher):
+                    seen.add(path)
+                    yield path
+            except Exception:
+                # Base provider might fail if root doesn't exist on disk, 
+                # but we might have overlay files 'inside' it virtually.
+                pass
 
         # 2. Add files from overlay that match criteria and haven't been seen
         for path in self.overlay.keys():

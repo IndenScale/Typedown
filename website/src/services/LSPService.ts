@@ -5,7 +5,6 @@ import {
 } from "vscode-languageserver-protocol/browser";
 import { logger } from "@/lib/logger";
 import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { TypedownSyncFileMessage } from "@/types/lsp";
 
 // Polyfill Enums
 const CloseAction = { DoNotRestart: 1, Restart: 2 } as const;
@@ -96,10 +95,7 @@ export class LSPService {
         type: "module",
       });
 
-      // C. Pre-seed Files (Critical for Python Server to find files on startup)
-      this.preSeedFiles(worker);
-
-      // D. Configure Client
+      // C. Configure Client
       const reader = new BrowserMessageReader(worker);
       const writer = new BrowserMessageWriter(worker);
 
@@ -129,10 +125,13 @@ export class LSPService {
         usePlaygroundStore.getState().setDiagnostics(params.uri, params.diagnostics);
       });
 
-      // E. Start Client
+      // D. Start Client
       logger.debug("[LSPService] Starting Client...");
       await client.start();
       logger.debug("[LSPService] Client Connected.");
+      
+      // E. Initial Project Load (Full Snapshot)
+      this.loadCurrentProject(client);
 
       // F. Save to Globals
       window.__GlobalLSPClient = client;
@@ -147,31 +146,21 @@ export class LSPService {
       throw e;
     }
   }
-
-  private preSeedFiles(worker: Worker) {
-    const currentState = usePlaygroundStore.getState();
-    logger.debug(
-      `[LSPService] Pre-seeding ${currentState.openFiles.length} files...`
-    );
-
-    currentState.openFiles.forEach((fileName) => {
-      const file = currentState.files[fileName];
-      if (file) {
-        const msg: TypedownSyncFileMessage = {
-          jsonrpc: "2.0",
-          method: "typedown/syncFile",
-          params: {
-            textDocument: {
-              uri: `file:///${fileName}`,
-              languageId: "typedown",
-              version: 1,
-              text: file.content,
-            },
-          },
-        };
-        worker.postMessage(msg);
-      }
-    });
+  
+  private loadCurrentProject(client: MonacoLanguageClient) {
+      const currentState = usePlaygroundStore.getState();
+      const filesPayload: Record<string, string> = {};
+      
+      // Send ALL files, not just open ones
+      Object.entries(currentState.files).forEach(([name, file]) => {
+           // Ensure logical path (simple mapping for playground)
+           const logicalPath = file.path || `/${file.name}`;
+           const uri = `file://${logicalPath}`;
+           filesPayload[uri] = file.content || "";
+      });
+      
+      logger.debug(`[LSPService] Loading project with ${Object.keys(filesPayload).length} files.`);
+      client.sendNotification("typedown/loadProject", { files: filesPayload });
   }
 }
 

@@ -8,6 +8,7 @@ class MockLS:
         self.workspace = MagicMock()
         self.compiler = MagicMock()
         self.compiler.symbol_table = {}
+        self.is_ready = True
 
 def test_wiki_link_free_text():
     ls = MockLS()

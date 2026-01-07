@@ -12,6 +12,7 @@ import re
 
 @server.feature(TEXT_DOCUMENT_RENAME)
 def rename(ls: TypedownLanguageServer, params: RenameParams):
+    if not ls.is_ready: return None
     if not ls.compiler or not ls.compiler.dependency_graph: return None
 
     doc = ls.workspace.get_text_document(params.text_document.uri)

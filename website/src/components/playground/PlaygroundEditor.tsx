@@ -442,6 +442,8 @@ export function PlaygroundEditor() {
                 padding: { top: 16 },
                 // CRITICAL: Enable Semantic Tokens
                 "semanticHighlighting.enabled": true,
+                // Enable CodeLens
+                codeLens: true,
               }}
               // CRITICAL: Match the URI used by LSP Worker (Logical Path)
               // e.g. /examples/03_simple_rules/rules.td

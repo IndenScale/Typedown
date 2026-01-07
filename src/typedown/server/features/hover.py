@@ -9,6 +9,7 @@ import re
 
 @server.feature(TEXT_DOCUMENT_HOVER)
 def hover(ls: TypedownLanguageServer, params: HoverParams):
+    if not ls.is_ready: return None
     if not ls.compiler: return None
     
     # We need to read the document line to find what is under cursor

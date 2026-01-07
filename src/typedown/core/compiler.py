@@ -15,7 +15,7 @@ from typedown.core.analysis.script_runner import ScriptRunner
 from typedown.core.analysis.source_provider import SourceProvider, DiskProvider, OverlayProvider
 
 class Compiler:
-    def __init__(self, target: Path, console: Optional[Console] = None):
+    def __init__(self, target: Path, console: Optional[Console] = None, memory_only: bool = False):
         self.target = target.resolve()
         self.console = console or Console()
         self.project_root = find_project_root(self.target)
@@ -23,7 +23,8 @@ class Compiler:
         
         # IO Interface (Overlay Support for LSP)
         self.base_provider = DiskProvider()
-        self.source_provider = OverlayProvider(self.base_provider)
+        # In memory_only mode, OverlayProvider will refuse to read from base_provider
+        self.source_provider = OverlayProvider(self.base_provider, memory_only=memory_only)
         
         # State
         self.documents: Dict[Path, Document] = {}
@@ -99,14 +100,14 @@ class Compiler:
         """Execute internal specs with @target binding."""
         return self.verify_specs()
 
-    def verify_specs(self, spec_filter: Optional[str] = None) -> bool:
+    def verify_specs(self, spec_filter: Optional[str] = None, console: Optional[Console] = None) -> bool:
         """
         Public API to trigger L4 Spec Validation.
         Can run all specs or filter by ID.
         """
         from typedown.core.analysis.spec_executor import SpecExecutor
         
-        spec_executor = SpecExecutor(self.console)
+        spec_executor = SpecExecutor(console or self.console)
         specs_passed = spec_executor.execute_specs(
             self.documents,
             self.symbol_table,
@@ -287,9 +288,9 @@ class Compiler:
         self.dependency_graph = validator.dependency_graph
         
         # Stage 3.5: Specs (Internal Self-Validation)
-        # REMOVED: On-demand only.
-        # if not any(d.severity == "error" for d in self.diagnostics):
-        #     self._run_specs()
+        # Re-enabled for Automatic Validation in Playground
+        if not any(d.severity == "error" for d in self.diagnostics):
+            self._run_specs()
     
     def run_script(
         self,

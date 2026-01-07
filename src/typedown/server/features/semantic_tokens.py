@@ -20,6 +20,9 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
     - Inside Entity Blocks: Enforce STRICT pattern (L0/L1 identifiers only).
     - Outside (Free Text): Allow LOOSE pattern (Query strings).
     """
+    if not ls.is_ready:
+        return SemanticTokens(data=[])
+
     print(f"DEBUG: semantic_tokens called for {params.text_document.uri}")
     try:
         from typedown.server.managers.diagnostics import uri_to_path

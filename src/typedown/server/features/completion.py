@@ -12,6 +12,7 @@ import re
 
 @server.feature(TEXT_DOCUMENT_COMPLETION, CompletionOptions(trigger_characters=["["]))
 def completions(ls: TypedownLanguageServer, params: CompletionParams):
+    if not ls.is_ready: return []
     if not ls.compiler: return []
     
     # Read context to determine if we are in a wiki link

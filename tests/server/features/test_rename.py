@@ -8,6 +8,7 @@ class MockLS:
     def __init__(self):
         self.compiler = MagicMock()
         self.workspace = MagicMock()
+        self.is_ready = True
 
 def test_rename_entity():
     ls = MockLS()

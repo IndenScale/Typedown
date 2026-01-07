@@ -100,6 +100,7 @@ def load_project(ls, params: LoadProjectParams):
             for path_str, content in files.items():
                 # Handle URI or Path
                 path = Path(uri_to_path(path_str)) if "://" in path_str else Path(path_str)
+                logging.info(f"Hydrating: {path}")
                 ls.compiler.source_provider.update_overlay(path, content)
                 
             # 3. Trigger Full Compilation
@@ -107,7 +108,10 @@ def load_project(ls, params: LoadProjectParams):
             # until the project is fully hydrated.
             ls.compiler.compile()
             
-            # 4. Publish Diagnostics
+            # 4. Mark as Ready
+            ls.is_ready = True
+            
+            # 5. Publish Diagnostics
             publish_diagnostics(ls, ls.compiler)
             
         logging.info("Project loaded and compiled successfully.")
@@ -124,7 +128,8 @@ def reset_filesystem(ls, params: Any):
     """
     if ls.compiler and hasattr(ls.compiler.source_provider, "overlay"):
         with ls.lock:
+            ls.is_ready = False # Reset to idle state
             ls.compiler.source_provider.overlay.clear()
-            logging.info("FileSystem Overlay reset.")
+            logging.info("FileSystem Overlay reset. Server is now IDLE.")
             # Optionally recompile to clear diagnostics?
             # ls.compiler.compile() 

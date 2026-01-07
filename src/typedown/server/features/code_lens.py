@@ -34,13 +34,17 @@ CMD_RECOMPILE = "typedown.recompile"
 
 @server.feature(TEXT_DOCUMENT_CODE_LENS)
 def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLens]:
+    if not ls.is_ready: return []
     if not ls.compiler:
         return []
 
     uri = params.text_document.uri
     path = uri_to_path(uri)
     
+    ls.show_message_log(f"CodeLens Request for: {path}")
+    
     if path not in ls.compiler.documents:
+        ls.show_message_log(f"CodeLens: File not found in documents: {path}")
         return []
     
     doc = ls.compiler.documents[path]
@@ -49,6 +53,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
     # 1. Code Lens for Spec Blocks
     for spec in doc.specs:
         if spec.location:
+            ls.show_message_log(f"CodeLens: Found Spec '{spec.id}'")
             # Place at the start line of the block
             lenses.append(CodeLens(
                 range=Range(
@@ -82,6 +87,7 @@ def code_lens(ls: TypedownLanguageServer, params: CodeLensParams) -> List[CodeLe
 @server.command(CMD_RUN_SPEC)
 def run_spec_command(ls: TypedownLanguageServer, *args):
     """Callback for Run Spec lens."""
+    if not ls.is_ready: return
     if not ls.compiler or not args:
         return
 
@@ -114,8 +120,21 @@ def run_spec_command(ls: TypedownLanguageServer, *args):
         # ls.compiler.compile() -> REMOVED: This forces disk scan and overwrites in-memory dirty buffers!
         # Rely on did_change -> update_document -> _recompile_in_memory instead.
         
+        # Prepare capturing console to show output to user
+        from io import StringIO
+        from rich.console import Console
+        
+        output_buffer = StringIO()
+        capturing_console = Console(file=output_buffer, force_terminal=False, width=120)
+        
         # 2. Run L4 Specs explicitly
-        success = ls.compiler.verify_specs(spec_filter=spec_id)
+        success = ls.compiler.verify_specs(spec_filter=spec_id, console=capturing_console)
+        
+        # Capture output and send to client log
+        run_output = output_buffer.getvalue()
+        if run_output:
+             # Use Info type to ensure it shows up clearly
+             ls.show_message_log(f"--- Spec Execution Output ({spec_id}) ---\n{run_output}", MessageType.Info)
         
         # 3. Publish ALL diagnostics (L1+L2+L4)
         # This is critical: if we don't publish, the red squiggles won't show up.
@@ -144,6 +163,7 @@ def run_spec_command(ls: TypedownLanguageServer, *args):
 
 @server.command(CMD_VIEW_FORMER)
 def view_former_command(ls: TypedownLanguageServer, *args):
+    if not ls.is_ready: return
     if not ls.compiler or not args:
         return
     
@@ -169,6 +189,7 @@ def view_former_command(ls: TypedownLanguageServer, *args):
 
 @server.command(CMD_TRIGGER_VALIDATION)
 def trigger_validation_command(ls: TypedownLanguageServer, *args):
+    if not ls.is_ready: return
     if not ls.compiler:
         return
     
@@ -196,6 +217,7 @@ def trigger_validation_command(ls: TypedownLanguageServer, *args):
 
 @server.command(CMD_RECOMPILE)
 def recompile_command(ls: TypedownLanguageServer, *args):
+    if not ls.is_ready: return
     if not ls.compiler:
         return
 
