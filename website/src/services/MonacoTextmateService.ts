@@ -2,7 +2,7 @@ import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
 import { Registry, INITIAL, parseRawGrammar, type IRawTheme } from "vscode-textmate";
 import type { Monaco } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
-import { TYPEDOWN_THEME_RULES_DARK, TYPEDOWN_THEME_RULES_LIGHT } from "@/lib/typedown-theme";
+import { TYPEDOWN_THEME_RULES_DARK } from "@/lib/typedown-theme";
 
 class MonacoTextmateService {
   private wasmLoaded = false;
@@ -108,6 +108,7 @@ class MonacoTextmateService {
               scopeName,
               patterns: [],
               repository: {},
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
             } as any;
           }
 
@@ -136,7 +137,7 @@ class MonacoTextmateService {
    * Injects TextMate highlighting into Monaco.
    * Note: This affects the language globally, not just a specific editor instance.
    */
-  async wire(monaco: Monaco, _editor?: editor.IStandaloneCodeEditor) {
+  async wire(monaco: Monaco) {
     if (!this.wasmLoaded || !this.registry) {
       await this.initialize();
     }
@@ -158,6 +159,7 @@ class MonacoTextmateService {
         // Set the tokens provider for the language
         monaco.languages.setTokensProvider(langId, {
           getInitialState: () => INITIAL,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           tokenizeEncoded: (line: string, state: any) => {
             const tokenizeLineResult2 = grammar.tokenizeLine2(line, state);
             return {

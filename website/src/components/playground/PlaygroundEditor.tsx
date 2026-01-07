@@ -143,7 +143,7 @@ export function PlaygroundEditor() {
     monacoRef.current = monaco;
 
     // Wire TextMate grammar
-    textmateService.wire(monaco, editor).then(() => {
+    textmateService.wire(monaco).then(() => {
       logger.debug("[PlaygroundEditor] TextMate grammar wired");
 
       // Force refresh to apply TextMate highlighting

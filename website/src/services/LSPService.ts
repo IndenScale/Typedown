@@ -154,7 +154,7 @@ export class LSPService {
     const filesPayload: Array<{ uri: string; content: string }> = [];
 
     // Send ALL files, not just open ones
-    Object.entries(currentState.files).forEach(([name, file]) => {
+    Object.entries(currentState.files).forEach(([, file]) => {
       // Ensure logical path (simple mapping for playground)
       const logicalPath = file.path || `/${file.name}`;
       const uri = `file://${logicalPath}`;

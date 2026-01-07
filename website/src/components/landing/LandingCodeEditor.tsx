@@ -86,7 +86,7 @@ export function LandingCodeEditor({
     editorRef.current = editor;
 
     // Wire TextMate grammar
-    await textmateService.wire(monaco, editor);
+    await textmateService.wire(monaco);
     
     // Force refresh to apply TextMate highlighting
     const model = editor.getModel();

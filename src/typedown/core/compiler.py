@@ -235,13 +235,13 @@ class Compiler:
         self._print_diagnostics()
         return not any(d.severity == "error" for d in self.diagnostics)
 
-    def update_document(self, path: Path, content: str):
+    def update_source(self, path: Path, content: str) -> bool:
         """
-        Incremental Update:
-        1. Update Overlay with new content.
-        2. Parse new content into Document.
-        3. Diff with existing Document.
-        4. Re-Link/Re-Validate (In-Memory).
+        Lightweight incremental update:
+        1. Update Overlay.
+        2. Parse new content.
+        3. Update Documents State.
+        Returns True if successful, False if parse failed (but overlay updated).
         """
         try:
             # 1. Update Overlay
@@ -249,19 +249,39 @@ class Compiler:
             
             from typedown.core.parser import TypedownParser
             parser = TypedownParser()
-            # Parse in-memory
-            new_doc = parser.parse_text(content, str(path))
-            
-            # Update State
-            self.documents[path] = new_doc
-            self.target_files.add(path) # Ensure it's tracked
-            
-            # Trigger Fast Recompile (Link + Validate)
-            self._recompile_in_memory()
-            
+            try:
+                # Parse in-memory
+                new_doc = parser.parse_text(content, str(path))
+                # Update State
+                self.documents[path] = new_doc
+                self.target_files.add(path)
+                return True
+            except Exception as e:
+                # Parse error: We still updated overlay (important for text access)
+                # But we can't update the Document AST.
+                # In strict mode, we might remove the document?
+                # For now, keep old document or mark as invalid?
+                # Keeping old document might be confusing.
+                # Let's log and return False.
+                # self.console.print(f"[yellow]Parse Error for {path}: {e}[/yellow]")
+                return False
+                
         except Exception as e:
-            self.console.print(f"[yellow]Incremental Update Failed for {path}: {e}[/yellow]")
-            pass
+            self.console.print(f"[yellow]Source Update Failed for {path}: {e}[/yellow]")
+            return False
+
+    def recompile(self):
+        """
+        Run the full compilation pipeline in-memory (Link -> Validate -> Specs).
+        """
+        self._recompile_in_memory()
+
+    def update_document(self, path: Path, content: str):
+        """
+        Legacy combined method.
+        """
+        if self.update_source(path, content):
+            self.recompile()
 
     def _recompile_in_memory(self):
         """
