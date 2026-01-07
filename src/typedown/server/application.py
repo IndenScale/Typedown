@@ -172,6 +172,7 @@ import typedown.server.features.navigation
 import typedown.server.features.rename
 import typedown.server.features.semantic_tokens
 import typedown.server.features.code_lens
+import typedown.server.features.lifecycle
 
 # ======================================================================================
 # Entry Point

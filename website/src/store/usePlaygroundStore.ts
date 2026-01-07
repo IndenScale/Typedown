@@ -160,51 +160,27 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       // Use get().files to ensure we have the hydrated content
       const currentFiles = get().files;
 
-      // 0. Reset FS to prevent ghost files from previous demos
-      client.sendNotification("typedown/resetFileSystem", {});
+      // 1. Prepare Bulk Payload
+      const filesPayload: Record<string, string> = {};
 
-      // 1. Batch Sync all files to Pyodide FS
-      const syncPromises = Object.entries(currentFiles).map(([name, file]) => {
-        // RESTORE HIERARCHY:
-        // Use the full logical path to avoid collisions (e.g. multiple README.md)
-        // and match the Editor's URI (see PlaygroundEditor updates).
-        const logicalPath = file.path || `/${name}`;
-        
-        // FIX: Remove 'examples' prefix for cleaner virtual paths if desired, 
-        // OR ensure consistency. For now, we trust file.path.
-        // However, Editor model URI is created from file.name or logicalPath?
-        // PlaygroundEditor uses activeFile.name or similar.
-        // Let's ensure URI matches what LSP expects.
-        
-        // NOTE: The issue is that the Editor might be using `file:///rules.td` (basename)
-        // while the Server sees `file:///examples/03_simple_rules/rules.td`.
-        // We must unify them.
-        
-        // Let's FORCE a flat structure for now to avoid confusion, OR strictly use file.path.
-        // But demos.ts has paths like /examples/03_simple_rules/rules.td.
-        // If we use that, the URI is file:///examples/03_simple_rules/rules.td.
-        // But the Monaco Model might be created with just 'rules.td'.
-        
-        // Let's use the file.path as the Source of Truth.
+      Object.values(currentFiles).forEach((file) => {
+        // Use the full logical path to match LSP's view
+        // Ensure we use the exact same logic as the Editor for consistency
+        const logicalPath = file.path || `/${file.name}`;
         const uri = `file://${logicalPath}`;
-        const text = file.content || "";
-
-        // Use raw notification to bypass Monaco constraints
-        return client.sendNotification("typedown/syncFile", {
-          textDocument: { uri, text },
-        });
+        filesPayload[uri] = file.content || "";
       });
 
-      await Promise.all(syncPromises);
+      console.log(
+        "[Playground] Hydrating project with files:",
+        Object.keys(filesPayload)
+      );
 
-      // 2. Trigger Hard Recompile (Server will Scan disk to find new files)
-      client
-        .sendRequest("workspace/executeCommand", {
-          command: "typedown.recompile",
-        })
-        .catch((err) =>
-          console.error("[Playground] Recompile failed:", err)
-        );
+      // 2. Send Bulk Load Notification
+      // This will Populate Overlay -> Scan -> Parse -> Compile -> Publish Diagnostics
+      client.sendNotification("typedown/loadProject", {
+        files: filesPayload,
+      });
     }
   },
 

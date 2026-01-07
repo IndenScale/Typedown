@@ -35,8 +35,22 @@ def load_project(ls, params: LoadProjectParams):
         return
 
     try:
-        # 0. Extract files (already structured by pygls thanks to LoadProjectParams)
-        files = params.files
+        # 0. Extract files from params
+        # In Pyodide/WASM, pygls converts JSON to pygls.protocol.Object instead of dict.
+        # We need to extract the actual dictionary data.
+        files_raw = params.files
+        
+        # Handle both dict (native Python) and Object (Pyodide) types
+        if hasattr(files_raw, '__dict__'):
+            # pygls.protocol.Object case
+            files = vars(files_raw)
+        elif hasattr(files_raw, 'items'):
+            # Already a dict
+            files = files_raw
+        else:
+            # Fallback: try to convert to dict
+            files = dict(files_raw)
+        
         logging.info(f"Loading project with {len(files)} files...")
         
         with ls.lock:
