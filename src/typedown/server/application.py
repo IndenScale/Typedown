@@ -1,8 +1,9 @@
 import logging
 import sys
 import threading
+import asyncio
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Any
 
 from pygls.lsp.server import LanguageServer
 from lsprotocol.types import (
@@ -33,13 +34,16 @@ class TypedownLanguageServer(LanguageServer):
         self.lock = threading.Lock()
         # Pure Functional Architecture: Server is NOT ready until explicitly loaded via loadProject
         self.is_ready = False
+        
+        # Diagnostics Debounce Task
+        self.diagnostics_task: Optional[asyncio.Task] = None
 
     def show_message_log(self, message: str, message_type: MessageType = MessageType.Log):
         """Wrapper to safely show messages to the client log using the built-in window_log_message."""
         self.window_log_message(LogMessageParams(type=message_type, message=message))
 
 # Create the server instance globally so decorators can use it
-server = TypedownLanguageServer("typedown-server", "0.2.16")
+server = TypedownLanguageServer("typedown-server", "0.2.17")
 
 # ======================================================================================
 # Lifecycle Events
@@ -136,11 +140,64 @@ def did_change(ls: TypedownLanguageServer, params: DidChangeTextDocumentParams):
     # We assume full text sync for now (pygls default behavior for syncKind=Full)
     if params.content_changes:
         content = params.content_changes[0].text
+        _update_and_trigger(ls, path, content)
+
+@server.feature("typedown/updateFile")
+def custom_update_file(ls: TypedownLanguageServer, params: Any):
+    """Fallback mechanism for manual file synchronization."""
+    uri = None
+    content = None
+    
+    # Handle dict (standard) vs pygls.protocol.Object (WASM proxy)
+    if isinstance(params, dict):
+        uri = params.get("uri")
+        content = params.get("content")
+    else:
+        # Pydantic model / Object wrapper
+        uri = getattr(params, "uri", None)
+        content = getattr(params, "content", None)
+    
+    if uri and content is not None:
+        path = uri_to_path(uri)
+        _update_and_trigger(ls, path, content)
+
+def _update_and_trigger(ls, path, content):
+    with ls.lock:
+        # 1. IMMEDIATE: Update Memory Overlay & Parse (Fast)
+        # We don't care if parse fails here, as long as content is in overlay for next completions
+        ls.compiler.update_source(path, content)
         
+    # 2. DEBOUNCED: Schedule Validation
+    asyncio.create_task(trigger_diagnostics(ls))
+
+async def trigger_diagnostics(ls: TypedownLanguageServer):
+    """Debounced diagnostics trigger to prevent WASM starvation."""
+    
+    # Cancel previous pending task
+    if ls.diagnostics_task and not ls.diagnostics_task.done():
+        ls.diagnostics_task.cancel()
+        
+    # Create new task
+    ls.diagnostics_task = asyncio.create_task(_run_diagnostics(ls))
+    
+async def _run_diagnostics(ls: TypedownLanguageServer):
+    try:
+        # Wait for debounce period (e.g. 500ms)
+        await asyncio.sleep(0.5)
+        
+        # Run heavy compilation (Link -> Validate -> Specs)
         with ls.lock:
-            # Incremental Update -> Re-Link -> Re-Validate
-            ls.compiler.update_document(path, content)
-            publish_diagnostics(ls, ls.compiler)
+            if ls.compiler:
+                ls.compiler.recompile()
+                publish_diagnostics(ls, ls.compiler)
+                
+    except asyncio.CancelledError:
+        # Expected when a new keypress comes in
+        pass
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        logging.error(f"Diagnostics failed: {e}")
 
 @server.feature(TEXT_DOCUMENT_DID_SAVE)
 def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
