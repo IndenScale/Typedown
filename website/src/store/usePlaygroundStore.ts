@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { debounce } from "lodash";
 import type { MonacoLanguageClient } from "monaco-languageclient";
 import type { Diagnostic } from "vscode-languageserver-protocol";
 import { getDemos } from "@/lib/demos";
@@ -56,6 +57,13 @@ const initialFiles = INITIAL_DEMO.files.reduce((acc, file) => {
   };
   return acc;
 }, {} as Record<string, PlaygroundFile>);
+
+const debouncedLspUpdate = debounce(
+  (client: MonacoLanguageClient, uri: string, content: string) => {
+    client.sendNotification("typedown/updateFile", { uri, content });
+  },
+  200
+); // 200ms Transmission Debounce
 
 export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
   files: initialFiles,
@@ -115,7 +123,7 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       };
     }),
 
-  updateFileContent: (fileName, content) =>
+  updateFileContent: (fileName, content) => {
     set((state) => ({
       files: {
         ...state.files,
@@ -124,7 +132,21 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
           content,
         },
       },
-    })),
+    }));
+
+    // Manual Sync with Debounce
+    const { client, files } = get();
+    if (client) {
+      const file = files[fileName];
+      // Ensure we use the latest content from the fn arg, as state might not update instantly in closure?
+      // Actually set() is synchronous for the store, but good to be safe.
+      // Also stick to the URI convention:
+      const logicalPath = file.path || `/${file.name}`;
+      const uri = `file://${logicalPath}`;
+
+      debouncedLspUpdate(client, uri, content);
+    }
+  },
 
   selectDemo: async (demoId) => {
     const lang = get().lang;
@@ -161,19 +183,22 @@ export const usePlaygroundStore = create<PlaygroundState>((set, get) => ({
       const currentFiles = get().files;
 
       // 1. Prepare Bulk Payload
-      const filesPayload: Record<string, string> = {};
+      const filesPayload: Array<{ uri: string; content: string }> = [];
 
       Object.values(currentFiles).forEach((file) => {
         // Use the full logical path to match LSP's view
         // Ensure we use the exact same logic as the Editor for consistency
         const logicalPath = file.path || `/${file.name}`;
         const uri = `file://${logicalPath}`;
-        filesPayload[uri] = file.content || "";
+        filesPayload.push({
+          uri,
+          content: file.content || "",
+        });
       });
 
       console.log(
         "[Playground] Hydrating project with files:",
-        Object.keys(filesPayload)
+        filesPayload.map((f) => f.uri)
       );
 
       // 2. Send Bulk Load Notification

@@ -4,9 +4,9 @@ Sometimes, static schema validation isn't enough. You need **Business Logic** or
 
 ## Concepts
 
-1.  **`spec`**: A block containing a Python function to validate data.
-2.  **`@target`**: A decorator that tells Typedown which entities to check.
-3.  **Authentication**: The function receives the entity instance as `subject`.
+1. **`spec`**: A block containing a Python function to validate data.
+2. **`@target`**: A decorator that tells Typedown which entities to check.
+3. **Authentication**: The function receives the entity instance as `subject`.
 
 ## How to Run
 

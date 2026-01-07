@@ -112,9 +112,11 @@ export class LSPService {
           synchronize: {
             configurationSection: "typedown",
           },
-          initializationOptions: {
-            semanticTokens: true,
-          },
+                  initializationOptions: {
+                    semanticTokens: true,
+                    mode: "memory",
+                  },
+          
         },
         messageTransports: { reader, writer },
       });
@@ -148,19 +150,24 @@ export class LSPService {
   }
   
   private loadCurrentProject(client: MonacoLanguageClient) {
-      const currentState = usePlaygroundStore.getState();
-      const filesPayload: Record<string, string> = {};
-      
-      // Send ALL files, not just open ones
-      Object.entries(currentState.files).forEach(([name, file]) => {
-           // Ensure logical path (simple mapping for playground)
-           const logicalPath = file.path || `/${file.name}`;
-           const uri = `file://${logicalPath}`;
-           filesPayload[uri] = file.content || "";
+    const currentState = usePlaygroundStore.getState();
+    const filesPayload: Array<{ uri: string; content: string }> = [];
+
+    // Send ALL files, not just open ones
+    Object.entries(currentState.files).forEach(([name, file]) => {
+      // Ensure logical path (simple mapping for playground)
+      const logicalPath = file.path || `/${file.name}`;
+      const uri = `file://${logicalPath}`;
+      filesPayload.push({
+        uri,
+        content: file.content || "",
       });
-      
-      logger.debug(`[LSPService] Loading project with ${Object.keys(filesPayload).length} files.`);
-      client.sendNotification("typedown/loadProject", { files: filesPayload });
+    });
+
+    logger.debug(
+      `[LSPService] Loading project with ${filesPayload.length} files.`
+    );
+    client.sendNotification("typedown/loadProject", { files: filesPayload });
   }
 }
 

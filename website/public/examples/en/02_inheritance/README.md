@@ -4,8 +4,8 @@ Typedown supports Object-Oriented Modeling. You can create a base model and exte
 
 ## Concepts
 
-1.  **Inheritance**: `class Child(Parent):` syntax.
-2.  **Polymorphism**: The `Child` model has all fields from `Parent` plus its own.
+1. **Inheritance**: `class Child(Parent):` syntax.
+2. **Polymorphism**: The `Child` model has all fields from `Parent` plus its own.
 
 ## How to Run
 

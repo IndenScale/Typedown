@@ -10,6 +10,10 @@ import { useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { MarkdownPreview } from "./MarkdownPreview";
 import { textmateService } from "@/services/MonacoTextmateService";
+import {
+  TYPEDOWN_THEME_DARK,
+  TYPEDOWN_THEME_LIGHT,
+} from "@/lib/typedown-theme";
 
 import { useTranslation } from "./TranslationContext";
 
@@ -125,25 +129,9 @@ export function PlaygroundEditor() {
 
     // Define Themes
     // We map both specific TextMate scopes AND generic Semantic Token types
-    monaco.editor.defineTheme("typedown-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [], // Rely purely on LSP Semantic Tokens
-      colors: {
-        "editor.background": "#0A0A0A",
-        "editor.lineHighlightBackground": "#FFFFFF05",
-      },
-    } as MonacoTypes.editor.IStandaloneThemeData);
-
-    monaco.editor.defineTheme("typedown-light", {
-      base: "vs",
-      inherit: true,
-      rules: [], // Rely purely on LSP Semantic Tokens
-      colors: {
-        "editor.background": "#FFFFFF",
-        "editor.lineHighlightBackground": "#00000005",
-      },
-    } as MonacoTypes.editor.IStandaloneThemeData);
+    // Note: We merge base themes with our rules
+    monaco.editor.defineTheme("typedown-dark", TYPEDOWN_THEME_DARK);
+    monaco.editor.defineTheme("typedown-light", TYPEDOWN_THEME_LIGHT);
   }
 
   function handleEditorDidMount(
@@ -157,6 +145,14 @@ export function PlaygroundEditor() {
     // Wire TextMate grammar
     textmateService.wire(monaco, editor).then(() => {
       logger.debug("[PlaygroundEditor] TextMate grammar wired");
+
+      // Force refresh to apply TextMate highlighting
+      const model = editor.getModel();
+      if (model) {
+        const currentLanguage = model.getLanguageId();
+        monaco.editor.setModelLanguage(model, currentLanguage);
+        logger.debug("[PlaygroundEditor] Model language reset to trigger TextMate");
+      }
     });
 
     logger.debug("[PlaygroundEditor] Editor mounted, LSP status:", lspStatus);

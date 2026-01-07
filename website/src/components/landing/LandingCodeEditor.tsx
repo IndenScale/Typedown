@@ -87,6 +87,12 @@ export function LandingCodeEditor({
 
     // Wire TextMate grammar
     await textmateService.wire(monaco, editor);
+    
+    // Force refresh to apply TextMate highlighting
+    const model = editor.getModel();
+    if (model) {
+      monaco.editor.setModelLanguage(model, "typedown");
+    }
 
     // Set initial markers immediately
     if (markers.length > 0) {

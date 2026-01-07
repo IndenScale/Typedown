@@ -6,6 +6,9 @@
       "include": "#entity-block"
     },
     {
+      "include": "#entity-toplevel"
+    },
+    {
       "include": "#config-python-block"
     },
     {
@@ -24,20 +27,7 @@
     }
   },
   "repository": {
-    "entity-block": {
-      "begin": "^(\\s*)(```)(entity)(?:\\s+([a-zA-Z0-9_\\.-]+))?(?:\\s*:\\s*([a-zA-Z0-9_\\.-]+))?(.*)$",
-      "beginCaptures": {
-        "2": { "name": "markup.fenced_code.block.markdown" },
-        "3": { "name": "keyword.control.directive.typedown" },
-        "4": { "name": "entity.name.type.class.typedown" },
-        "5": { "name": "variable.name.instance.typedown" },
-        "6": { "name": "meta.attribute.typedown" }
-      },
-      "end": "^(\\s*)(```)$",
-      "endCaptures": {
-        "2": { "name": "markup.fenced_code.block.markdown" }
-      },
-      "name": "meta.embedded.block.typedown",
+    "yaml-body": {
       "patterns": [
         {
           "comment": "YAML Key (Custom simplified)",
@@ -69,6 +59,42 @@
           "begin": "\"",
           "end": "\"",
           "name": "string.quoted.double.yaml"
+        }
+      ]
+    },
+    "entity-toplevel": {
+      "begin": "^(\\s*)(entity)(?:\\s+([a-zA-Z0-9_\\.-]+))?(?:\\s*:\\s*([a-zA-Z0-9_\\.-]+))?(.*)$",
+      "beginCaptures": {
+        "2": { "name": "keyword.control.directive.typedown" },
+        "3": { "name": "entity.name.type.class.typedown" },
+        "4": { "name": "variable.name.instance.typedown" },
+        "5": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(?=\\S)",
+      "name": "meta.entity.toplevel.typedown",
+      "patterns": [
+        {
+          "include": "#yaml-body"
+        }
+      ]
+    },
+    "entity-block": {
+      "begin": "^(\\s*)(```)(entity)(?:\\s+([a-zA-Z0-9_\\.-]+))?(?:\\s*:\\s*([a-zA-Z0-9_\\.-]+))?(.*)$",
+      "beginCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" },
+        "3": { "name": "keyword.control.directive.typedown" },
+        "4": { "name": "entity.name.type.class.typedown" },
+        "5": { "name": "variable.name.instance.typedown" },
+        "6": { "name": "meta.attribute.typedown" }
+      },
+      "end": "^(\\s*)(```)$",
+      "endCaptures": {
+        "2": { "name": "markup.fenced_code.block.markdown" }
+      },
+      "name": "meta.embedded.block.typedown",
+      "patterns": [
+        {
+          "include": "#yaml-body"
         }
       ]
     },

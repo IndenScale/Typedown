@@ -2,18 +2,18 @@
 
 We use a `spec` to enforce logic that requires runtime calculation (e.g., "today").
 
-```model: Book
-class Book(BaseModel):
+```model: DatedBook
+class DatedBook(BaseModel):
     title: str
     published_date: date
 ```
 
-## The Logic (Spec)
+## The Spec
 
-This function runs for **every** entity of type `Book`.
+This function will run for **every** entity of type `DatedBook`.
 
 ```spec: check_publication_date
-@target(type="Book")
+@target(type="DatedBook")
 def check_publication_date(subject):
     """Ensure book is not from the future."""
     from datetime import date
@@ -23,12 +23,12 @@ def check_publication_date(subject):
 
 ## The Data
 
-```entity Book: old_book
+```entity DatedBook: old_book
 title: "Generic History Book"
 published_date: 1990-01-01
 ```
 
-```entity Book: future_book
+```entity DatedBook: future_book
 title: "Time Traveler's Guide"
 published_date: 2099-01-01
 ```
