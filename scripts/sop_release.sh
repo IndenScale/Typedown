@@ -43,9 +43,12 @@ perl -pi -e "s/^version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" pypr
 # Update extension package.json
 perl -pi -e "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" extensions/vscode/package.json
 
+# Update server application.py
+# Targets: server = TypedownLanguageServer("typedown-server", "x.y.z")
+perl -pi -e "s/\"typedown-server\", \"$CURRENT_VERSION\"/\"typedown-server\", \"$NEW_VERSION\"/" src/typedown/server/application.py
+
 # Git Commit & Tag
-# NOTE: The Agent might want to review this, but the script does the work.
-git add pyproject.toml extensions/vscode/package.json
+git add pyproject.toml extensions/vscode/package.json src/typedown/server/application.py
 git commit -m "chore: bump version to v$NEW_VERSION"
 git tag "v$NEW_VERSION"
 
