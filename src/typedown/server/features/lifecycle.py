@@ -36,22 +36,51 @@ def load_project(ls, params: LoadProjectParams):
 
     try:
         # 0. Extract files from params
-        # In Pyodide/WASM, pygls converts JSON to pygls.protocol.Object instead of dict.
-        # We need to extract the actual dictionary data.
-        files_raw = params.files
+        # CRITICAL INSIGHT: In Pyodide/WASM, pygls converts JSON to pygls.protocol.Object.
+        # This Object stores JSON key-value pairs as ATTRIBUTES, not dict items.
+        # 
+        # Example JSON: {"files": {"file:///a.td": "content"}}
+        # After pygls.structure_message():
+        #   - params is a LoadProjectParams instance (or Object)
+        #   - params.files is an Object with attribute "file:///a.td" = "content"
+        #
+        # We need to extract these attributes into a proper dict.
         
-        # Handle both dict (native Python) and Object (Pyodide) types
-        if hasattr(files_raw, '__dict__'):
-            # pygls.protocol.Object case
-            files = vars(files_raw)
-        elif hasattr(files_raw, 'items'):
-            # Already a dict
+        files_raw = params.files
+        files = {}
+        
+        # Debug: Log the actual type
+        logging.info(f"DEBUG: files_raw type: {type(files_raw)}")
+        logging.info(f"DEBUG: files_raw class name: {files_raw.__class__.__name__}")
+        
+        # Strategy 1: Check if it's already a dict
+        if isinstance(files_raw, dict):
+            logging.info("DEBUG: files_raw is already a dict")
             files = files_raw
+        # Strategy 2: Try to use __dict__ to get attributes
+        elif hasattr(files_raw, '__dict__'):
+            logging.info("DEBUG: Extracting from __dict__")
+            # Get all attributes, filter out private/magic ones
+            obj_dict = files_raw.__dict__
+            logging.info(f"DEBUG: __dict__ keys: {list(obj_dict.keys())[:5]}")  # Show first 5
+            
+            # The actual file mappings are stored as attributes
+            # We need to iterate over all attributes and extract those that look like URIs
+            for key, value in obj_dict.items():
+                if not key.startswith('_'):  # Skip private attributes
+                    files[key] = value
+        # Strategy 3: Use dir() and getattr()
         else:
-            # Fallback: try to convert to dict
-            files = dict(files_raw)
+            logging.info("DEBUG: Using dir() and getattr()")
+            for attr in dir(files_raw):
+                if not attr.startswith('_'):  # Skip private/magic attributes
+                    value = getattr(files_raw, attr)
+                    if isinstance(value, str):  # Only include string values (file content)
+                        files[attr] = value
         
         logging.info(f"Loading project with {len(files)} files...")
+        if len(files) > 0:
+            logging.info(f"DEBUG: First file URI: {list(files.keys())[0]}")
         
         with ls.lock:
             # 1. Clear previous overlay (Fresh Start)
