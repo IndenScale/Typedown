@@ -9,6 +9,9 @@ import clsx from "clsx";
 import { useEffect, useRef } from "react";
 import { logger } from "@/lib/logger";
 import { MarkdownPreview } from "./MarkdownPreview";
+import { textmateService } from "@/services/MonacoTextmateService";
+
+import { useTranslation } from "./TranslationContext";
 
 export function PlaygroundEditor() {
   const {
@@ -19,7 +22,6 @@ export function PlaygroundEditor() {
     openFile: selectFile,
     closeFile,
     lspStatus,
-    lang,
     diagnostics,
   } = usePlaygroundStore();
 
@@ -32,6 +34,7 @@ export function PlaygroundEditor() {
     null
   );
   const monacoRef = useRef<Monaco | null>(null);
+  const t = useTranslation();
 
   // Note: LSP Client is now managed globally in RootLayout via <GlobalLSPManager />
 
@@ -49,82 +52,7 @@ export function PlaygroundEditor() {
     }
 
     // Configure Monarch tokenizer for Typedown
-    monaco.languages.setMonarchTokensProvider("typedown", {
-      tokenizer: {
-        root: [
-          // Headers
-          [/^#\s.*$/, "keyword.directive"],
-
-          // Code block markers (Consolidated for Monarch stability)
-          [
-            /^(\s*)(```)(entity)(\s+)([^:\s]+)(\s*:\s*)([^\s]+)(.*)$/,
-            [
-              "",
-              "keyword.control",
-              "keyword.control",
-              "",
-              "type.identifier",
-              "",
-              "variable.name",
-              "meta.attribute",
-            ],
-          ],
-          [
-            /^(\s*)(```)(entity|model|spec|config)(\s*[:\s]\s*)([^\s]+)(.*)$/,
-            [
-              "",
-              "keyword.control",
-              "keyword.control",
-              "",
-              "type.identifier",
-              "meta.attribute",
-            ],
-          ],
-          [
-            /^(\s*)(```)(entity|model|spec|config)(.*)$/,
-            ["", "keyword.control", "keyword.control", "meta.attribute"],
-          ],
-          [/^(\s*)(```)(\s*)$/, ["", "keyword.control", ""]],
-
-          // Python keywords (Using non-capturing groups to prevent Monarch "consecutive groups" errors)
-          [
-            /\b(?:class|def|if|else|elif|return|raise|import|from|pass|assert|try|except|finally|with|as|for|in|while|break|continue)\b/,
-            "keyword",
-          ],
-          // Python types
-          [
-            /\b(?:BaseModel|Field|field_validator|model_validator|Literal|Optional|List|Dict|Union|Any|Annotated|str|int|float|bool|list|dict|tuple|set|None|True|False)\b/,
-            "type",
-          ],
-          // Decorators
-          [/@\w+/, "annotation"],
-          // Strings
-          [/"([^"\\]|\\.)*$/, "string.invalid"],
-          [/"/, "string", "@string_double"],
-          [/'([^'\\]|\\.)*$/, "string.invalid"],
-          [/'/, "string", "@string_single"],
-          // Numbers
-          [/\d+\.\d+/, "number.float"],
-          [/\d+/, "number"],
-          // Comments
-          [/#.*$/, "comment"],
-          // Wiki-style references
-          [/\[\[.*?\]\]/, "string.link"],
-          // Keys (YAML-style)
-          [/^\s*[\w\.-]+:/, "variable.name"],
-        ],
-        string_double: [
-          [/[^\\"]+/, "string"],
-          [/\\./, "string.escape"],
-          [/"/, "string", "@pop"],
-        ],
-        string_single: [
-          [/[^\\']+/, "string"],
-          [/\\./, "string.escape"],
-          [/'/, "string", "@pop"],
-        ],
-      },
-    });
+    // REMOVED: Switched to TextMate grammar via textmateService
 
     logger.debug("[PlaygroundEditor] Monarch tokenizer configured");
 
@@ -225,6 +153,11 @@ export function PlaygroundEditor() {
     // Store references for later use
     editorRef.current = editor;
     monacoRef.current = monaco;
+
+    // Wire TextMate grammar
+    textmateService.wire(monaco, editor).then(() => {
+      logger.debug("[PlaygroundEditor] TextMate grammar wired");
+    });
 
     logger.debug("[PlaygroundEditor] Editor mounted, LSP status:", lspStatus);
 
@@ -429,7 +362,9 @@ export function PlaygroundEditor() {
     const timer = setTimeout(() => {
       const { client } = usePlaygroundStore.getState();
       if (client) {
-        logger.debug("[PlaygroundEditor] Triggering delayed full validation (5s)...");
+        logger.debug(
+          "[PlaygroundEditor] Triggering delayed full validation (5s)..."
+        );
         client
           .sendRequest("workspace/executeCommand", {
             command: "typedown.triggerValidation",
@@ -515,14 +450,8 @@ export function PlaygroundEditor() {
         ) : (
           <div className="flex h-full items-center justify-center text-gray-500 text-sm">
             <div className="text-center">
-              <p className="mb-2">
-                {lang === "zh" ? "未打开文件" : "No file is open."}
-              </p>
-              <p className="text-xs opacity-60">
-                {lang === "zh"
-                  ? "从资源管理器中选择一个文件开始编辑。"
-                  : "Select a file from the explorer to start editing."}
-              </p>
+              <p className="mb-2">{t.editor.noFileOpen}</p>
+              <p className="text-xs opacity-60">{t.editor.selectFile}</p>
             </div>
           </div>
         )}

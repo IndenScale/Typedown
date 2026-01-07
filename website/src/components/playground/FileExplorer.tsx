@@ -1,8 +1,9 @@
 "use client";
 
 import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { FileCode, FileType } from "lucide-react";
+import { FileCode, FileText } from "lucide-react";
 import { clsx } from "clsx";
+import { useTranslation } from "./TranslationContext";
 
 function getFileIcon(fileName: string) {
   if (fileName.endsWith(".td"))
@@ -10,7 +11,7 @@ function getFileIcon(fileName: string) {
   if (fileName.endsWith(".py"))
     return <FileCode size={14} className="text-blue-400" />;
   if (fileName.endsWith(".md"))
-    return <FileType size={14} className="text-gray-400" />;
+    return <FileText size={14} className="text-gray-400" />;
   return <FileCode size={14} />;
 }
 
@@ -19,14 +20,14 @@ export function FileExplorer() {
     files: filesRecord,
     activeFileName,
     openFile: selectFile,
-    lang,
   } = usePlaygroundStore();
   const files = Object.values(filesRecord);
+  const t = useTranslation();
 
   return (
     <div className="flex flex-col w-64 border-r border-black/5 dark:border-white/5 bg-gray-50/50 dark:bg-[#0A0A0A]">
       <div className="p-4 text-xs font-bold text-gray-400 uppercase tracking-wider">
-        {lang === "zh" ? "资源管理器" : "Explorer"}
+        {t.explorer.title}
       </div>
       <div className="flex-1 overflow-y-auto">
         {files.map((file) => (

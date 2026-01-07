@@ -1,84 +1,97 @@
-import { loadWASM } from "vscode-oniguruma";
-import { Registry } from "monaco-textmate";
-import { wireTmGrammars } from "monaco-editor-textmate";
+import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
+import { Registry, INITIAL, parseRawGrammar } from "vscode-textmate";
 import type { Monaco } from "@monaco-editor/react";
 import type { editor } from "monaco-editor";
 
 class MonacoTextmateService {
   private wasmLoaded = false;
   private registry: Registry | null = null;
-  private grammars = new Map<string, string>(); // langId -> scopeName
-
-  constructor() {
-    this.grammars.set("typedown", "source.typedown");
-    // python is often embedded but can be standalone
-    this.grammars.set("python", "source.python");
-  }
+  
+  // Mapping of languageId -> scopeName
+  private grammars = new Map<string, string>([
+    ["typedown", "source.typedown"],
+    ["python", "source.python"],
+  ]);
 
   /**
    * Loads the Oniguruma WASM and initializes the TextMate registry.
-   * This should be called once, lazily.
    */
   async initialize() {
     if (this.wasmLoaded) return;
 
     try {
       // Load WASM
-      // Note: We assume onig.wasm is served from /public
       const response = await fetch("/onig.wasm");
       if (!response.ok) {
         throw new Error(`Failed to fetch onig.wasm: ${response.statusText}`);
       }
       const data = await response.arrayBuffer();
+      
+      // Initialize vscode-oniguruma
       await loadWASM(data);
       this.wasmLoaded = true;
 
-      // Init Registry
+      // Initialize vscode-textmate Registry
       this.registry = new Registry({
-        getGrammarDefinition: async (scopeName) => {
+        onigLib: Promise.resolve({
+          createOnigScanner: (sources) => new OnigScanner(sources),
+          createOnigString: (str) => new OnigString(str)
+        }),
+        loadGrammar: async (scopeName) => {
           let path = "";
-          if (scopeName === "source.typedown")
-            path = "/grammars/typedown.tmLanguage.json";
-          else if (scopeName === "source.python")
-            path = "/grammars/python.tmLanguage.json";
-          else if (scopeName === "text.html.markdown")
-            path = "/grammars/markdown.tmLanguage.json";
+          if (scopeName === "source.typedown") path = "/grammars/typedown.tmLanguage.json";
+          else if (scopeName === "source.python") path = "/grammars/python.tmLanguage.json";
+          else if (scopeName === "text.html.markdown") path = "/grammars/markdown.tmLanguage.json";
 
           if (!path) {
-            // Fallback or error
             console.warn(`Unknown scope name requested: ${scopeName}`);
-            return null as any; // eslint-disable-line @typescript-eslint/no-explicit-any
+            return null;
           }
 
           const res = await fetch(path);
-          if (!res.ok) {
-            throw new Error(
-              `Failed to fetch grammar ${path}: ${res.statusText}`
-            );
-          }
-          const content = await res.json();
-          return { format: "json", content };
+          if (!res.ok) throw new Error(`Failed to fetch grammar ${path}: ${res.statusText}`);
+          
+          const content = await res.text();
+          // parseRawGrammar handles both JSON and PLIST based on content/filename
+          return parseRawGrammar(content, path); 
         },
       });
+
     } catch (e) {
       console.error("[MonacoTextmateService] Initialization failed:", e);
-      // We might want to set a 'failed' state so we don't retry incessantly
     }
   }
 
   /**
-   * Injects TextMate highlighting into the given editor instance.
+   * Injects TextMate highlighting into Monaco.
+   * Note: This affects the language globally, not just a specific editor instance.
    */
-  async wire(monaco: Monaco, editor: editor.IStandaloneCodeEditor) {
+  async wire(monaco: Monaco, _editor?: editor.IStandaloneCodeEditor) {
     if (!this.wasmLoaded || !this.registry) {
       await this.initialize();
     }
 
-    if (this.registry) {
+    if (!this.registry) return;
+
+    // Wire up each language
+    for (const [langId, scopeName] of this.grammars) {
       try {
-        await wireTmGrammars(monaco, this.registry, this.grammars, editor);
+        const grammar = await this.registry.loadGrammar(scopeName);
+        if (!grammar) continue;
+
+        // Set the tokens provider for the language
+        monaco.languages.setTokensProvider(langId, {
+          getInitialState: () => INITIAL,
+          tokenizeEncoded: (line: string, state: any) => {
+            const tokenizeLineResult2 = grammar.tokenizeLine2(line, state);
+            return {
+              tokens: tokenizeLineResult2.tokens,
+              endState: tokenizeLineResult2.ruleStack
+            };
+          }
+        });
       } catch (e) {
-        console.error("[MonacoTextmateService] Wiring failed:", e);
+        console.error(`[MonacoTextmateService] Failed to wire grammar for ${langId}:`, e);
       }
     }
   }

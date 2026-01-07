@@ -10,13 +10,16 @@ from typedown.core.base.utils import IgnoreMatcher
 from typedown.core.base.config import ScriptConfig
 from typedown.core.base.errors import TypedownError
 
+from typedown.core.analysis.source_provider import SourceProvider, DiskProvider
+
 class Scanner:
-    def __init__(self, project_root: Path, console: Console):
+    def __init__(self, project_root: Path, console: Console, provider: Optional[SourceProvider] = None):
         self.project_root = project_root
         self.console = console
         self.parser = TypedownParser()
         self.ignore_matcher = IgnoreMatcher(project_root)
         self.diagnostics: List[TypedownError] = []
+        self.provider = provider or DiskProvider()
 
     def scan(self, target: Path, script: Optional[ScriptConfig] = None) -> Tuple[Dict[Path, Document], Set[Path]]:
         """
@@ -31,34 +34,26 @@ class Scanner:
         
         self.console.print("  [dim]Stage 1: Scanning content...[/dim]")
 
-        if target.is_file():
-            self._process_file(target, documents)
-            target_files.add(target)
-        else:
-            extensions = {".md", ".td"}
-            for root, dirs, files in os.walk(target):
-                root_path = Path(root)
-                
-                # Prune ignored dirs
-                dirs[:] = [d for d in dirs if not self.ignore_matcher.is_ignored(root_path / d)]
-                
-                for file in files:
-                    file_path = root_path / file
-                    if file_path.suffix in extensions:
-                        if not self.ignore_matcher.is_ignored(file_path):
-                            # Script Logic
-                            is_match = True
-                            if script:
-                                is_match = self._matches_script(file_path, script)
-                            
-                            # In strict mode, only find files matching the script
-                            if strict and not is_match:
-                                continue 
-                            
-                            self._process_file(file_path, documents)
-                            
-                            if is_match:
-                                target_files.add(file_path)
+        extensions = {".md", ".td"}
+        
+        # Use provider to find files (Capabilities: Disk + Memory Overlay)
+        # Note: If target is a file (physically or virtual), provider.list_files handles it.
+        candidates = list(self.provider.list_files(target, extensions, self.ignore_matcher))
+
+        for file_path in candidates:
+             # Script Logic (Filtering)
+             is_match = True
+             if script:
+                 is_match = self._matches_script(file_path, script)
+             
+             # In strict mode, only find files matching the script
+             if strict and not is_match:
+                 continue 
+             
+             self._process_file(file_path, documents)
+             
+             if is_match:
+                 target_files.add(file_path)
 
         # ---------------------------------------------------------
         # Critical Fix: Ancestry Config Loading
@@ -78,10 +73,8 @@ class Scanner:
             while True:
                 config_path = current / "config.td"
                 
-                # Check if exists and not already loaded (to avoid double parsing)
-                if config_path.exists() and config_path not in documents:
-                    # Note: We do NOT add it to 'target_files' because it's
-                    # context infrastructure, not the user's focus target.
+                # Check if exists (via Provider) and not already loaded
+                if self.provider.exists(config_path) and config_path not in documents:
                     self._process_file(config_path, documents)
                 
                 if current == self.project_root:
@@ -105,7 +98,9 @@ class Scanner:
 
     def _process_file(self, path: Path, documents: Dict[Path, Document]):
         try:
-            doc = self.parser.parse(path)
+            # Use provider to read content (Memory > Disk)
+            content = self.provider.get_content(path)
+            doc = self.parser.parse_text(content, str(path))
             documents[path] = doc
         except Exception as e:
             self.console.print(f"[yellow]Warning:[/yellow] Failed to parse {path}: {e}")

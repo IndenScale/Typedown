@@ -1,0 +1,25 @@
+# Content Synchronization Configuration
+# Defines which local directories/files should be synced to the website public directory.
+
+sync_targets:
+  - source: "docs"
+    destination: "website/public/docs"
+    # Whitelist approach: only these items (and their children) will be synced
+    include:
+      - "zh"
+      - "en"
+    # Optional: exclusions within the included paths
+    exclude: []
+
+  - source: "examples"
+    destination: "website/public/examples"
+    include:
+      - "zh"
+      - "en"
+    exclude: []
+
+# Options regarding sync behavior
+options:
+  # If true, destination directories will be cleaned before copying (but preserving 'exclude' logic if complicated)
+  # For safety, we might implement a 'smart clean' that only removes files that are not in the source but are in the destination/whitelist.
+  clean_destination: true

@@ -275,7 +275,7 @@ class SpecExecutor:
             return [AttributeWrapper(row, entity_id=row.get("_id")) for row in results]
 
         setattr(ctx, "sql", sql_wrapper)
-        
+
         # Inject Blame API
         blame_registry = BlameRegistry()
         setattr(ctx, "blame_registry", blame_registry)

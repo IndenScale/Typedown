@@ -3,8 +3,10 @@
 import { DemoSelector } from "./DemoSelector";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { useTranslation } from "./TranslationContext";
 
 export function PlaygroundHeader() {
+  const t = useTranslation();
   return (
     <header className="h-14 flex items-center justify-between px-4 border-b border-black/5 dark:border-white/5 bg-white dark:bg-[#0A0A0A]">
       <div className="flex items-center gap-4">
@@ -16,7 +18,7 @@ export function PlaygroundHeader() {
         <div className="font-bold text-lg tracking-tight">
           Typedown{" "}
           <span className="text-xs font-mono font-normal text-success bg-success/10 px-1.5 py-0.5 rounded ml-1">
-            PLAYGROUND
+            {t.header.title}
           </span>
         </div>
       </div>

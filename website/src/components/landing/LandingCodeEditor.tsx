@@ -6,6 +6,11 @@ import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { FileCode } from "lucide-react";
 import { useTheme } from "next-themes";
+import {
+  TYPEDOWN_THEME_DARK,
+  TYPEDOWN_THEME_LIGHT,
+} from "@/lib/typedown-theme";
+import { textmateService } from "@/services/MonacoTextmateService";
 
 function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -48,82 +53,45 @@ export function LandingCodeEditor({
     setMounted(true);
   }, []);
 
-  // Removed problematic useEffect that synced prop to state
-  // Instead, we derive the height during render
-
   function handleBeforeMount(monaco: Monaco) {
     // Register Typedown language
-    monaco.languages.register({ id: "typedown" });
-
-    monaco.languages.setMonarchTokensProvider("typedown", {
-      tokenizer: {
-        root: [
-          [/^#\s.*$/, "keyword.directive"], // Headers
-          [/^```\w+.*$/, "string.link"], // Code block start
-          [/^```$/, "string.link"], // Code block end
-          [/entity\s+[A-Z][\w]*:/, "keyword"], // Entity declaration
-          [/[a-z_][\w]*:/, "type.identifier"], // Keys
-          [/"[^"]*"/, "string"],
-          [/\d+/, "number"],
-          [/#.*$/, "comment"],
-          [/\[\[.*?\]\]/, "string.link"], // Wiki-links
-          // Python-like keywords for inside blocks (simplified)
-          [/\b(class|def|if|else|return|raise|import|from|pass)\b/, "keyword"],
-          [/\b(BaseModel)\b/, "type.identifier"],
-        ],
-      },
-    });
+    if (
+      !monaco.languages
+        .getLanguages()
+        .some((l: { id: string }) => l.id === "typedown")
+    ) {
+      monaco.languages.register({ id: "typedown" });
+    }
 
     // Define Dark Theme
-    monaco.editor.defineTheme("typedown-dark", {
-      base: "vs-dark",
-      inherit: true,
-      rules: [
-        { token: "keyword", foreground: "ff5f56", fontStyle: "bold" },
-        { token: "keyword.directive", foreground: "ffffff", fontStyle: "bold" },
-        { token: "type.identifier", foreground: "27c93f" },
-        { token: "string", foreground: "ffbd2e" },
-        { token: "string.link", foreground: "569cd6", fontStyle: "underline" },
-        { token: "comment", foreground: "6a737d" },
-      ],
-      colors: {
-        "editor.background": "#0A0A0A",
-        "editor.lineHighlightBackground": "#FFFFFF05",
-      },
-    });
+    monaco.editor.defineTheme("typedown-dark", TYPEDOWN_THEME_DARK);
 
     // Define Light Theme
-    monaco.editor.defineTheme("typedown-light", {
-      base: "vs",
-      inherit: true,
-      rules: [
-        { token: "keyword", foreground: "d73a49", fontStyle: "bold" },
-        { token: "keyword.directive", foreground: "24292e", fontStyle: "bold" },
-        { token: "type.identifier", foreground: "22863a" },
-        { token: "string", foreground: "032f62" },
-        { token: "string.link", foreground: "005cc5", fontStyle: "underline" },
-        { token: "comment", foreground: "6a737d" },
-      ],
-      colors: {
-        "editor.background": "#FFFFFF",
-        "editor.lineHighlightBackground": "#00000005",
-      },
-    });
+    monaco.editor.defineTheme("typedown-light", TYPEDOWN_THEME_LIGHT);
   }
 
+  // Handle markers updates (e.g. if props change after mount)
   useEffect(() => {
     if (editorRef.current && monaco && markers.length > 0) {
       monaco.editor.setModelMarkers(
         editorRef.current.getModel(),
-        "owner",
+        "typedown",
         markers
       );
     }
   }, [monaco, markers]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  function handleEditorDidMount(editor: any) {
+  async function handleEditorDidMount(editor: any, monaco: Monaco) {
     editorRef.current = editor;
+
+    // Wire TextMate grammar
+    await textmateService.wire(monaco, editor);
+
+    // Set initial markers immediately
+    if (markers.length > 0) {
+      monaco.editor.setModelMarkers(editor.getModel(), "typedown", markers);
+    }
 
     // Disable scrolling beyond last line
     editor.updateOptions({

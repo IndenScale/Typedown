@@ -3,6 +3,7 @@ import { getSidebar } from "@/lib/docs";
 import Link from "next/link";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { getDictionary } from "@/dictionaries";
 
 export default async function PhilosophyLayout({
   children,
@@ -13,10 +14,11 @@ export default async function PhilosophyLayout({
 }) {
   const { lang } = await params;
   const sidebar = getSidebar(lang, "philosophy");
+  const dict = getDictionary(lang);
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header />
+      <Header nav={dict.nav} />
       <div className="flex flex-1 justify-center">
         <div className="flex w-full max-w-[90rem] px-6">
           <aside className="hidden w-64 flex-shrink-0 border-r border-black/5 dark:border-white/5 py-10 sm:block">
@@ -33,8 +35,7 @@ export default async function PhilosophyLayout({
                           <li key={item.href}>
                             <Link
                               href={item.href}
-                              className="block pl-4 text-sm text-gray-500 hover:text-foreground transition-colors"
-                            >
+                              className="block pl-4 text-sm text-gray-500 hover:text-foreground transition-colors">
                               {item.title}
                             </Link>
                           </li>
@@ -44,8 +45,7 @@ export default async function PhilosophyLayout({
                   ) : (
                     <Link
                       href={section.href}
-                      className="block text-sm font-semibold text-gray-500 hover:text-foreground transition-colors"
-                    >
+                      className="block text-sm font-semibold text-gray-500 hover:text-foreground transition-colors">
                       {section.title}
                     </Link>
                   )}
@@ -53,12 +53,10 @@ export default async function PhilosophyLayout({
               ))}
             </nav>
           </aside>
-          <main className="flex-1 py-10 pl-0 sm:pl-10 min-w-0">
-            {children}
-          </main>
+          <main className="flex-1 py-10 pl-0 sm:pl-10 min-w-0">{children}</main>
         </div>
       </div>
-      <Footer />
+      <Footer content={dict.footer} />
     </div>
   );
 }

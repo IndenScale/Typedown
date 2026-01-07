@@ -8,7 +8,13 @@ import { Moon, Sun, Github, ChevronDown, Menu, X } from "lucide-react";
 import { useParams, usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
-export function Header() {
+import { Dictionary } from "@/dictionaries/types";
+
+interface HeaderProps {
+  nav: Dictionary["nav"];
+}
+
+export function Header({ nav }: HeaderProps) {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
   const [langOpen, setLangOpen] = React.useState(false);
@@ -49,7 +55,6 @@ export function Header() {
   }
 
   const isDark = theme === "dark";
-  const isZh = lang === "zh";
 
   const getNewPathname = (newLang: string) => {
     // Simple replacement might be risky if URL structure is complex,
@@ -69,11 +74,11 @@ export function Header() {
   ];
 
   const navLinks = [
-    { href: `/${lang}/philosophy`, label: isZh ? "理念" : "Philosophy" },
-    { href: `/${lang}/docs`, label: isZh ? "文档" : "Docs" },
+    { href: `/${lang}/philosophy`, label: nav.philosophy },
+    { href: `/${lang}/docs`, label: nav.docs },
     {
       href: `/${lang}/playground`,
-      label: "Playground",
+      label: nav.playground,
       className: "text-success font-semibold",
     },
   ];

@@ -2,6 +2,7 @@ import { LandingCodeEditor } from "@/components/landing/LandingCodeEditor";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
+import { getDictionary } from "@/dictionaries";
 
 export function generateStaticParams() {
   return [{ lang: "en" }, { lang: "zh" }];
@@ -13,122 +14,109 @@ export default async function Home({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-
+  const dict = getDictionary(lang);
   const isZh = lang === "zh";
 
+  const hero = dict.home.hero;
+  const features = dict.home.features;
+  const showcase = dict.home.showcase;
+  const ai = dict.home.ai;
+
   const content = {
-    title: isZh ? (
+    title: (
       <>
-        编写 Markdown 拥有
+        {hero.title_start}
         <span className="text-success underline decoration-success/30 underline-offset-8">
-          规模化
+          {hero.title_highlight}
         </span>
-        的能力。
-      </>
-    ) : (
-      <>
-        Markdown that{" "}
-        <span className="text-success underline decoration-success/30 underline-offset-8">
-          scales
-        </span>
-        .
+        {hero.title_end}
       </>
     ),
-    description: isZh ? (
+    description: (
       <>
-        基于 Markdown、Pydantic 和 Pytest 构建可信知识库。
-        <br />
-        代码的严谨性与自然语言的流动性在此共生。
-      </>
-    ) : (
-      <>
-        Build trusted knowledge bases with Markdown, Pydantic, and Pytest.
-        <br />
-        The rigor of code meets the fluidity of natural language.
+        {hero.description_start}
+        {hero.description_highlight && (
+          <span className="text-success"> {hero.description_highlight}</span>
+        )}
+        {hero.description_end && <br />}
+        {hero.description_end}
       </>
     ),
-    installBtn: isZh ? "安装扩展" : "Install Extension",
-    playgroundBtn: isZh ? "尝试 Playground" : "Try Playground",
-    openVsx: isZh ? "也可在 Open VSX 获取" : "Also available on Open VSX",
+    installBtn: hero.installBtn,
+    playgroundBtn: hero.playgroundBtn,
+    openVsx: hero.openVsx,
     features: [
       {
-        title: isZh ? "结构先行 (Schema-First)" : "Schema-First",
-        description: isZh ? (
+        title: features.schema.title,
+        description: (
           <>
-            使用 <span className="text-success">Pydantic</span>{" "}
-            模型定义知识库结构。终结无序的文档混乱。
-          </>
-        ) : (
-          <>
-            Define the structure of your knowledge base using
-            <span className="text-success"> Pydantic</span> models. No more
-            unstructured chaos.
+            {features.schema.desc_start}
+            <span className="text-success">
+              {features.schema.desc_highlight}
+            </span>
+            {features.schema.desc_end}
           </>
         ),
       },
       {
-        title: isZh ? "逻辑约束" : "Logic Constraints",
-        description: isZh ? (
+        title: features.logic.title,
+        description: (
           <>
-            使用原生 <span className="text-success">Python</span>{" "}
-            编写校验规则。只要逻辑在代码中成立，它在现实中就成立。
-          </>
-        ) : (
-          <>
-            Write validation rules in pure
-            <span className="text-success"> Python</span>. If the logic holds in
-            code, it holds in reality.
+            {features.logic.desc_start}
+            <span className="text-success">
+              {features.logic.desc_highlight}
+            </span>
+            {features.logic.desc_end}
           </>
         ),
       },
       {
-        title: isZh ? "即时反馈" : "Instant Feedback",
-        description: isZh ? (
+        title: features.feedback.title,
+        description: (
           <>
-            直接在 <span className="text-success">编辑器中</span>{" "}
-            捕获逻辑矛盾和数据错误，就像为你的笔记配备了编译器。
-          </>
-        ) : (
-          <>
-            Catch logical contradictions and data errors
-            <span className="text-success"> directly in the editor</span>, just
-            like a compiler for your notes.
+            {features.feedback.desc_start}
+            <span className="text-success">
+              {features.feedback.desc_highlight}
+            </span>
+            {features.feedback.desc_end}
           </>
         ),
       },
     ],
-    exploreMore: isZh
-      ? "在 Playground 中探索更多示例"
-      : "Explore more examples in Playground",
-    or: isZh ? "或" : "or",
-    readDocs: isZh ? "阅读语法文档" : "Read syntax documentation",
-    aiTitle: isZh ? (
+    exploreMore: showcase.exploreMore,
+    or: showcase.or,
+    readDocs: showcase.readDocs,
+    aiTitle: (
       <>
-        为 <span className="text-success">AI 时代</span> 而生。
-      </>
-    ) : (
-      <>
-        Built for the <span className="text-success">AI Era</span>.
+        {ai.title_start}
+        <span className="text-success">{ai.title_highlight}</span>
+        {ai.title_end}
       </>
     ),
-    aiDesc: isZh
-      ? "Typedown 不仅仅是为人类设计的。我们提供预置的 Skills，教导 AI Agent 如何阅读、编写和校验 Typedown 文档。"
-      : "Typedown isn't just for humans. We provide pre-built Skills that teach AI Agents how to read, write, and validate Typedown documents.",
-    aiEnableTitle: isZh ? "如何启用 AI Skills" : "How to enable AI Skills",
-    aiStep1Title: isZh ? "创建并放置 Skills" : "Create and Place Skills",
-    aiStep1Desc: isZh
-      ? "在项目根目录创建 skills/typedown-expert 目录，并下载 skill.md 放入其中。"
-      : "Create skills/typedown-expert directory in your project root, and download skill.md into it.",
-    aiDownloadBtn: isZh ? "下载 skill.md" : "Download skill.md",
-    aiStep2Title: isZh
-      ? "更新系统提示词 (System Prompt)"
-      : "Update System Prompt",
-    aiStep2Desc: isZh
-      ? "在你的 Agents.md 或系统指令中添加指引，让 AI 发现该技能："
-      : "Add instructions to your Agents.md or system prompt to let the AI discover the skill:",
-    aiPrompt: isZh
-      ? "阅读 ./skills 中的内容，了解如何与 Typedown 文件交互。"
-      : "Read the content in ./skills to understand how to interact with Typedown files.",
+    aiDesc: ai.desc,
+    aiEnableTitle: ai.enableTitle,
+    aiStep1Title: ai.step1.title,
+    aiStep1Desc: (
+      <>
+        {ai.step1.desc_pre}
+        <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
+          {ai.step1.desc_code}
+        </code>
+        {ai.step1.desc_post}
+      </>
+    ),
+    aiDownloadBtn: ai.downloadBtn,
+    aiStep2Title: ai.step2.title,
+    aiStep2Desc: (
+      <>
+        {ai.step2.desc_pre}
+        <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
+          {ai.step2.desc_code}
+        </code>
+        {ai.step2.desc_post}
+      </>
+    ),
+    aiPrompt: ai.prompt,
     aiSkillUrl: "/api/download-skill",
   };
 
@@ -208,22 +196,45 @@ entity King: arthur
 entity King: mordred
   name: "Mordred the Pretender"`;
 
-  const markers = [
-    {
-      startLineNumber: 36,
-      startColumn: 1,
-      endLineNumber: 37,
-      endColumn: 28,
-      message: isZh
-        ? "Spec Error: 这片土地无法承载两顶王冠！ (由 test_there_can_be_only_one 触发)"
-        : "Spec Error: The land cannot sustain two crowns! (Triggered by test_there_can_be_only_one)",
-      severity: 8,
-    },
-  ];
+  // Simulate LSP logic to find the conflict block dynamically
+  const getConflictDiagnostics = (code: string) => {
+    const lines = code.split("\n");
+    const startLineIndex = lines.findIndex((line) =>
+      line.includes("entity King: mordred")
+    );
+
+    if (startLineIndex === -1) return [];
+
+    // Find the end of the block (simple heuristic: look for next empty line or end of string)
+    let endLineIndex = startLineIndex;
+    while (
+      endLineIndex + 1 < lines.length &&
+      lines[endLineIndex + 1].trim() !== ""
+    ) {
+      endLineIndex++;
+    }
+
+    const lastLine = lines[endLineIndex];
+
+    return [
+      {
+        startLineNumber: startLineIndex + 1,
+        startColumn: 1,
+        endLineNumber: endLineIndex + 1,
+        endColumn: lastLine.length + 1,
+        message: isZh
+          ? "Spec Error: 这片土地无法承载两顶王冠！ (由 test_there_can_be_only_one 触发)"
+          : "Spec Error: The land cannot sustain two crowns! (Triggered by test_there_can_be_only_one)",
+        severity: 8,
+      },
+    ];
+  };
+
+  const markers = getConflictDiagnostics(kingCode);
 
   return (
     <div className="flex min-h-screen flex-col items-center selection:bg-success selection:text-black">
-      <Header />
+      <Header nav={dict.nav} />
 
       {/* Ghost Blue Accent Light Leak */}
       <div className="fixed top-0 left-1/2 -z-10 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-ghost-blue blur-[120px] pointer-events-none opacity-50 dark:opacity-100" />
@@ -324,11 +335,7 @@ entity King: mordred
                 <div className="flex-1">
                   <p className="font-medium">{content.aiStep1Title}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {content.aiStep1Desc.split("skills/typedown-expert")[0]}
-                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
-                      skills/typedown-expert
-                    </code>
-                    {content.aiStep1Desc.split("skills/typedown-expert")[1]}
+                    {content.aiStep1Desc}
                   </p>
                   <a
                     href={content.aiSkillUrl}
@@ -358,11 +365,7 @@ entity King: mordred
                 <div>
                   <p className="font-medium">{content.aiStep2Title}</p>
                   <p className="text-sm text-gray-500 mt-1">
-                    {content.aiStep2Desc.split("Agents.md")[0]}
-                    <code className="px-1.5 py-0.5 rounded bg-black/5 dark:bg-white/10 font-mono text-xs">
-                      Agents.md
-                    </code>
-                    {content.aiStep2Desc.split("Agents.md")[1]}
+                    {content.aiStep2Desc}
                   </p>
                   <div className="mt-3 rounded-md bg-black/5 dark:bg-black/40 p-3 font-mono text-xs text-gray-600 dark:text-gray-400">
                     &quot;{content.aiPrompt}&quot;
@@ -374,7 +377,7 @@ entity King: mordred
         </div>
       </main>
 
-      <Footer />
+      <Footer content={dict.footer} />
     </div>
   );
 }

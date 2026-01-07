@@ -37,12 +37,13 @@ async function initPyodide() {
 
     console.log("Installing dependencies...");
     await pyodide.loadPackage("micropip");
-    
+    await pyodide.loadPackage("sqlite3");
+
     // Workaround: Manually import micropip in Python to ensure it's registered
     await pyodide.runPythonAsync(`
         import micropip
     `);
-    
+
     const micropip = pyodide.pyimport("micropip");
 
     // Install PyGLS and dependencies
@@ -50,6 +51,7 @@ async function initPyodide() {
       "typing-extensions",
       "pygls>=2.0.0",
       "pydantic>=2.0.0",
+      "packaging",
       "packaging",
     ]);
 
@@ -68,7 +70,8 @@ async function initPyodide() {
     await micropip.install(`emfs:${mountPath}`);
 
     // 5. Fetch and Run LSP Server Script
-    const serverScriptUrl = new URL("/lsp-server.py", self.location.origin).href;
+    const serverScriptUrl = new URL("/lsp-server.py", self.location.origin)
+      .href;
     console.log(`Fetching server script: ${serverScriptUrl}`);
 
     const scriptResp = await fetch(serverScriptUrl);
@@ -107,71 +110,14 @@ reader.listen((message) => {
 });
 
 function processMessage(message) {
-  // Sync TextDocument updates to Virtual FS
-  let uri = null;
-  let text = null;
-  let shouldSync = false;
+  // 2. Perform File Write - REMOVED (Compiler now uses Memory Overlay)
+  /* 
+  Legacy Logic:
+  We previously wrote to VFS to let Compiler read from disk.
+  Now Compiler has an OverlayProvider, so we don't need to touch VFS.
+  */
 
-  // 1. Extract URI and Text based on method
-  if (
-    message.method === "textDocument/didOpen" ||
-    message.method === "typedown/syncFile"
-  ) {
-    if (message.params?.textDocument) {
-      uri = message.params.textDocument.uri;
-      text = message.params.textDocument.text;
-      shouldSync = true;
-    }
-  } else if (message.method === "textDocument/didChange") {
-    if (message.params?.textDocument && message.params?.contentChanges) {
-      uri = message.params.textDocument.uri;
-      // Only handle Full Sync (text is present in the first change event and no range)
-      // Note: monaco-languageclient sends Full Sync if server capability says so.
-      const changes = message.params.contentChanges;
-      if (changes.length > 0) {
-        const change = changes[0];
-        // If 'range' is undefined/null, it's a full text replace
-        if (!change.range && typeof change.text === "string") {
-          text = change.text;
-          shouldSync = true;
-        }
-      }
-    }
-  }
-
-  // 2. Perform File Write
-  if (shouldSync && uri && typeof text === "string") {
-      let filePath = uri;
-
-      // Basic URI cleanup
-      if (uri.startsWith("file://")) {
-        try {
-          filePath = new URL(uri).pathname;
-        } catch {
-          /* fallback */
-        }
-      }
-
-      // Ensure directory exists
-      const dir = filePath.substring(0, filePath.lastIndexOf("/"));
-      if (dir && dir !== "/") {
-        try {
-          pyodide.FS.mkdirTree(dir);
-        } catch {
-          /* ignore if exists */
-        }
-      }
-
-      try {
-        pyodide.FS.writeFile(filePath, text, { encoding: "utf8" });
-        // Don't forward internal syncFile messages to Python
-        if (message.method === "typedown/syncFile") return;
-      } catch (e) {
-        console.error(`[LSP Worker] FS Sync Error for ${filePath}:`, e);
-      }
-  }
-
-  // Handle FS Reset
+  // Handle FS Reset (Optional: keeping it for "Clear Project" features if needed)
   if (message.method === "typedown/resetFileSystem") {
     console.log("[LSP Worker] Resetting FileSystem...");
     try {
@@ -198,16 +144,6 @@ for item in os.listdir('/'):
         except Exception as e:
             logging.error(f"Failed to clean {path}: {e}")
 
-# 2. Double Check for .td files (Ghost Files)
-for item in os.listdir('/'):
-    if item.endswith('.td') or item.endswith('.md'):
-        path = os.path.join('/', item)
-        try:
-            os.unlink(path)
-            logging.warning(f"Force deleted persistent ghost file: {path}")
-        except:
-            pass
-            
 print(f"[LSP Worker] FS Reset Complete. Deleted {deleted_count} items.")
 `);
     } catch (e) {

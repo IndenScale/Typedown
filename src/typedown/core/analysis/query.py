@@ -29,19 +29,38 @@ class QueryEngine:
         
         try:
             con = symbol_table.get_duckdb_connection()
-            con.execute(query)
             
-            if not con.description:
-                return []
-            
-            columns = [desc[0] for desc in con.description]
-            rows = con.fetchall()
-            
-            results = []
-            for row in rows:
-                results.append(dict(zip(columns, row)))
-            
-            return results
+            # Check if it's DuckDB or SQLite
+            is_sqlite = False
+            try:
+                import sqlite3
+                if isinstance(con, sqlite3.Connection):
+                    is_sqlite = True
+            except ImportError:
+                pass
+
+            if is_sqlite:
+                cursor = con.cursor()
+                cursor.execute(query)
+                # sqlite3.Row factory handles dict-like access
+                rows = cursor.fetchall()
+                # Convert to pure dicts
+                return [dict(row) for row in rows]
+            else:
+                # DuckDB
+                con.execute(query)
+                
+                if not con.description:
+                    return []
+                
+                columns = [desc[0] for desc in con.description]
+                rows = con.fetchall()
+                
+                results = []
+                for row in rows:
+                    results.append(dict(zip(columns, row)))
+                
+                return results
             
         except Exception as e:
             raise QueryError(f"SQL Execution failed: {e}")
@@ -279,10 +298,13 @@ class QueryEngine:
             # Final '*' logic: Return current data (serialized)
             if part == "*":
                 if i == len(property_path) - 1:  # It IS the last part
-                    if hasattr(current_data, "resolved_data") and current_data.resolved_data:
-                         return current_data.resolved_data
-                    if hasattr(current_data, "raw_data"):
-                         return current_data.raw_data
+                    resolved_data = getattr(current_data, "resolved_data", None)
+                    raw_data = getattr(current_data, "raw_data", None)
+                    
+                    if resolved_data:
+                         return resolved_data
+                    if raw_data:
+                         return raw_data
                     return current_data
                 else:
                     raise QueryError(f"Invalid query: '*' must be the final segment in '{original_query}'")
@@ -298,11 +320,14 @@ class QueryEngine:
             found = False
             # Check .data transparency for Nodes at first step or subsequent
             if i == 0:
-                 if hasattr(current_data, "resolved_data") and isinstance(current_data.resolved_data, dict) and name in current_data.resolved_data:
-                      current_data = current_data.resolved_data[name]
+                 resolved_data = getattr(current_data, "resolved_data", None)
+                 raw_data = getattr(current_data, "raw_data", None)
+                 
+                 if isinstance(resolved_data, dict) and name in resolved_data:
+                      current_data = resolved_data[name]
                       found = True
-                 elif hasattr(current_data, "raw_data") and isinstance(current_data.raw_data, dict) and name in current_data.raw_data:
-                      current_data = current_data.raw_data[name]
+                 elif isinstance(raw_data, dict) and name in raw_data:
+                      current_data = raw_data[name]
                       found = True
             
             if not found:

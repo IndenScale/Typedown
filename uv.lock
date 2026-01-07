@@ -401,10 +401,9 @@ wheels = [
 
 [[package]]
 name = "typedown"
-version = "0.2.13"
+version = "0.2.14"
 source = { editable = "." }
 dependencies = [
-    { name = "duckdb" },
     { name = "markdown-it-py" },
     { name = "mistune" },
     { name = "pydantic" },
@@ -422,10 +421,13 @@ server = [
     { name = "watchdog" },
     { name = "websockets" },
 ]
+sql = [
+    { name = "duckdb" },
+]
 
 [package.metadata]
 requires-dist = [
-    { name = "duckdb", specifier = ">=0.9.0" },
+    { name = "duckdb", marker = "extra == 'sql'", specifier = ">=0.9.0" },
     { name = "markdown-it-py", specifier = ">=3.0.0" },
     { name = "mistune", specifier = ">=3.1.4" },
     { name = "pydantic", specifier = ">=2.0.0" },
@@ -439,7 +441,7 @@ requires-dist = [
     { name = "watchdog", marker = "extra == 'server'", specifier = ">=3.0.0" },
     { name = "websockets", marker = "extra == 'server'", specifier = ">=10.0" },
 ]
-provides-extras = ["server"]
+provides-extras = ["server", "sql"]
 
 [[package]]
 name = "typer"

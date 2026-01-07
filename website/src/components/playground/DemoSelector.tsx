@@ -4,9 +4,11 @@ import { usePlaygroundStore } from "@/store/usePlaygroundStore";
 import { getDemos } from "@/lib/demos";
 import { ChevronDown } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "./TranslationContext";
 
 export function DemoSelector() {
   const { currentDemoId, selectDemo, lang } = usePlaygroundStore();
+  const t = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -31,9 +33,7 @@ export function DemoSelector() {
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/10">
-        <span className="text-gray-500">
-          {lang === "zh" ? "示例:" : "Demo:"}
-        </span>
+        <span className="text-gray-500">{t.header.demo}</span>
         <span className="text-foreground">{currentDemo?.name}</span>
         <ChevronDown size={14} className="text-gray-400" />
       </button>

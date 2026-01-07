@@ -1,4 +1,5 @@
 import { PlaygroundClient } from "./PlaygroundClient";
+import { getDictionary } from "@/dictionaries";
 
 export function generateStaticParams() {
   return [{ lang: "en" }, { lang: "zh" }];
@@ -10,5 +11,6 @@ export default async function PlaygroundPage({
   params: Promise<{ lang: string }>;
 }) {
   const { lang } = await params;
-  return <PlaygroundClient lang={lang} />;
+  const dict = getDictionary(lang);
+  return <PlaygroundClient lang={lang} dictionary={dict.playground} />;
 }

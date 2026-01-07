@@ -33,6 +33,11 @@ m_events.FileSystemEvent = FileSystemEvent
 from typedown.server.application import server
 import pygls
 from pygls.protocol import LanguageServerProtocol
+from lsprotocol.types import TextDocumentSyncKind
+
+# Use Full Sync for simplicity with OverlayProvider (Memory Overlay).
+# Compiler replaces the entire file content in memory.
+server.text_document_sync_kind = TextDocumentSyncKind.Full
 
 # Check version robustly
 try:

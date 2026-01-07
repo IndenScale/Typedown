@@ -12,6 +12,7 @@ from typedown.core.analysis.scanner import Scanner
 from typedown.core.analysis.linker import Linker
 from typedown.core.analysis.validator import Validator
 from typedown.core.analysis.script_runner import ScriptRunner
+from typedown.core.analysis.source_provider import SourceProvider, DiskProvider, OverlayProvider
 
 class Compiler:
     def __init__(self, target: Path, console: Optional[Console] = None):
@@ -19,6 +20,10 @@ class Compiler:
         self.console = console or Console()
         self.project_root = find_project_root(self.target)
         self.config = TypedownConfig.load(self.project_root / "typedown.toml")
+        
+        # IO Interface (Overlay Support for LSP)
+        self.base_provider = DiskProvider()
+        self.source_provider = OverlayProvider(self.base_provider)
         
         # State
         self.documents: Dict[Path, Document] = {}
@@ -46,8 +51,8 @@ class Compiler:
             self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for [cyan]{self.target}[/cyan]")
         
         try:
-            # Stage 1: Scanner
-            scanner = Scanner(self.project_root, self.console)
+            # Stage 1: Scanner (Uses SourceProvider)
+            scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
             self.documents, self.target_files = scanner.scan(self.target, self.active_script)
             self.diagnostics.extend(scanner.diagnostics)
             
@@ -197,7 +202,7 @@ class Compiler:
         target = target or self.target
         script = self.config.scripts.get(script_name) if script_name else None
         
-        scanner = Scanner(self.project_root, self.console)
+        scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
         self.documents, _ = scanner.scan(target, script)
         self.diagnostics.extend(scanner.diagnostics)
         
@@ -232,18 +237,19 @@ class Compiler:
     def update_document(self, path: Path, content: str):
         """
         Incremental Update:
-        1. Parse new content into Document.
-        2. Diff with existing Document (using Block Hashes) -> optimizations possible here.
-        3. For MVP: Replace Document and Re-Link/Re-Validate (In-Memory).
+        1. Update Overlay with new content.
+        2. Parse new content into Document.
+        3. Diff with existing Document.
+        4. Re-Link/Re-Validate (In-Memory).
         """
         try:
+            # 1. Update Overlay
+            self.source_provider.update_overlay(path, content)
+            
             from typedown.core.parser import TypedownParser
             parser = TypedownParser()
             # Parse in-memory
-            new_doc = parser.parse_text(content, path_str=str(path))
-            
-            # TODO: Advanced Diffing using content_hash to skip invalidation
-            # old_doc = self.documents.get(path)
+            new_doc = parser.parse_text(content, str(path))
             
             # Update State
             self.documents[path] = new_doc
@@ -254,8 +260,6 @@ class Compiler:
             
         except Exception as e:
             self.console.print(f"[yellow]Incremental Update Failed for {path}: {e}[/yellow]")
-            # If parse fails, we might want to keep old doc or mark as error state (?)
-            # For now, we just log.
             pass
 
     def _recompile_in_memory(self):
@@ -320,56 +324,89 @@ class Compiler:
         parser = TypedownParser()
 
         # L1: File Scope - Get from parsed documents or parse on demand
-        if target.is_file():
-            if target in self.documents:
-                doc = self.documents[target]
-            else:
-                try:
-                    doc = parser.parse(target)
-                    self.documents[target] = doc # Cache it
-                except Exception:
-                    doc = None
-            
-            if doc and doc.scripts:
-                file_scripts = doc.scripts
+        # Check existence via provider (Disk or Overlay)
+        if self.source_provider.exists(target) and not self.source_provider.list_files(target, {".td", ".md"}) and not target.is_dir():
+            # It acts as a file (simple check, list_files returns iterator)
+            # Actually simpler: if target in documents or provider can read it.
+            pass
+
+        # Simplified Logic: Try to get document for target
+        # Problem: target might be directory.
+        if target in self.documents:
+             doc = self.documents[target]
+             if doc.scripts:
+                 file_scripts = doc.scripts
+        else:
+             # Try parsing if it's a file
+             try:
+                 if self.source_provider.exists(target):
+                     # Is it a directory?
+                     # Provider interface doesn't explicitly distinguish without list_files/walk.
+                     # But get_content fails on dir.
+                     # Let's try reading.
+                     try:
+                        content = self.source_provider.get_content(target)
+                        doc = parser.parse_text(content, str(target))
+                        self.documents[target] = doc # Cache it
+                        if doc.scripts:
+                            file_scripts = doc.scripts
+                     except IsADirectoryError:
+                        pass
+                     except Exception:
+                        pass
+             except Exception:
+                 pass
         
         # L2: Directory Scope - Get from config.td (need to parse)
         
-        start_dir = target.parent if target.is_file() else target
-        start_dir = start_dir.resolve()
+        start_dir = target.parent if (self.source_provider.exists(target) and not target.is_dir()) else target
+        # Actually is_file() checks disk.
+        # Ideally we assume target is file if it has extension?
+        if target.suffix in {'.td', '.md'}:
+             start_dir = target.parent
+        
+        try:
+             start_dir = start_dir.resolve()
+        except Exception:
+             pass
+
         
         # Walk up to find the NEAREST config.td
-        for parent in [start_dir] + list(start_dir.parents):
+        # We need to be careful about infinite loops if resolve failed
+        
+        # Safe traversal using parents
+        current = start_dir
+        while True:
+            # Check for project root escape
             try:
-                # Stop if we leave the project root
-                if not parent.is_relative_to(self.project_root):
+                if not current.is_relative_to(self.project_root):
+                    # If we started outside, allow one check? No, stick to project.
+                    # Unless target is outside?
                     break
             except ValueError:
                 break
-                
-            config_path = parent / "config.td"
-            if config_path.exists():
-                # Check if already parsed
+
+            config_path = current / "config.td"
+            if self.source_provider.exists(config_path):
                 if config_path in self.documents:
                     doc = self.documents[config_path]
                 else:
-                    # On-demand parse
                     try:
-                        doc = parser.parse(config_path)
-                        # Optionally cache it back
+                        content = self.source_provider.get_content(config_path)
+                        doc = parser.parse_text(content, str(config_path))
                         self.documents[config_path] = doc
                     except Exception:
-                        continue
+                        doc = None
                 
-                if doc.scripts:
+                if doc and doc.scripts:
                     dir_scripts = doc.scripts
-                    # Found the nearest config with scripts? 
-                    # If we believe in shadowing, we stop here.
-                    # Or do we want to merge? 
-                    # Spec says "Lexical Scoping", usually means shadowing. 
-                    # ScriptRunner treats "Directory Scope" as a single layer.
-                    # So we pick the nearest one.
-                    break
+                    break # Shadowing
+            
+            if current == self.project_root:
+                break
+            if current.parent == current:
+                break
+            current = current.parent
         
         # L3: Project Scope - 从 typedown.toml 获取
         project_scripts = self.config.tasks
@@ -378,7 +415,7 @@ class Compiler:
         runner = ScriptRunner(self.project_root, self.console)
         return runner.run_script(
             script_name,
-            target_file=target if target.is_file() else None,
+            target_file=target if target.suffix in {'.td', '.md'} else None,
             file_scripts=file_scripts,
             dir_scripts=dir_scripts,
             project_scripts=project_scripts,

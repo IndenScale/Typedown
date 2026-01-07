@@ -167,12 +167,12 @@ export function getAllDocs(
         const slugPart = stripOrderPrefix(item.replace(/\.md$/, ""));
         // Skip index/README if necessary, or handle them
         const slug = [...currentSlug, slugPart];
-        
+
         // Simplified content loading (metadata only would be faster but we need full structure potentially)
         // For getAllDocs we mainly need slugs
         const fileContents = fs.readFileSync(fullPath, "utf8");
         const { data } = matter(fileContents);
-        
+
         docs.push({
           slug,
           content: "", // Content not needed for listing
@@ -211,10 +211,23 @@ export function getSidebar(
       if (stat.isDirectory()) {
         const children = getItems(fullPath, `${baseUrl}/${name}`);
         if (children.length > 0) {
-          // Try to find a title from a localized meta file or directory name
-          // For now using directory name
+          let title = name.charAt(0).toUpperCase() + name.slice(1);
+          const metaPath = path.join(fullPath, "_meta.json");
+
+          if (fs.existsSync(metaPath)) {
+            try {
+              const metaContent = fs.readFileSync(metaPath, "utf8");
+              const meta = JSON.parse(metaContent);
+              if (meta.title) {
+                title = meta.title;
+              }
+            } catch (e) {
+              console.error(`Failed to parse meta file at ${metaPath}:`, e);
+            }
+          }
+
           sidebarItems.push({
-            title: name.charAt(0).toUpperCase() + name.slice(1),
+            title,
             href: `${baseUrl}/${name}`,
             items: children.sort((a, b) => a.order - b.order),
             order,

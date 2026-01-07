@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build",
     "start": "npx serve@latest out",
-    "lint": "eslint"
+    "lint": "eslint",
+    "sync": "cd .. && uv run python scripts/sync_content.py"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
@@ -17,9 +18,7 @@
     "gray-matter": "^4.0.3",
     "lucide-react": "^0.562.0",
     "mermaid": "^11.12.2",
-    "monaco-editor-textmate": "^4.0.0",
     "monaco-languageclient": "^10.5.0",
-    "monaco-textmate": "^3.0.1",
     "next": "^16.1.1",
     "next-themes": "^0.4.6",
     "react": "^19.2.3",
@@ -33,6 +32,7 @@
     "tailwind-merge": "^3.4.0",
     "unist-util-visit": "^5.0.0",
     "vscode-oniguruma": "^2.0.1",
+    "vscode-textmate": "^9.0.0",
     "vscode-ws-jsonrpc": "^3.5.0",
     "zustand": "^5.0.9"
   },

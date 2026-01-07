@@ -1,6 +1,6 @@
 # Typedown for VS Code
 
-[Typedown](https://typedown.org) is a tool for **Progressive Formalization** of Markdown.
+[Typedown](https://www.typedown.space) is a tool for **Progressive Formalization** of Markdown.
 
 It bridges the gap between unstructured text and structured data, allowing you to gradually add types, schemas, and logic to your documentation.
 

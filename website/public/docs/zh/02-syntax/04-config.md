@@ -2,17 +2,17 @@
 title: 环境配置
 ---
 
-# 环境配置 (Config)
+## 环境配置 (Config)
 
 `config` 块用于配置编译器的运行时环境。它通常用于导入公共库、设置全局变量或修改系统路径。
 
 ## 语法签名
 
-```markdown
+````markdown
 ```config python
 <Setup Script>
 ```
-```
+````
 
 - **关键字**: `config`
 - **语言**: 目前仅支持 `python`。

@@ -206,19 +206,33 @@ class SymbolTable:
 
     def get_duckdb_connection(self):
         """
-        Returns a DuckDB connection with all types registered as tables.
+        Returns a DB connection (DuckDB preferred, SQLite fallback) with all types registered as tables.
         Lazily initialized.
         """
         if self._db_conn:
             return self._db_conn
 
+        # 1. Try DuckDB
         try:
             import duckdb
+            self._db_conn = duckdb.connect(":memory:")
+            self._populate_duckdb(self._db_conn)
+            return self._db_conn
         except ImportError:
-            raise ImportError("DuckDB is required for SQL features. Install 'typedown[sql]' or 'duckdb'.")
+            pass
 
-        self._db_conn = duckdb.connect(":memory:")
-        
+        # 2. Fallback to SQLite
+        try:
+            import sqlite3
+            self._db_conn = sqlite3.connect(":memory:")
+            # Enable dictionary cursor for compatibility
+            self._db_conn.row_factory = sqlite3.Row
+            self._populate_sqlite(self._db_conn)
+            return self._db_conn
+        except ImportError:
+            raise ImportError("DuckDB or SQLite is required for SQL features.")
+
+    def _populate_duckdb(self, conn):
         for type_name, nodes in self._type_index.items():
             # Flatten to list of dicts
             data = []
@@ -227,6 +241,8 @@ class SymbolTable:
                 row_copy = row.copy() if row else {}
                 if hasattr(node, "id"):
                     row_copy["_id"] = node.id
+                    if "id" not in row_copy:
+                        row_copy["id"] = node.id
                 data.append(row_copy)
             
             if not data:
@@ -241,15 +257,82 @@ class SymbolTable:
                 tmp_path = tmp.name
             
             try:
-                self._db_conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_json_auto('{tmp_path}')")
+                conn.execute(f"CREATE OR REPLACE TABLE {table_name} AS SELECT * FROM read_json_auto('{tmp_path}')")
             except Exception:
                 # Ignore table creation errors (e.g. invalid data)
                 pass
             finally:
                 if os.path.exists(tmp_path):
                     os.unlink(tmp_path)
-        
-        return self._db_conn
+
+    def _populate_sqlite(self, conn):
+        for type_name, nodes in self._type_index.items():
+            data = []
+            keys = set()
+            
+            for node in nodes:
+                row = getattr(node, "resolved_data", None) or getattr(node, "raw_data", {})
+                row_copy = row.copy() if row else {}
+                if hasattr(node, "id"):
+                    row_copy["_id"] = node.id
+                    # Helper: Expose as 'id' if not conflicting with payload
+                    if "id" not in row_copy:
+                        row_copy["id"] = node.id
+                
+                # Flatten complex types for SQLite
+                for k, v in row_copy.items():
+                    if isinstance(v, (dict, list)):
+                        row_copy[k] = json.dumps(v)
+                    keys.add(k)
+                
+                data.append(row_copy)
+            
+            if not data:
+                continue
+
+            table_name = type_name.split(".")[-1]
+            
+            # Create Table
+            # SQLite needs explicit schema usually, but we can infer dynamic columns
+            # For simplicity, we create TEXT columns for everything if inference is hard
+            # Or we can just use the keys found
+            
+            # Sanitize keys
+            safe_keys = [k for k in keys if k.isidentifier()]
+            if not safe_keys:
+                continue
+                
+            cols_def = ", ".join([f"{k} TEXT" for k in safe_keys]) # Default to TEXT for simplicity
+            
+            # Improved Inference: Check first non-null value for type?
+            # For now, strict typing in SQLite is loose, so TEXT/NUMERIC is fine.
+            # But let's try to be a bit better:
+            
+            cols_defs = []
+            for k in safe_keys:
+                # Check first value
+                sample = next((d.get(k) for d in data if d.get(k) is not None), None)
+                if isinstance(sample, int):
+                    col_type = "INTEGER"
+                elif isinstance(sample, float):
+                    col_type = "REAL"
+                else:
+                    col_type = "TEXT"
+                cols_defs.append(f"{k} {col_type}")
+            
+            create_stmt = f"CREATE TABLE {table_name} ({', '.join(cols_defs)})"
+            conn.execute(create_stmt)
+            
+            # Insert Data
+            placeholders = ", ".join(["?" for _ in safe_keys])
+            insert_stmt = f"INSERT INTO {table_name} ({', '.join(safe_keys)}) VALUES ({placeholders})"
+            
+            rows_to_insert = []
+            for row in data:
+                vals = [row.get(k) for k in safe_keys]
+                rows_to_insert.append(vals)
+                
+            conn.executemany(insert_stmt, rows_to_insert)
 
     def get_scope_handles(self, path: Path) -> Dict[str, Any]:
         """Debug helper to see what's visible in a specific exact directory."""
