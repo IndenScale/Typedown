@@ -9,8 +9,8 @@ requirement_id: "req_iso_10_1_1"
 owner: "Dave (Dev Lead)"
 status: "COMPLIANT"
 risk_level: "LOW"
-mitigation_plan: "Keys rotated and migrated to Vault. Ticket: JIRA-1234"
+mitigation_plan: "Keys rotated and migrated to Vault. Issue: JIRA-1234"
 evidence:
   - uri: "jira://PROJ/JIRA-1234"
-    description: "Key Rotation Ticket"
+    description: "Key Rotation Issue"
 ```

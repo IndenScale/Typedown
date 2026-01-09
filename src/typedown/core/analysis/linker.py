@@ -253,6 +253,19 @@ class Linker:
                                 ))
                                 continue
                             
+                            # Check for forbidden 'id' field (Reserved System Field)
+                            if is_model:
+                                fields = getattr(defined_class, "model_fields", {})
+                                # In Pydantic v2, fields is a dict of FieldInfo
+                                if "id" in fields:
+                                    self.diagnostics.append(TypedownError(
+                                        f"Model '{model.id}' defines a forbidden field 'id'. "
+                                        f"The 'id' field is reserved by Typedown for the system ID and handled automatically.",
+                                        location=model.location,
+                                        severity="error"
+                                    ))
+                                    continue
+                            
                             # Register the model
                             self.model_registry[model.id] = defined_class
                             

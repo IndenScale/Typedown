@@ -46,6 +46,7 @@ _*
 .env
 
 todos/
+pitch/
 debug_*.py
 test_location.py
 test_project/

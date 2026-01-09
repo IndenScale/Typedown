@@ -127,7 +127,7 @@ class AttributeWrapper:
 
     def __getattr__(self, item):
         if item == "resolved_data":
-            return self
+            return self._data
         if item == "_entity_id":
             return self._entity_id
         if item in self._data:
@@ -139,6 +139,9 @@ class AttributeWrapper:
                 return AttributeWrapper(val)
             return val
         raise AttributeError(f"'AttributeWrapper' object has no attribute '{item}'")
+    
+    def to_dict(self):
+        return self._data.copy()
         
     def __getitem__(self, item):
         if item in self._data:

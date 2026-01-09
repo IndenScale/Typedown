@@ -69,44 +69,14 @@ uv run typedown --help
 
 ## 任务管理规范 (Task Management)
 
-Monoco 采用 **"Task as Code"** 的管理哲学，将任务视为可持久化、可追踪的代码资产。
+Monoco 遵循 **"Task as Code"** 哲学，将所有工作单元持久化为结构化的 Markdown 文件。
 
-### 1. 目录结构 (Directory Structure)
+### 核心准则
 
-任务文件不再堆积于根目录，而是按**语言 (Language)** 与 **状态 (Status)** 分层管理：
+1. **优先使用 CLI**: 应尽量通过 `monoco issue` 子命令进行创建、流转等操作，以维护元数据与物理路径的一致性。
+2. **变更强制校验**: 若手动修改了 `ISSUES/` 下的文件，**必须**运行 `monoco issue lint` 进行完整性校验。
 
-```text
-TODOS/
-├── zh/                     # 主要工作语言 (Language Scope)
-│   ├── active/             # 进行中 (In Progress)
-│   └── archive/            # 已完成/已归档 (Done/Archived)
-└── legacy_timestamped/     # 遗留的时间戳文件 (Read-only)
-```
-
-### 2. 命名与格式 (Naming & Format)
-
-- **ID 系统**: 采用全局递增的 `TASK-XXXX` 编号（例如 `TASK-0123`）。**注意：Agent 必须在创建前扫描 `active/` 和 `archive/` 目录以获取当前最大 ID，严禁依赖本文件中的示例 ID。**
-- **文件命名**: `TASK-{ID}-{slug}.md`（例如 `TASK-0123-new-feature.md`）。
-- **元数据**: 必须包含 YAML Front Matter。
-
-```yaml
----
-id: TASK-XXXX # 必须是当前最大 ID + 1
-type: task
-status: active # active | done | cancelled
-title: "任务标题"
-created_at: YYYY-MM-DD
-author: Monoco Agent
----
-```
-
-### 3. 工作流 (Workflow)
-
-1. **事实检索**: 在开始任何动作前，首先 `list_dir` 扫描 `TODOS/zh/active/` 与 `TODOS/zh/archive/`，确认最新进度与下一个可用 ID。
-2. **Session != Task**: 对话 (Session) 是流动的，任务 (Task) 是永恒的。Agent 应主动将 Session 中的意图转化为 Task 文件。
-3. **创建 (Create)**: 在 `active/` 目录创建新任务，通过扫描目录结果分配下一个可用 ID。
-4. **开发 (Develop)**: 任务文件是 "Source of Truth"，记录 Context, Objectives, Plan 和 Thought。
-5. **归档 (Archive)**: 任务完成后，更新状态为 `done` 并移动至 `archive/` 目录。不要删除任务文件。
+详情参考：`Toolkit/skills/issues-management/SKILL.md`
 
 ## 发布流程 (Release Workflow)
 

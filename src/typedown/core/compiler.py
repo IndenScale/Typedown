@@ -36,7 +36,7 @@ class Compiler:
         self.dependency_graph: Optional[Any] = None # Graph
         self.resources: Dict[str, Any] = {} # Path -> Resource
         
-    def compile(self, script_name: Optional[str] = None) -> bool:
+    def compile(self, script_name: Optional[str] = None, run_specs: bool = True) -> bool:
         """Runs the full compilation pipeline."""
         self.diagnostics.clear()
         
@@ -77,8 +77,9 @@ class Compiler:
             self.dependency_graph = validator.dependency_graph
             
             # Stage 3.5: Specs (Internal Self-Validation)
-            if not any(d.severity == "error" for d in self.diagnostics):
-                self._run_specs() 
+            if run_specs:
+                if not any(d.severity == "error" for d in self.diagnostics):
+                    self._run_specs() 
 
 
             # Check for Errors
@@ -229,7 +230,7 @@ class Compiler:
         # Validation (Pydantic-only part of Phase 3)
         # L2 check: Now strictly structure compliance only.
         validator = Validator(self.console)
-        validator.check_schema(self.documents, self.model_registry)
+        validator.check_schema(self.documents, self.symbol_table, self.model_registry)
         self.diagnostics.extend(validator.diagnostics)
         
         self._print_diagnostics()

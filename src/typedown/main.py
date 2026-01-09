@@ -42,6 +42,12 @@ app.command(name="test")(test_cmd)
 # Register 'run' command (Script System)
 app.command(name="run")(run_cmd)
 
+from typedown.commands.info import info as info_cmd
+app.command(name="info")(info_cmd)
+
+from typedown.commands.complete import complete as complete_cmd
+app.command(name="complete")(complete_cmd)
+
 @app.command()
 def init(name: str):
     """

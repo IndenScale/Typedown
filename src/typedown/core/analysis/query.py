@@ -22,7 +22,7 @@ class QueryError(Exception):
 
 class QueryEngine:
     @staticmethod
-    def execute_sql(query: str, symbol_table: Any) -> List[Any]:
+    def execute_sql(query: str, symbol_table: Any, parameters: Dict[str, Any] = {}) -> List[Any]:
         # We assume symbol_table has get_duckdb_connection
         if not hasattr(symbol_table, "get_duckdb_connection"):
              raise QueryError("SymbolTable does not support SQL execution.")
@@ -41,14 +41,14 @@ class QueryEngine:
 
             if is_sqlite:
                 cursor = con.cursor()
-                cursor.execute(query)
+                cursor.execute(query, parameters)
                 # sqlite3.Row factory handles dict-like access
                 rows = cursor.fetchall()
                 # Convert to pure dicts
                 return [dict(row) for row in rows]
             else:
                 # DuckDB
-                con.execute(query)
+                con.execute(query, parameters)
                 
                 if not con.description:
                     return []

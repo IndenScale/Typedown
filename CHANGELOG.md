@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.17] - 2026-01-07
+
+- Website launch and infrastructure updates.
+- Documentation improvements.
+
 ## [0.2.14] - 2026-01-06
 
 - Bump version to 0.2.14

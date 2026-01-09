@@ -268,9 +268,9 @@ class SpecExecutor:
         setattr(ctx, "query", query_wrapper)
 
         # Inject SQL Function
-        def sql_wrapper(query_str: str) -> Any:
+        def sql_wrapper(query_str: str, **kwargs: Any) -> Any:
             # symbol_table is expected to be SymbolTable instance with get_duckdb_connection
-            results = QueryEngine.execute_sql(query_str, symbol_table)
+            results = QueryEngine.execute_sql(query_str, symbol_table, parameters=kwargs)
             # Wrap results for dot notation access, preserving _id for blame()
             return [AttributeWrapper(row, entity_id=row.get("_id")) for row in results]
 
