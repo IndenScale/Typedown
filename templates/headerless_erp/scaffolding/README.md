@@ -15,4 +15,4 @@
 
 ### 3. 可视化配置 (Visualization)
 
-- `spa_config.json`: 定义前端 Dashboard 如何读取 `ledgers` 目录中的数据并进行渲染。
+- `spa_config.json`: 定义前端 Kanban 如何读取 `ledgers` 目录中的数据并进行渲染。

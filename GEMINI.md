@@ -74,7 +74,7 @@ Monoco 遵循 **"Task as Code"** 哲学，将所有工作单元持久化为结�
 ### 核心准则
 
 1. **优先使用 CLI**: 应尽量通过 `monoco issue` 子命令进行创建、流转等操作，以维护元数据与物理路径的一致性。
-2. **变更强制校验**: 若手动修改了 `ISSUES/` 下的文件，**必须**运行 `monoco issue lint` 进行完整性校验。
+2. **变更强制校验**: 若手动修改了 `Issues/` 下的文件，**必须**运行 `monoco issue lint` 进行完整性校验。
 
 详情参考：`Toolkit/skills/issues-management/SKILL.md`
 
