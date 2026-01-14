@@ -1,0 +1,12 @@
+project:
+  name: "Typedown"
+  key: "TYP"
+  members:
+    monoco: ".."
+
+paths:
+  issues: "Issues"
+
+i18n:
+  source_lang: "en"
+  target_langs: ["zh"]
