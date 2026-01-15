@@ -2,7 +2,7 @@
 id: FEAT-0001
 type: feature
 status: open
-stage: todo
+stage: draft
 parent: monoco::EPIC-0004
 title: Typedown CLI Observability
 created_at: "2026-01-13T11:48:00"
