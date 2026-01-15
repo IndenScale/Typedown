@@ -30,3 +30,34 @@ friends:
         
         # Check global references also populated
         assert len(doc.references) == 2
+    
+    def test_multiline_reference_indices(self, tmp_path):
+        """
+        Scenario from legacy debug_ref_calc.py: Verify line/col calculation 
+        for references on multiple lines.
+        """
+        content = """# Title
+Line 2
+[[ref1]] and [[ref2]]
+Next Line
+  [[ref3]]
+"""
+        f = tmp_path / "index_test.td"
+        f.write_text(content, encoding="utf-8")
+        
+        parser = TypedownParser()
+        doc = parser.parse(f)
+        
+        # [[ref1]] is on Line 3 (1-indexed)
+        # Content before [[ref1]] on Line 3 is empty string? No, "Line 2\n"
+        # Wait, Line 3 content is "[[ref1]] and [[ref2]]"
+        
+        refs = sorted(doc.references, key=lambda x: x.location.line_start)
+        
+        # Verification logic from debug_ref_calc
+        lines = content.splitlines()
+        
+        for ref in refs:
+             line_content = lines[ref.location.line_start - 1]
+             extracted = line_content[ref.location.col_start : ref.location.col_end]
+             assert extracted == f"[[{ref.target}]]"
