@@ -175,10 +175,21 @@ async function startServer(context: vscode.ExtensionContext) {
     cwd = vscode.workspace.workspaceFolders[0].uri.fsPath;
   }
 
+  const fs = require("fs");
+
+  // Fix for Monorepo: If 'Typedown' subdirectory exists with pyproject.toml, and we are using 'uv' with 'server' extra,
+  // switch CWD to that subdirectory. This handles opening the Monorepo root.
+  if (command === "uv" && args.includes("server")) {
+    const subDir = path.join(cwd, "Typedown");
+    const subPyProject = path.join(subDir, "pyproject.toml");
+    if (fs.existsSync(subDir) && fs.existsSync(subPyProject)) {
+      cwd = subDir;
+    }
+  }
+
   // 1. Try to use local venv binary directly to bypass 'uv' wrappers
   // This avoids signal propagation issues (Stopping server timed out)
   // We search in the workspace root and parent directories (in case workspace is a subfolder)
-  const fs = require("fs");
   let foundVenvBin = "";
 
   const searchPaths = [cwd, path.dirname(cwd), path.dirname(path.dirname(cwd))];
