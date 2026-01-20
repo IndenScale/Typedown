@@ -22,12 +22,10 @@ If absolute precision is needed, you should lock specific versions via **Content
 Typedown supports three reference forms, and the compiler automatically infers your intent based on context.
 
 - **Slug (Logical ID)**: `[[user-alice-v1]]`
-
   - **Semantics**: Points to a specific entity in the global index.
   - **Recommended Scenario**: Cross-file references, formal documentation links. This is the most common human-readable anchor.
 
 - **Handle (Local Handle)**: `[[alice]]`
-
   - **Semantics**: Points to a temporary variable name defined in the current file or current code block (Scope).
   - **Recommended Scenario**: Rapid prototyping, dependency injection within modules.
 

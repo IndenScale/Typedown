@@ -5,14 +5,17 @@ status: open
 stage: draft
 parent: monoco::EPIC-0004
 title: Typedown CLI Observability
-created_at: "2026-01-13T11:48:00"
-opened_at: "2026-01-13T11:48:00"
-updated_at: "2026-01-13T11:48:00"
+created_at: '2026-01-13T11:48:00'
+opened_at: '2026-01-13T11:48:00'
+updated_at: '2026-01-13T11:48:00'
 dependencies: []
 related: []
+domains: []
 tags:
-  - telemetry
-  - cli
+- '#FEAT-0001'
+- '#monoco::EPIC-0004'
+- cli
+- telemetry
 ---
 
 ## FEAT-0001: Typedown CLI Observability

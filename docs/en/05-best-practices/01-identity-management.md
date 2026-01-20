@@ -10,11 +10,11 @@ In Typedown projects, clear **Identity Layering** is the key to managing complex
 
 We recommend dividing identity into three distinct layers, from the lowest physical hash to the highest logical handle (L0 - L2).
 
-| Level | Term | Example | Nature | Responsibility |
-| :----- | :--------------- | :--------------- | :------------- | :---------------------------------------------------------------------------------------------------------------- |
-| **L0** | **Content Hash** | `sha256:8f4b...` | **Immutable** | **Integrity Anchor**. Deterministic fingerprint calculated based on content. Regardless of how the ID changes, as long as the content is unchanged, the Hash remains unchanged. |
-| **L1** | **System ID** | `user-alice-v1` | **Stable** | **System Identity**. Globally unique logical identifier (Slug) or machine identifier (UUID). It is a stable contract for cross-system interaction. |
-| **L2** | **Handle** | `alice` | **Contextual** | **Developer Experience (DX)**. Semantic, short, and locally valid. Use Handle for Dependency Injection (DI) in code as much as possible, but solidify it as L1 during persistence. |
+| Level  | Term             | Example          | Nature         | Responsibility                                                                                                                                                                     |
+| :----- | :--------------- | :--------------- | :------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **L0** | **Content Hash** | `sha256:8f4b...` | **Immutable**  | **Integrity Anchor**. Deterministic fingerprint calculated based on content. Regardless of how the ID changes, as long as the content is unchanged, the Hash remains unchanged.    |
+| **L1** | **System ID**    | `user-alice-v1`  | **Stable**     | **System Identity**. Globally unique logical identifier (Slug) or machine identifier (UUID). It is a stable contract for cross-system interaction.                                 |
+| **L2** | **Handle**       | `alice`          | **Contextual** | **Developer Experience (DX)**. Semantic, short, and locally valid. Use Handle for Dependency Injection (DI) in code as much as possible, but solidify it as L1 during persistence. |
 
 ## 2. Robust Addressing
 
@@ -95,7 +95,7 @@ If Typedown serves as a configuration source for an existing SQL database, UUIDs
 # Body:
 # Use a special extension field to store physical ID
 meta:
-  db_uuid: "550e8400-e29b-41d4-a716-446655440000"
+  db_uuid: '550e8400-e29b-41d4-a716-446655440000'
 ```
 
 This maintains the readability of Typedown files while preserving anchors to the physical world.

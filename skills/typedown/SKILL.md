@@ -10,20 +10,17 @@ This skill provides expert knowledge for writing **Typedown** files (`.td`). Typ
 ## Core Syntax Rules
 
 1. **File Structure**:
-
    - Typedown files are valid Markdown files.
    - They consist of natural language text interleaved with special Code Blocks.
    - **Crucial**: Every `.td` file MUST start with a Level 1 Heading (`# Title`) and a brief textual description. Never start with a code block.
 
 2. **Model Blocks (`model:<Name>`)**:
-
    - Used to define Pydantic models.
    - **One Model Per Block**: Do NOT define multiple classes in a single block. Each class gets its own `model:ClassName` block.
    - **No Imports in Block**: Do NOT import `typing` or `pydantic` inside the block unless it's a specific, non-standard import. The environment pre-loads standard types.
    - **Class Name Match**: The class defined MUST match the block argument (e.g., `class User` inside ` ```model:User `).
 
 3. **Config Blocks (`config`)**:
-
    - Used for global configuration and exports.
    - **Location**: Strictly restricted to `config.td` files only. Do NOT use `config` blocks in regular `.td` files.
    - **Exposure**: All symbols defined in `config` are automatically exposed to the directory scope and inherited by subdirectories.

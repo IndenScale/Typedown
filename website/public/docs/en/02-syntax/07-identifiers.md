@@ -10,11 +10,11 @@ Typedown uses identifiers of varying precision at different stages.
 
 We define identifiers as three different **Resolution States**:
 
-| Level | Strategy | Stage | Characteristics |
-| :--- | :--- | :--- | :--- |
-| **L0** | Hash | Runtime | **Absolute**. Content-based hash validation. |
-| **L1** | Exact | Compiler | **Precise**. Unique string indexing. |
-| **L2** | Fuzzy | Editing | **Inference**. Context-based derivation. |
+| Level  | Strategy | Stage    | Characteristics                              |
+| :----- | :------- | :------- | :------------------------------------------- |
+| **L0** | Hash     | Runtime  | **Absolute**. Content-based hash validation. |
+| **L1** | Exact    | Compiler | **Precise**. Unique string indexing.         |
+| **L2** | Fuzzy    | Editing  | **Inference**. Context-based derivation.     |
 
 > **Tip**: The essential difference between L2 (Handle) and L1 (System ID) is **whether fuzzy matching is allowed**.
 >

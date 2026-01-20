@@ -27,7 +27,7 @@ Typedown adopts **Lexical Scoping**. The parser looks up symbols in the followin
    - Symbols exported by `config.td`.
 3. **Parent Scopes (Parent Directories)**:
    - Recursive up to the root directory's `config.td`.
-   - *Shadowing*: Handles defined in subdirectories shadow Handles with the same name in parent directories.
+   - _Shadowing_: Handles defined in subdirectories shadow Handles with the same name in parent directories.
 4. **Global Scope (Global Preset)**:
    - Global configuration defined in `typedown.yaml`.
    - Runtime built-in symbols (Built-ins).
@@ -54,10 +54,10 @@ See the **Triple Resolution** mechanism in [References](../syntax/references):
 
 To support environment isolation and polymorphic configuration, Typedown strictly distinguishes between an entity's **Reference Handle** and **System ID**.
 
-| Concept | Term | Example | Scope | Responsibility |
-| :----------------- | :------ | :----------------- | :--------------------------- | :-------------------------------------------------------- |
-| **Handle (L2)** | Handle | `db_primary` | **Lexical** (Varies by file location) | **Dependency Injection (DI)**. Allows code to reference abstract names rather than concrete instances. |
-| **System ID (L1)** | System ID | `infra/db-prod-v1` | **Global** (Globally unique) | **Version Control**. Points to a specific, immutable entity evolution stream. |
+| Concept            | Term      | Example            | Scope                                 | Responsibility                                                                                         |
+| :----------------- | :-------- | :----------------- | :------------------------------------ | :----------------------------------------------------------------------------------------------------- |
+| **Handle (L2)**    | Handle    | `db_primary`       | **Lexical** (Varies by file location) | **Dependency Injection (DI)**. Allows code to reference abstract names rather than concrete instances. |
+| **System ID (L1)** | System ID | `infra/db-prod-v1` | **Global** (Globally unique)          | **Version Control**. Points to a specific, immutable entity evolution stream.                          |
 
 ### Scenario: Environment Overlay
 

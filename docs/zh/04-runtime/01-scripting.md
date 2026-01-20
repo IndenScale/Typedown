@@ -17,13 +17,13 @@ Typedown 的脚本系统允许在 `.td` 文件的 Front Matter 中定义操作�
 # 定义该文件的专属动作
 scripts:
   # 覆盖标准动作：验证当前文件逻辑
-  validate: "td validate --strict ${FILE}"
+  validate: 'td validate --strict ${FILE}'
 
   # 自定义动作：连接工商局接口核验数据
-  verify-business: "python scripts/oracle_check.py --id ${entity.id}"
+  verify-business: 'python scripts/oracle_check.py --id ${entity.id}'
 
   # 组合动作
-  ci-pass: "td validate ${FILE} && td run verify-business"
+  ci-pass: 'td validate ${FILE} && td run verify-business'
 ---
 ```
 

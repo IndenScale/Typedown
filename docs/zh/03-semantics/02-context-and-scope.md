@@ -81,7 +81,6 @@ graph BT
 ### 核心工具
 
 - **LSP Doc Lens (文档透镜)**:
-
   - 在编辑器中，Lens 应实时显示当前 Block 所处的 Environment 叠加状态（Inherited Configs, Available Handles）。
 
 - **`td get block query`**:

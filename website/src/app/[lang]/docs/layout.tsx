@@ -1,20 +1,20 @@
-import React from "react";
-import { getSidebar } from "@/lib/docs";
-import Link from "next/link";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
-import { getDictionary } from "@/dictionaries";
+import React from 'react'
+import { getSidebar } from '@/lib/docs'
+import Link from 'next/link'
+import { Header } from '@/components/Header'
+import { Footer } from '@/components/Footer'
+import { getDictionary } from '@/dictionaries'
 
 export default async function DocsLayout({
   children,
   params,
 }: {
-  children: React.ReactNode;
-  params: Promise<{ lang: string }>;
+  children: React.ReactNode
+  params: Promise<{ lang: string }>
 }) {
-  const { lang } = await params;
-  const sidebar = getSidebar(lang);
-  const dict = getDictionary(lang);
+  const { lang } = await params
+  const sidebar = getSidebar(lang)
+  const dict = getDictionary(lang)
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -35,7 +35,8 @@ export default async function DocsLayout({
                           <li key={item.href}>
                             <Link
                               href={item.href}
-                              className="block pl-4 text-sm text-gray-500 hover:text-foreground transition-colors">
+                              className="block pl-4 text-sm text-gray-500 hover:text-foreground transition-colors"
+                            >
                               {item.title}
                             </Link>
                           </li>
@@ -45,7 +46,8 @@ export default async function DocsLayout({
                   ) : (
                     <Link
                       href={section.href}
-                      className="block text-sm font-semibold text-gray-500 hover:text-foreground transition-colors">
+                      className="block text-sm font-semibold text-gray-500 hover:text-foreground transition-colors"
+                    >
                       {section.title}
                     </Link>
                   )}
@@ -58,5 +60,5 @@ export default async function DocsLayout({
       </div>
       <Footer content={dict.footer} />
     </div>
-  );
+  )
 }

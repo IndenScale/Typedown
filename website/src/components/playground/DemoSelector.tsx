@@ -1,38 +1,36 @@
-"use client";
+'use client'
 
-import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { getDemos } from "@/lib/demos";
-import { ChevronDown } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
-import { useTranslation } from "./TranslationContext";
+import { usePlaygroundStore } from '@/store/usePlaygroundStore'
+import { getDemos } from '@/lib/demos'
+import { ChevronDown } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
+import { useTranslation } from './TranslationContext'
 
 export function DemoSelector() {
-  const { currentDemoId, selectDemo, lang } = usePlaygroundStore();
-  const t = useTranslation();
-  const [isOpen, setIsOpen] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const { currentDemoId, selectDemo, lang } = usePlaygroundStore()
+  const t = useTranslation()
+  const [isOpen, setIsOpen] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const demos = getDemos(lang);
-  const currentDemo = demos.find((d) => d.id === currentDemoId);
+  const demos = getDemos(lang)
+  const currentDemo = demos.find((d) => d.id === currentDemoId)
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
       }
     }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="relative" ref={containerRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/10">
+        className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium hover:bg-black/5 dark:hover:bg-white/5 transition-colors border border-transparent hover:border-black/10 dark:hover:border-white/10"
+      >
         <span className="text-gray-500">{t.header.demo}</span>
         <span className="text-foreground">{currentDemo?.name}</span>
         <ChevronDown size={14} className="text-gray-400" />
@@ -44,22 +42,21 @@ export function DemoSelector() {
             <button
               key={demo.id}
               onClick={() => {
-                selectDemo(demo.id);
-                setIsOpen(false);
+                selectDemo(demo.id)
+                setIsOpen(false)
               }}
               className={`w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                 currentDemoId === demo.id
-                  ? "bg-success/10 text-success"
-                  : "text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground"
-              }`}>
+                  ? 'bg-success/10 text-success'
+                  : 'text-gray-600 dark:text-gray-400 hover:bg-black/5 dark:hover:bg-white/5 hover:text-foreground'
+              }`}
+            >
               <div className="font-medium">{demo.name}</div>
-              <div className="text-xs opacity-70 truncate">
-                {demo.description}
-              </div>
+              <div className="text-xs opacity-70 truncate">{demo.description}</div>
             </button>
           ))}
         </div>
       )}
     </div>
-  );
+  )
 }

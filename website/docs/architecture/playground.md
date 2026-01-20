@@ -57,18 +57,15 @@ graph TD
 **关键职责：**
 
 1. **环境引导 (Bootstrapping)**:
-
    - 加载 Pyodide CRT (C Runtime)。
    - 安装 Python 依赖：`micropip`, `pygls`, `pydantic` 等。
    - **Wheel Injection**: 下载 `public/typedown-0.0.0-py3-none-any.whl` 并安装到环境中。
 
 2. **Server Script Loading**:
-
    - 之前版本中 Python 代码作为字符串内嵌在 Worker 中。
    - 现重构为 **Fetch Execution**：Worker 启动时请求 `/lsp-server.py`，获取 Python 启动脚本并执行。
 
 3. **I/O 拦截 (I/O Interception)**:
-
    - 监听 LSP 消息。
    - **同步策略**: 当收到 `textDocument/didOpen` 或自定义的 `typedown/syncFile` 消息时，**优先**调用 `pyodide.FS.writeFile` 将文件内容写入虚拟文件系统。
    - 这是因为 Typedown Compiler 在解析 `config.td` 继承关系时，需要物理读取磁盘文件，而不仅仅依赖内存中的 `didChange` 事件。
@@ -83,12 +80,10 @@ graph TD
 **关键 Hack：**
 
 1. **Mock Watchdog**:
-
    - 原生 Typedown 依赖 `watchdog` 库监听文件变化。
    - WASM 环境没有真正的文件系统事件，因此我们通过 `sys.modules` 注入了一个 Dummy Watchdog，防止 Server 启动报错。
 
 2. **WebTransport**:
-
    - `pygls` 默认使用 TCP/Stdio。
    - 我们实现了一个基于 `asyncio.Transport` 的 `WebTransport` 类，它重写了 `write` 方法，通过 `js.post_lsp_message` 将数据回调给 JS Worker。
 

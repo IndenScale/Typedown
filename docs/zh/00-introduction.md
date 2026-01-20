@@ -22,7 +22,7 @@ Typedown 通过为 Markdown 添加语义层来解决这些问题：
 
 使用 Python (Pydantic) 定义数据结构。
 
-```markdown
+````markdown
 <!-- 定义在代码块中 -->
 
 ```model:User
@@ -30,7 +30,9 @@ class User(BaseModel):
     name: str
     role: Literal["admin", "member"]
 ```
-```
+````
+
+````
 
 ### 2. 空间 (Graph)
 
@@ -38,19 +40,21 @@ class User(BaseModel):
 
 ```markdown
 这份报告由 [[users/alice]] 撰写。
-```
+````
 
 ### 3. 逻辑 (Validation)
 
 在文档中强制执行架构规则。
 
-```markdown
+````markdown
 ```spec
 def check_admin_policy(user: User):
     if user.role == "admin":
         assert user.has_mfa, "管理员必须开启 MFA"
 ```
-```
+````
+
+````
 
 ## 安装
 
@@ -67,7 +71,7 @@ uvx typedown check
 
 # 全局安装
 uv tool install typedown
-```
+````
 
 ### 3. 对于贡献者
 

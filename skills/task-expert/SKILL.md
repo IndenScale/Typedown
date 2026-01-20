@@ -42,7 +42,7 @@ Task files must use the following structure:
 id: TASK-XXXX
 type: task
 status: active # active | done | cancelled
-title: "Task Title"
+title: 'Task Title'
 created_at: 202X-XX-XX
 author: [Your Name]
 ---

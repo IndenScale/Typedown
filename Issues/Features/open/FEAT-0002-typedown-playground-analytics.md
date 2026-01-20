@@ -5,14 +5,17 @@ status: open
 stage: draft
 parent: monoco::EPIC-0004
 title: Typedown Playground Web Analytics
-created_at: "2026-01-13T11:49:00"
-opened_at: "2026-01-13T11:49:00"
-updated_at: "2026-01-13T11:49:00"
+created_at: '2026-01-13T11:49:00'
+opened_at: '2026-01-13T11:49:00'
+updated_at: '2026-01-13T11:49:00'
 dependencies: []
 related: []
+domains: []
 tags:
-  - web
-  - playground
+- '#FEAT-0002'
+- '#monoco::EPIC-0004'
+- playground
+- web
 ---
 
 ## FEAT-0002: Typedown Playground Web Analytics

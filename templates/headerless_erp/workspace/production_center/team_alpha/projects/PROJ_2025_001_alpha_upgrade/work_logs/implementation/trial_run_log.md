@@ -24,13 +24,11 @@
 $$ OEE = Availability \times Performance \times Quality $$
 
 - **可用性 (Availability)**:
-
   - 计划运行时间: 48 小时
   - 故障停机时间: 0.5 小时 (参数调整)
   - $A = (48 - 0.5) / 48 = 98.9\%$
 
 - **性能 (Performance)**:
-
   - 理想节拍: 45 秒/件 -> 理论产量 80 件/小时
   - 实际总产量: 3750 件
   - 理论总产量: $(47.5 \times 3600) / 45 = 3800$ 件

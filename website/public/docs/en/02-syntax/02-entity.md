@@ -29,9 +29,9 @@ System ID is the **primary key** of the entity, following these strict restricti
 The content part of the entity adopts **Strict YAML** format.
 
 ```yaml
-name: "Alice"
+name: 'Alice'
 age: 30
-role: "admin"
+role: 'admin'
 ```
 
 ### Reference Syntax Sugar
@@ -60,7 +60,7 @@ Use the `former` field to declare historical versions of an entity.
 
 ```yaml
 former: [[user-alice-v0]]
-name: "Alice (Updated)"
+name: 'Alice (Updated)'
 ```
 
 See [Evolution Semantics](/en/docs/semantics/evolution) for details.

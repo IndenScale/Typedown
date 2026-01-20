@@ -1,27 +1,27 @@
-"use client";
+'use client'
 
-import { PlaygroundHeader } from "@/components/playground/PlaygroundHeader";
-import { FileExplorer } from "@/components/playground/FileExplorer";
-import { PlaygroundEditor } from "@/components/playground/PlaygroundEditor";
-import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { useEffect } from "react";
-import { Dictionary } from "@/dictionaries/types";
-import { TranslationProvider } from "@/components/playground/TranslationContext";
+import { PlaygroundHeader } from '@/components/playground/PlaygroundHeader'
+import { FileExplorer } from '@/components/playground/FileExplorer'
+import { PlaygroundEditor } from '@/components/playground/PlaygroundEditor'
+import { usePlaygroundStore } from '@/store/usePlaygroundStore'
+import { useEffect } from 'react'
+import { Dictionary } from '@/dictionaries/types'
+import { TranslationProvider } from '@/components/playground/TranslationContext'
 
 export function PlaygroundClient({
   lang,
   dictionary,
 }: {
-  lang: string;
-  dictionary: Dictionary["playground"];
+  lang: string
+  dictionary: Dictionary['playground']
 }) {
-  const setLang = usePlaygroundStore((state) => state.setLang);
+  const setLang = usePlaygroundStore((state) => state.setLang)
 
   useEffect(() => {
     if (lang) {
-      setLang(lang);
+      setLang(lang)
     }
-  }, [lang, setLang]);
+  }, [lang, setLang])
 
   return (
     <TranslationProvider value={dictionary}>
@@ -37,5 +37,5 @@ export function PlaygroundClient({
         </div>
       </div>
     </TranslationProvider>
-  );
+  )
 }

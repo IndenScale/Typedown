@@ -8,11 +8,13 @@ The `config` block is used to configure the compiler's runtime environment. It i
 
 ## Syntax Signature
 
-```markdown
+````markdown
 ```config python
 <Setup Script>
 ```
-```
+````
+
+````
 
 - **Keyword**: `config`
 - **Language**: Currently only `python` is supported.
@@ -34,7 +36,7 @@ from typing import List, Optional
 
 # Add project source directory to path to import custom Python tool libraries
 sys.path.append("${ROOT}/scripts")
-```
+````
 
 ### 2. Define Global Variables
 

@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 :root {
   /* Core Palette from design-tokens.json */
@@ -45,9 +45,8 @@
   --color-error: var(--color-error);
   --color-success: var(--color-success);
 
-  --font-sans: var(--font-geist-sans), "Inter", "Helvetica Neue", Arial,
-    sans-serif;
-  --font-mono: var(--font-geist-mono), "JetBrains Mono", Menlo, monospace;
+  --font-sans: var(--font-geist-sans), 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: var(--font-geist-mono), 'JetBrains Mono', Menlo, monospace;
 }
 
 body {
@@ -69,18 +68,13 @@ body {
 }
 
 .ghost-shimmer::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: -100%;
   width: 50%;
   height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    var(--color-ghost-blue),
-    transparent
-  );
+  background: linear-gradient(90deg, transparent, var(--color-ghost-blue), transparent);
   animation: shimmer 3s infinite;
 }
 
@@ -124,7 +118,9 @@ body {
 }
 
 .dark .markdown-content td {
-  border-bottom-color: var(--gray-100) !important; /* Note: adjust if gray-100 is too bright in dark mode */
+  border-bottom-color: var(
+    --gray-100
+  ) !important; /* Note: adjust if gray-100 is too bright in dark mode */
 }
 
 .markdown-content tr:last-child td {
@@ -147,7 +143,8 @@ body {
   @apply mb-4;
 }
 
-.markdown-content ul, .markdown-content ol {
+.markdown-content ul,
+.markdown-content ol {
   @apply mb-4 ml-6 list-outside;
 }
 

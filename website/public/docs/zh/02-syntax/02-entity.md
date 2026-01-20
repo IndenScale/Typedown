@@ -29,9 +29,9 @@ System ID 是实体的**主键**，在 v0.2.13+ 中遵循以下严格限制：
 实体的内容部分采用 **Strict YAML** 格式。
 
 ```yaml
-name: "Alice"
+name: 'Alice'
 age: 30
-role: "admin"
+role: 'admin'
 ```
 
 ### 引用语法糖
@@ -60,7 +60,7 @@ reviewers: [[[bob]], [[alice]]]
 
 ```yaml
 former: [[user-alice-v0]]
-name: "Alice (Updated)"
+name: 'Alice (Updated)'
 ```
 
 详见 [演变语义](/zh/docs/semantics/evolution)。

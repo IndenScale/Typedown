@@ -1,6 +1,6 @@
 ---
 name: git-reference-manager
-description: "安全地引入外部 Git 仓库作为参考资料。负责管理 `_reference` 目录，确保外部代码只读且不污染项目版本控制。"
+description: '安全地引入外部 Git 仓库作为参考资料。负责管理 `_reference` 目录，确保外部代码只读且不污染项目版本控制。'
 ---
 
 # Git 参考仓库管理 (Git Reference Manager)

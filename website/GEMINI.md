@@ -23,7 +23,7 @@
 3. **代码引用**:
    ```javascript
    // website/public/lsp-worker.js
-   await micropip.install("/typedown-0.0.0-py3-none-any.whl");
+   await micropip.install('/typedown-0.0.0-py3-none-any.whl')
    ```
 
 ### 维护指南

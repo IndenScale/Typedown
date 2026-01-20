@@ -1,15 +1,15 @@
-"use client";
+'use client'
 
-import { useEffect, useState } from "react";
-import { remark } from "remark";
-import html from "remark-html";
+import { useEffect, useState } from 'react'
+import { remark } from 'remark'
+import html from 'remark-html'
 
 interface MarkdownPreviewProps {
-  content: string;
+  content: string
 }
 
 export function MarkdownPreview({ content }: MarkdownPreviewProps) {
-  const [htmlContent, setHtmlContent] = useState("");
+  const [htmlContent, setHtmlContent] = useState('')
 
   useEffect(() => {
     // Process markdown to HTML
@@ -18,13 +18,13 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
       .use(html)
       .process(content)
       .then((file) => {
-        setHtmlContent(String(file));
+        setHtmlContent(String(file))
       })
       .catch((err) => {
-        console.error("Markdown processing error:", err);
-        setHtmlContent(`<p style="color:red">Error rendering markdown</p>`);
-      });
-  }, [content]);
+        console.error('Markdown processing error:', err)
+        setHtmlContent(`<p style="color:red">Error rendering markdown</p>`)
+      })
+  }, [content])
 
   return (
     <div className="h-full w-full overflow-y-auto bg-white dark:bg-[#0A0A0A] p-6">
@@ -33,5 +33,5 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
         dangerouslySetInnerHTML={{ __html: htmlContent }}
       />
     </div>
-  );
+  )
 }

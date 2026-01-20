@@ -1,46 +1,45 @@
-import { useEffect } from "react";
-import { usePlaygroundStore } from "@/store/usePlaygroundStore";
-import { logger } from "@/lib/logger";
-import { lspService } from "@/services/LSPService";
+import { useEffect } from 'react'
+import { usePlaygroundStore } from '@/store/usePlaygroundStore'
+import { logger } from '@/lib/logger'
+import { lspService } from '@/services/LSPService'
 
 export function useLSPClient() {
-  const { client, lspStatus, setLspStatus, setLspClient } =
-    usePlaygroundStore();
+  const { client, lspStatus, setLspStatus, setLspClient } = usePlaygroundStore()
 
   // 1. Connection Effect (Delegated to LSPService)
   useEffect(() => {
     // If we already have a client in the store, and it's happy, do nothing.
-    if (client || lspStatus === "connected") {
-      return;
+    if (client || lspStatus === 'connected') {
+      return
     }
 
     // Guard: Browser only
-    if (typeof window === "undefined") return;
+    if (typeof window === 'undefined') return
 
-    let isMounted = true;
+    let isMounted = true
 
     const connect = async () => {
-      setLspStatus("connecting");
+      setLspStatus('connecting')
       try {
-        const { client: newClient, worker } = await lspService.initialize();
+        const { client: newClient, worker } = await lspService.initialize()
         if (isMounted) {
-          setLspClient(newClient, worker);
-          setLspStatus("connected");
+          setLspClient(newClient, worker)
+          setLspStatus('connected')
         }
       } catch (e) {
         if (isMounted) {
-          logger.error("[LSPHook] Connection Failed:", e);
-          setLspStatus("error");
+          logger.error('[LSPHook] Connection Failed:', e)
+          setLspStatus('error')
         }
       }
-    };
+    }
 
-    connect();
+    connect()
 
     return () => {
-      isMounted = false;
-    };
-  }, [client, lspStatus, setLspStatus, setLspClient]);
+      isMounted = false
+    }
+  }, [client, lspStatus, setLspStatus, setLspClient])
 
-  return lspStatus;
+  return lspStatus
 }

@@ -1,28 +1,28 @@
-"use client";
+'use client'
 
-import * as React from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { useTheme } from "next-themes";
-import { useParams } from "next/navigation";
+import * as React from 'react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useTheme } from 'next-themes'
+import { useParams } from 'next/navigation'
 
-import { Dictionary } from "@/dictionaries/types";
+import { Dictionary } from '@/dictionaries/types'
 
 interface FooterProps {
-  content: Dictionary["footer"];
+  content: Dictionary['footer']
 }
 
 export function Footer({ content }: FooterProps) {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = React.useState(false);
-  const params = useParams();
-  const lang = (params?.lang as string) || "en";
+  const { theme } = useTheme()
+  const [mounted, setMounted] = React.useState(false)
+  const params = useParams()
+  const lang = (params?.lang as string) || 'en'
 
   React.useEffect(() => {
-    setMounted(true);
-  }, []);
+    setMounted(true)
+  }, [])
 
-  const isDark = mounted && theme === "dark";
+  const isDark = mounted && theme === 'dark'
 
   return (
     <footer className="w-full border-t border-black/[0.03] dark:border-white/5 bg-background py-16 shadow-[0_-1px_2px_rgba(0,0,0,0.01)] dark:shadow-none">
@@ -32,7 +32,7 @@ export function Footer({ content }: FooterProps) {
             <Link href={`/${lang}`} className="inline-block">
               {mounted ? (
                 <Image
-                  src={isDark ? "/logo-light.svg" : "/logo-dark.svg"}
+                  src={isDark ? '/logo-light.svg' : '/logo-dark.svg'}
                   alt="Typedown Logo"
                   width={100}
                   height={30}
@@ -49,14 +49,10 @@ export function Footer({ content }: FooterProps) {
             </p>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              {content.product}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">{content.product}</h3>
             <ul className="mt-4 space-y-3 text-sm text-gray-500">
               <li>
-                <Link
-                  href={`/${lang}/docs`}
-                  className="hover:text-foreground transition-colors">
+                <Link href={`/${lang}/docs`} className="hover:text-foreground transition-colors">
                   {content.docs}
                 </Link>
               </li>
@@ -65,7 +61,8 @@ export function Footer({ content }: FooterProps) {
                   href="https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode-integration"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors">
+                  className="hover:text-foreground transition-colors"
+                >
                   VS Code Extension
                 </a>
               </li>
@@ -74,42 +71,39 @@ export function Footer({ content }: FooterProps) {
                   href="https://open-vsx.org/extension/Typedown/typedown-vscode-integration"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="hover:text-foreground transition-colors">
+                  className="hover:text-foreground transition-colors"
+                >
                   Open VSX Registry
                 </a>
               </li>
               <li>
-                <Link
-                  href="#"
-                  className="hover:text-foreground transition-colors">
+                <Link href="#" className="hover:text-foreground transition-colors">
                   CLI Tool
                 </Link>
               </li>
             </ul>
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">
-              {content.company}
-            </h3>
+            <h3 className="text-sm font-semibold text-foreground">{content.company}</h3>
             <ul className="mt-4 space-y-3 text-sm text-gray-500">
               <li>
                 <Link
                   href={`/${lang}/philosophy/manifesto`}
-                  className="hover:text-foreground transition-colors">
+                  className="hover:text-foreground transition-colors"
+                >
                   {content.manifesto}
                 </Link>
               </li>
               <li>
                 <Link
                   href="https://github.com/IndenScale/typedown"
-                  className="hover:text-foreground transition-colors">
+                  className="hover:text-foreground transition-colors"
+                >
                   GitHub
                 </Link>
               </li>
               <li>
-                <Link
-                  href="#"
-                  className="hover:text-foreground transition-colors">
+                <Link href="#" className="hover:text-foreground transition-colors">
                   {content.contact}
                 </Link>
               </li>
@@ -121,5 +115,5 @@ export function Footer({ content }: FooterProps) {
         </div>
       </div>
     </footer>
-  );
+  )
 }

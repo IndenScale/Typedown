@@ -1,46 +1,46 @@
-import type { Metadata } from "next";
+import type { Metadata } from 'next'
 // import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
-import { ThemeProvider } from "@/components/ThemeProvider";
-import { LSPClientWrapper } from "@/components/playground/LSPClientWrapper";
+import './globals.css'
+import { ThemeProvider } from '@/components/ThemeProvider'
+import { LSPClientWrapper } from '@/components/playground/LSPClientWrapper'
 
-import { LSPStatusIndicator } from "@/components/playground/LSPStatusIndicator";
+import { LSPStatusIndicator } from '@/components/playground/LSPStatusIndicator'
 
 // Fallback to system fonts since Google Fonts fetch fails in this environment
 const geistSans = {
-  variable: "--font-geist-sans",
-};
+  variable: '--font-geist-sans',
+}
 
 const geistMono = {
-  variable: "--font-geist-mono",
-};
+  variable: '--font-geist-mono',
+}
 
 export const metadata: Metadata = {
-  title: "Typedown — Markdown that Scales",
+  title: 'Typedown — Markdown that Scales',
   description:
-    "Build trusted knowledge bases with Markdown, Pydantic, and Pytest. Progressive formalization for documentation that scales.",
+    'Build trusted knowledge bases with Markdown, Pydantic, and Pytest. Progressive formalization for documentation that scales.',
   icons: {
     icon: [
-      { url: "/icon-dark.svg", media: "(prefers-color-scheme: light)" },
-      { url: "/icon-light.svg", media: "(prefers-color-scheme: dark)" },
+      { url: '/icon-dark.svg', media: '(prefers-color-scheme: light)' },
+      { url: '/icon-light.svg', media: '(prefers-color-scheme: dark)' },
     ],
   },
-};
+}
 
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode;
+  children: React.ReactNode
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
           enableSystem
-          disableTransitionOnChange>
+          disableTransitionOnChange
+        >
           <LSPClientWrapper />
           {children}
 
@@ -51,5 +51,5 @@ export default function RootLayout({
         </ThemeProvider>
       </body>
     </html>
-  );
+  )
 }

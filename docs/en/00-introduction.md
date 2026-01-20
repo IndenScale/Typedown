@@ -22,7 +22,7 @@ Typedown addresses these issues by adding a semantic layer to Markdown:
 
 Define data structures using Python (Pydantic).
 
-```markdown
+````markdown
 <!-- Defined in a code block -->
 
 ```model:User
@@ -30,7 +30,9 @@ class User(BaseModel):
     name: str
     role: Literal["admin", "member"]
 ```
-```
+````
+
+````
 
 ### 2. Space (Graph)
 
@@ -38,19 +40,21 @@ Resolve links using **Content Hash (L0)**, **Handle (L1)**, or **Global ID (L2)*
 
 ```markdown
 This report was written by [[users/alice]].
-```
+````
 
 ### 3. Logic (Validation)
 
 Enforce schema rules within documentation.
 
-```markdown
+````markdown
 ```spec
 def check_admin_policy(user: User):
     if user.role == "admin":
         assert user.has_mfa, "Admins must enable MFA"
 ```
-```
+````
+
+````
 
 ## Installation
 
@@ -67,7 +71,7 @@ uvx typedown check
 
 # Global installation
 uv tool install typedown
-```
+````
 
 ### 3. For Contributors
 

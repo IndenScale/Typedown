@@ -37,13 +37,13 @@ To ensure response speed and data freshness, LSP adopts a dual-drive mode:
 
 ## 2. Feature Matrix
 
-| Feature | Method (LSP Method) | Implementation Strategy | Dependent Core Component |
-| :----------- | :-------------------------------- | :--------------------------------------------------------- | :--------------------------- |
-| **Real-time Diagnostics** | `textDocument/publishDiagnostics` | Trigger full validation (Validator) 300ms after user stops typing | `Validator`, `Parser` |
-| **Jump to Definition** | `textDocument/definition` | Based on reference in `EntityBlock.raw_data` -> Lookup `SymbolTable` | `SymbolTable`, `QueryEngine` |
-| **Smart Completion** | `textDocument/completion` | Identify current AST node context -> Filter available Handle/ID | `SymbolTable` |
-| **Hover Tooltip** | `textDocument/hover` | Render Markdown summary of the referenced entity | `EntityBlock.data` |
-| **Find References** | `textDocument/references` | Reverse lookup dependency graph (`DependencyGraph`) | `DependencyGraph` |
+| Feature                   | Method (LSP Method)               | Implementation Strategy                                              | Dependent Core Component     |
+| :------------------------ | :-------------------------------- | :------------------------------------------------------------------- | :--------------------------- |
+| **Real-time Diagnostics** | `textDocument/publishDiagnostics` | Trigger full validation (Validator) 300ms after user stops typing    | `Validator`, `Parser`        |
+| **Jump to Definition**    | `textDocument/definition`         | Based on reference in `EntityBlock.raw_data` -> Lookup `SymbolTable` | `SymbolTable`, `QueryEngine` |
+| **Smart Completion**      | `textDocument/completion`         | Identify current AST node context -> Filter available Handle/ID      | `SymbolTable`                |
+| **Hover Tooltip**         | `textDocument/hover`              | Render Markdown summary of the referenced entity                     | `EntityBlock.data`           |
+| **Find References**       | `textDocument/references`         | Reverse lookup dependency graph (`DependencyGraph`)                  | `DependencyGraph`            |
 
 ## 3. Implementation Details
 
@@ -83,7 +83,7 @@ To ensure state consistency, the LSP Server adopts a strict thread-safe design:
 The VS Code extension responsibilities are limited to:
 
 - Registering `.td` / `.typedown` file associations.
-- Providing syntax highlighting rules (`tmLanguage.json`) — *Note: LSP can also provide Semantic Tokens, but tmLanguage is faster and has better compatibility due to Markdown.*
+- Providing syntax highlighting rules (`tmLanguage.json`) — _Note: LSP can also provide Semantic Tokens, but tmLanguage is faster and has better compatibility due to Markdown._
 - Launching the command `td lsp`.
 
 ---

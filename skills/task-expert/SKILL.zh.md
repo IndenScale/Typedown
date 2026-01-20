@@ -1,6 +1,6 @@
 ---
 name: task-expert
-description: "‘任务即代码’ (Task as Code) 管理专家。负责维护 todos/ 目录下的任务文件，确保任务 ID 连续、状态清晰且符合规范。"
+description: '‘任务即代码’ (Task as Code) 管理专家。负责维护 todos/ 目录下的任务文件，确保任务 ID 连续、状态清晰且符合规范。'
 ---
 
 # 任务管理专家 (Task Expert)
@@ -42,7 +42,7 @@ description: "‘任务即代码’ (Task as Code) 管理专家。负责维护 t
 id: TASK-XXXX
 type: task
 status: active # active | done | cancelled
-title: "任务标题"
+title: '任务标题'
 created_at: 202X-XX-XX
 author: [Your Name]
 ---
