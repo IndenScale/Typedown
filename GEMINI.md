@@ -78,6 +78,17 @@ Monoco 遵循 **"Task as Code"** 哲学，将所有工作单元持久化为结�
 
 详情参考：`Toolkit/skills/issues-management/SKILL.md`
 
+## 工程流 (Engineering Workflow)
+
+采用 **主干开发 (Trunk Based Development)** 模式。
+
+- **分支策略**:
+  - **Main**: 唯一真理源 (Source of Truth)。
+  - **Feature**: 短命分支 (`feat/ID`, `fix/ID`)，完成后 Squash Merge 并删除。
+- **发布策略**:
+  - **Trigger**: 仅通过 Git Tag (`v*`) 触发发布流水线。
+  - **Constraint**: 严禁维护长周期的 `release` 分支 (Release Branching is Anti-Pattern)。
+
 ## 发布流程 (Release Workflow)
 
 Monoco 采用自动化流水线管理 Typedown 的多渠道发布。
