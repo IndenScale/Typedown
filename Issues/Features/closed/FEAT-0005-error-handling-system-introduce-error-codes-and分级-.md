@@ -2,8 +2,8 @@
 id: FEAT-0005
 uid: c1c300
 type: feature
-status: open
-stage: review
+status: closed
+stage: done
 title: 'Error handling system: introduce error codes and分级 reporting'
 created_at: '2026-02-11T21:54:44'
 updated_at: '2026-02-11T22:12:41'
