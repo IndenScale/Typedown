@@ -9,7 +9,10 @@ from enum import Enum
 
 from typedown.core.ast.document import Document
 from typedown.core.ast.base import SourceLocation
-from typedown.core.base.errors import TypedownError
+from typedown.core.base.errors import (
+    TypedownError, ErrorCode, ErrorLevel,
+    linker_error, DiagnosticReport
+)
 from typedown.core.analysis.compiler_context import CompilerContext
 from typedown.core.base.config import TypedownConfig
 from typedown.core.base.types import Ref
@@ -28,7 +31,7 @@ class Linker:
         self.project_root = project_root
         self.config = config
         self.console = console
-        self.diagnostics: List[TypedownError] = []
+        self.diagnostics = DiagnosticReport()
         
         # New Symbol Table
         self.symbol_table = SymbolTable()
@@ -72,9 +75,11 @@ class Linker:
                     # Provide the registry as the namespace for resolution
                     model_cls.model_rebuild(_types_namespace=self.model_registry)
                 except Exception as e:
-                    self.diagnostics.append(TypedownError(
-                        f"Failed to rebuild model '{name}': {e}", 
-                        severity="warning"
+                    self.diagnostics.add(linker_error(
+                        ErrorCode.E0224,
+                        model_name=name,
+                        details=str(e),
+                        level=ErrorLevel.WARNING
                     ))
 
     def _build_static_symbols(self, documents: Dict[Path, Document]):
@@ -89,8 +94,11 @@ class Linker:
                             self.symbol_table.add(node, path)
                         except ValueError as e:
                             # Handle duplicate error
-                            self.diagnostics.append(TypedownError(
-                                str(e), location=node.location, severity="error"
+                            self.diagnostics.add(linker_error(
+                                ErrorCode.E0241,
+                                id=node.id,
+                                details=str(e),
+                                location=node.location
                             ))
 
     def _setup_globals(self):
@@ -130,9 +138,13 @@ class Linker:
                             self.base_globals[symbol_name] = getattr(module, symbol_name)
                         self.console.print(f"    [dim]✓ Loaded prelude symbol: {symbol_path}[/dim]")
                     except Exception as e:
-                        msg = f"Failed to load prelude symbol '{symbol_path}': {e}"
-                        self.console.print(f"    [bold yellow]Warning:[/bold yellow] {msg}")
-                        self.diagnostics.append(TypedownError(msg, severity="warning"))
+                        self.diagnostics.add(linker_error(
+                            ErrorCode.E0223,
+                            symbol=symbol_path,
+                            details=str(e),
+                            level=ErrorLevel.WARNING
+                        ))
+                        self.console.print(f"    [bold yellow]Warning:[/bold yellow] Failed to load prelude symbol '{symbol_path}': {e}")
 
     def _execute_configs(self, documents: Dict[Path, Document]):
         """
@@ -176,8 +188,13 @@ class Linker:
                     exec(cfg.code, current_locals)
                     self.console.print(f"    [dim]✓ Executed config in {path}[/dim]")
                 except Exception as e:
-                     self.diagnostics.append(TypedownError(f"Config execution failed in {path}: {e}", location=cfg.location))
-                     continue
+                    self.diagnostics.add(linker_error(
+                        ErrorCode.E0222,
+                        path=str(path),
+                        details=str(e),
+                        location=cfg.location
+                    ))
+                    continue
 
                 # 3. Store Context for Children
                 self.dir_contexts[config_dir] = current_locals
@@ -230,11 +247,10 @@ class Linker:
                         # The model block ID MUST match the defined Pydantic class name
                         if model.id:
                             if model.id not in local_scope:
-                                self.diagnostics.append(TypedownError(
-                                    f"Model block ID '{model.id}' does not match any class defined in the block. "
-                                    f"The class name must exactly match the block ID.",
-                                    location=model.location,
-                                    severity="error"
+                                self.diagnostics.add(linker_error(
+                                    ErrorCode.E0231,
+                                    id=model.id,
+                                    location=model.location
                                 ))
                                 continue
                             
@@ -245,11 +261,11 @@ class Linker:
                             is_enum = isinstance(defined_class, type) and issubclass(defined_class, Enum)
                             
                             if not (is_model or is_enum):
-                                self.diagnostics.append(TypedownError(
-                                    f"Model block ID '{model.id}' refers to '{type(defined_class).__name__}', "
-                                    f"which is not a Pydantic BaseModel or Enum class.",
-                                    location=model.location,
-                                    severity="error"
+                                self.diagnostics.add(linker_error(
+                                    ErrorCode.E0233,
+                                    name=model.id,
+                                    actual_type=type(defined_class).__name__,
+                                    location=model.location
                                 ))
                                 continue
                             
@@ -258,11 +274,10 @@ class Linker:
                                 fields = getattr(defined_class, "model_fields", {})
                                 # In Pydantic v2, fields is a dict of FieldInfo
                                 if "id" in fields:
-                                    self.diagnostics.append(TypedownError(
-                                        f"Model '{model.id}' defines a forbidden field 'id'. "
-                                        f"The 'id' field is reserved by Typedown for the system ID and handled automatically.",
-                                        location=model.location,
-                                        severity="error"
+                                    self.diagnostics.add(linker_error(
+                                        ErrorCode.E0232,
+                                        model=model.id,
+                                        location=model.location
                                     ))
                                     continue
                             
@@ -298,7 +313,12 @@ class Linker:
                                      self.symbol_table.add(wrapper, doc.path)
                         
                     except Exception as e:
-                        self.diagnostics.append(TypedownError(f"Model execution failed: {e}", location=model.location))
+                        self.diagnostics.add(linker_error(
+                            ErrorCode.E0221,
+                            model_id=model.id,
+                            details=str(e),
+                            location=model.location
+                        ))
 
     def _harvest_exports(self, scope: Dict[str, Any], source_path: Path, location: Optional[SourceLocation] = None):
         """

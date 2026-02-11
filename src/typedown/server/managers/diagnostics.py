@@ -8,7 +8,7 @@ from lsprotocol.types import (
     PublishDiagnosticsParams,
 )
 from typedown.core.compiler import Compiler
-from typedown.core.base.errors import TypedownError
+from typedown.core.base.errors import TypedownError, ErrorLevel
 from pathlib import Path
 import os
 from urllib.parse import urlparse, unquote
@@ -21,6 +21,10 @@ def uri_to_path(uri: str) -> Path:
     return Path(path_str).resolve()
 
 def to_lsp_diagnostic(error: TypedownError) -> Diagnostic:
+    """
+    Convert TypedownError to LSP Diagnostic.
+    Includes error code in message for visibility.
+    """
     start_line, start_col = 0, 0
     end_line, end_col = 0, 0
     
@@ -36,15 +40,36 @@ def to_lsp_diagnostic(error: TypedownError) -> Diagnostic:
         end_line = max(0, el - 1) if el else 0
         start_col = max(0, sc - 1) if sc else 0
         end_col = max(0, ec - 1) if ec else 100
-        
+    
+    # Map error level to LSP severity
+    severity_map = {
+        ErrorLevel.ERROR: DiagnosticSeverity.Error,
+        ErrorLevel.WARNING: DiagnosticSeverity.Warning,
+        ErrorLevel.INFO: DiagnosticSeverity.Information,
+        ErrorLevel.HINT: DiagnosticSeverity.Hint
+    }
+    severity = severity_map.get(error.level, DiagnosticSeverity.Error)
+    
+    # Include error code in message for better visibility
+    # Format: [E0101] message
+    message = f"[{error.code}] {error.message}"
+    
+    # Build related information from details if available
+    related_info = None
+    if error.details:
+        # Could add related information here if needed
+        pass
+    
     return Diagnostic(
         range=Range(
             start=Position(line=start_line, character=start_col),
             end=Position(line=end_line, character=end_col),
         ),
-        message=error.message,
-        severity=DiagnosticSeverity.Error if error.severity == "error" else DiagnosticSeverity.Warning,
-        source="typedown"
+        message=message,
+        severity=severity,
+        source="typedown",
+        code=str(error.code),
+        code_description=None  # Could add URL to error documentation
     )
 
 def publish_diagnostics(ls: LanguageServer, compiler: Compiler):
@@ -73,3 +98,36 @@ def publish_diagnostics(ls: LanguageServer, compiler: Compiler):
         ls.text_document_publish_diagnostics(
             PublishDiagnosticsParams(uri=Path(p_str).as_uri(), diagnostics=diags)
         )
+
+
+def get_diagnostics_summary(compiler: Compiler) -> Dict:
+    """
+    Get a summary of diagnostics from the compiler.
+    Useful for CLI output and logging.
+    """
+    if not compiler or not compiler.diagnostics:
+        return {
+            "total": 0,
+            "by_level": {"error": 0, "warning": 0, "info": 0, "hint": 0},
+            "by_stage": {}
+        }
+    
+    summary = {
+        "total": len(compiler.diagnostics),
+        "by_level": {"error": 0, "warning": 0, "info": 0, "hint": 0},
+        "by_stage": {}
+    }
+    
+    for err in compiler.diagnostics:
+        # Count by level
+        level = err.level.value
+        if level in summary["by_level"]:
+            summary["by_level"][level] += 1
+        
+        # Count by stage
+        stage = err.code.stage
+        if stage not in summary["by_stage"]:
+            summary["by_stage"][stage] = 0
+        summary["by_stage"][stage] += 1
+    
+    return summary

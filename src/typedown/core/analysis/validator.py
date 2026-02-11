@@ -3,7 +3,11 @@ from pathlib import Path
 from rich.console import Console
 
 from typedown.core.ast import Document, EntityBlock, SourceLocation
-from typedown.core.base.errors import TypedownError, CycleError, ReferenceError
+from typedown.core.base.errors import (
+    TypedownError, CycleError, ReferenceError,
+    ErrorCode, ErrorLevel,
+    validator_error, DiagnosticReport
+)
 from typedown.core.graph import DependencyGraph
 from typedown.core.analysis.query import QueryEngine, QueryError, REF_PATTERN
 from typedown.core.base.types import ReferenceMeta
@@ -12,10 +16,11 @@ from typedown.core.base.symbol_table import SymbolTable
 from typedown.core.base.utils import AttributeWrapper
 from pydantic import BaseModel
 
+
 class Validator:
     def __init__(self, console: Console):
         self.console = console
-        self.diagnostics: List[TypedownError] = []
+        self.diagnostics = DiagnosticReport()
         self.dependency_graph: DependencyGraph = DependencyGraph()
 
     def _resolve_model_class(self, entity: EntityBlock, symbol_table: SymbolTable, model_registry: Dict[str, Any]) -> Any:
@@ -91,7 +96,7 @@ class Validator:
                  if parts and parts[0] in entities_by_id:
                      e.location = entities_by_id[parts[0]].location
             
-            self.diagnostics.append(e)
+            self.diagnostics.add(e)
             return
 
         # 3. Resolve in order
@@ -128,10 +133,10 @@ class Validator:
                 
                 # Auto-inject ID from Signature if missing in Body (Signature as Identity)
                 if "id" in data:
-                    self.diagnostics.append(TypedownError(
-                        "Conflict: System ID must be defined in Block Signature, not in Body.",
-                        location=entity.location,
-                        severity="error"
+                    self.diagnostics.add(validator_error(
+                        ErrorCode.E0363,
+                        entity_id=entity.id,
+                        location=entity.location
                     ))
                     # Fallthrough to validation to catch other errors, but using the user-provided ID
                 elif entity.id:
@@ -168,11 +173,12 @@ class Validator:
                         real_errors.append(error)
                     
                     if real_errors:
-                         self.diagnostics.append(TypedownError(
-                             f"Schema Violation in {entity.id or 'anonymous'}: {e}", 
-                             location=entity.location,
-                             severity="error"
-                         ))
+                        self.diagnostics.add(validator_error(
+                            ErrorCode.E0361,
+                            entity=entity.id or 'anonymous',
+                            details=str(e),
+                            location=entity.location
+                        ))
                     else:
                         total_checked += 1
 
@@ -217,10 +223,10 @@ class Validator:
                 pass
             else:
                 # Resolution Failed
-                self.diagnostics.append(TypedownError(
-                    f"Evolution Error: 'former' target '{target_id_str}' not found.",
-                    location=entity.location,
-                    severity="error"
+                self.diagnostics.add(validator_error(
+                    ErrorCode.E0343,
+                    target=target_id_str,
+                    location=entity.location
                 ))
 
         try:
@@ -232,8 +238,12 @@ class Validator:
             self._check_semantic_types(entity, symbol_table, model_registry)
             
         except (QueryError, ReferenceError) as e:
-            err = ReferenceError(str(e), location=entity.location)
-            self.diagnostics.append(err)
+            err = validator_error(
+                ErrorCode.E0341,
+                details=str(e),
+                location=entity.location
+            )
+            self.diagnostics.add(err)
             # FALLBACK: Preserve data to avoid total loss
             entity.resolved_data = current_data
 
@@ -265,10 +275,13 @@ class Validator:
                     if isinstance(value, str):
                         target_entity = symbol_table.get(value)
                         if target_entity and hasattr(target_entity, 'class_name') and target_entity.class_name != target_type:
-                            self.diagnostics.append(TypedownError(
-                                f"Type Mismatch: Field '{field_name}' expects Ref[{target_type}], but '{value}' is type '{target_entity.class_name}'",
-                                location=entity.location,
-                                severity="error"
+                            self.diagnostics.add(validator_error(
+                                ErrorCode.E0362,
+                                field=field_name,
+                                expected=target_type,
+                                value=value,
+                                actual=target_entity.class_name,
+                                location=entity.location
                             ))
         
         # Recursion for Lists
@@ -278,5 +291,3 @@ class Validator:
             if isinstance(value, list):
                 for item in value:
                     self._check_field_annotation(field_name, arg, item, entity, symbol_table)
-
-

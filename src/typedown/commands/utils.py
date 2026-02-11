@@ -4,7 +4,7 @@ from typing import Any, List
 from pydantic import BaseModel
 import typer
 
-from typedown.core.base.errors import TypedownError
+from typedown.core.base.errors import TypedownError, DiagnosticReport
 
 def json_serializer(obj: Any) -> Any:
     """JSON serializer for objects not serializable by default json code"""
@@ -19,20 +19,11 @@ def json_serializer(obj: Any) -> Any:
     if isinstance(obj, Path):
         return str(obj)
     if isinstance(obj, TypedownError):
-        loc = None
-        if obj.location:
-            loc = {
-                "file_path": str(getattr(obj.location, "file_path", "")),
-                "line_start": getattr(obj.location, "line_start", 0),
-                "col_start": getattr(obj.location, "col_start", 0),
-                "line_end": getattr(obj.location, "line_end", 0),
-                "col_end": getattr(obj.location, "col_end", 0),
-            }
-        return {
-            "severity": obj.severity,
-            "message": obj.message,
-            "location": loc
-        }
+        # Use the new to_dict() method which includes all error code info
+        return obj.to_dict()
+    if isinstance(obj, DiagnosticReport):
+        # Serialize diagnostic report to list of error dicts
+        return obj.to_dict_list()
     if isinstance(obj, BaseModel):
         return obj.model_dump()
     if hasattr(obj, "resolved_data"):
@@ -70,3 +61,61 @@ def output_result(data: Any, as_json: bool, console_printer=None):
     else:
         if console_printer:
             console_printer(data)
+
+
+def format_diagnostics_for_output(
+    scanner_diagnostics: Any,
+    linker_diagnostics: Any = None,
+    validator_diagnostics: Any = None,
+    spec_diagnostics: Any = None
+) -> dict:
+    """
+    Format all diagnostics from compilation stages for structured output.
+    
+    Returns a dictionary with:
+    - summary: counts by level and stage
+    - diagnostics: list of all diagnostic dicts
+    """
+    all_diagnostics = []
+    
+    def collect(diags):
+        if isinstance(diags, DiagnosticReport):
+            all_diagnostics.extend(diags.to_dict_list())
+        elif isinstance(diags, list):
+            for d in diags:
+                if isinstance(d, TypedownError):
+                    all_diagnostics.append(d.to_dict())
+                elif isinstance(d, dict):
+                    all_diagnostics.append(d)
+    
+    collect(scanner_diagnostics)
+    collect(linker_diagnostics)
+    collect(validator_diagnostics)
+    collect(spec_diagnostics)
+    
+    # Build summary
+    summary = {
+        "total": len(all_diagnostics),
+        "by_level": {"error": 0, "warning": 0, "info": 0, "hint": 0},
+        "by_stage": {
+            "L1-Scanner": 0,
+            "L2-Linker": 0,
+            "L3-Validator": 0,
+            "L4-Spec": 0,
+            "System": 0
+        }
+    }
+    
+    for diag in all_diagnostics:
+        level = diag.get("level", "error")
+        stage = diag.get("stage", "Unknown")
+        
+        if level in summary["by_level"]:
+            summary["by_level"][level] += 1
+        if stage in summary["by_stage"]:
+            summary["by_stage"][stage] += 1
+    
+    return {
+        "summary": summary,
+        "diagnostics": all_diagnostics
+    }

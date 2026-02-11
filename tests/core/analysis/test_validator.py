@@ -36,7 +36,7 @@ def test_validator_topological_resolution():
     validator.validate(docs, symbol_table, model_registry)
     
     assert alice.resolved_data["manager"] == bob
-    assert not validator.diagnostics
+    assert not validator.diagnostics.errors
 
 def test_validator_former_linkage():
     console = Console()
@@ -66,7 +66,7 @@ def test_validator_former_linkage():
     assert alice_v2.resolved_data["name"] == "Alice V2"
     assert alice_v2.resolved_data["age"] == 31
     # Check diagnostics is empty (valid global ID)
-    assert not validator.diagnostics
+    assert not validator.diagnostics.errors
 
 def test_validator_former_invalid_identifier():
     """Test that using a Local Handle for 'former' raises an error."""
@@ -85,7 +85,7 @@ def test_validator_former_invalid_identifier():
     validator.validate(docs, symbol_table, {})
     
     # Should have an error about target not found (Resolution Check)
-    assert len(validator.diagnostics) == 1
-    assert "target 'alice-local' not found" in validator.diagnostics[0].message
+    assert len(validator.diagnostics.errors) == 1
+    assert "Evolution target not found" in validator.diagnostics.errors[0].message
     # assert "Local Handle" in validator.diagnostics[0].message # No longer relevant
 

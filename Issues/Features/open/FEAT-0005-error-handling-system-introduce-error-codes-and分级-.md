@@ -3,7 +3,7 @@ id: FEAT-0005
 uid: c1c300
 type: feature
 status: open
-stage: doing
+stage: review
 title: 'Error handling system: introduce error codes and分级 reporting'
 created_at: '2026-02-11T21:54:44'
 updated_at: '2026-02-11T22:12:41'
@@ -16,9 +16,21 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0004'
 - '#FEAT-0005'
-files: []
+files:
+- src/typedown/core/base/errors.py
+- src/typedown/commands/utils.py
+- src/typedown/core/analysis/scanner.py
+- src/typedown/core/analysis/linker.py
+- src/typedown/core/analysis/validator.py
+- src/typedown/core/analysis/spec_executor.py
+- src/typedown/core/compiler.py
+- src/typedown/server/managers/diagnostics.py
+- tests/core/base/test_errors.py
+- tests/core/analysis/test_validator.py
+- tests/server/managers/test_diagnostics.py
+- docs/error-codes.md
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented
 opened_at: '2026-02-11T21:54:44'
 ---
 
@@ -37,45 +49,45 @@ opened_at: '2026-02-11T21:54:44'
 
 ## Acceptance Criteria
 
-- [ ] 所有错误包含可机器识别的错误码
-- [ ] JSON 输出包含完整的错误码和结构化信息
-- [ ] 错误分级明确：Error / Warning / Info / Hint
-- [ ] 各编译阶段（L1-L4）错误处理一致
-- [ ] 提供错误码文档对照表
+- [x] 所有错误包含可机器识别的错误码
+- [x] JSON 输出包含完整的错误码和结构化信息
+- [x] 错误分级明确：Error / Warning / Info / Hint
+- [x] 各编译阶段（L1-L4）错误处理一致
+- [x] 提供错误码文档对照表
 
 ## Technical Tasks
 
-- [ ] 设计错误码体系
-  - [ ] 定义错误码格式（如 E0101 = L1 语法错误）
-  - [ ] 制定分类规则（E01xx=L1, E02xx=L2, E03xx=L3, E04xx=L4）
-- [ ] 扩展 TypedownError
-  - [ ] 添加 code: str 字段
-  - [ ] 添加 level: ErrorLevel 枚举
-  - [ ] 保持向后兼容
-- [ ] 统一错误收集机制
-  - [ ] 各编译阶段统一使用 diagnostics 列表
-  - [ ] 实现错误聚合和去重
-- [ ] 重构 L1 (Scanner) 错误处理
-  - [ ] 为扫描错误分配错误码
-  - [ ] 统一错误消息格式
-- [ ] 重构 L2 (Linker) 错误处理
-  - [ ] 为链接错误分配错误码
-  - [ ] 统一错误消息格式
-- [ ] 重构 L3 (Validator) 错误处理
-  - [ ] 为验证错误分配错误码
-  - [ ] 统一错误消息格式
-- [ ] 重构 L4 (Spec) 错误处理
-  - [ ] 为 Spec 错误分配错误码
-  - [ ] 统一错误消息格式
-- [ ] 更新 JSON 输出
-  - [ ] 更新 commands/utils.py 的 json_serializer
-  - [ ] 包含完整的错误码信息
-- [ ] 测试
-  - [ ] 添加错误码验证测试
-  - [ ] 确保 JSON 输出包含所有字段
-- [ ] 文档
-  - [ ] 创建错误码对照表文档
-  - [ ] 更新开发者文档
+- [x] 设计错误码体系
+  - [x] 定义错误码格式（如 E0101 = L1 语法错误）
+  - [x] 制定分类规则（E01xx=L1, E02xx=L2, E03xx=L3, E04xx=L4）
+- [x] 扩展 TypedownError
+  - [x] 添加 code: str 字段
+  - [x] 添加 level: ErrorLevel 枚举
+  - [x] 保持向后兼容
+- [x] 统一错误收集机制
+  - [x] 各编译阶段统一使用 diagnostics 列表
+  - [x] 实现错误聚合和去重 (通过 DiagnosticReport)
+- [x] 重构 L1 (Scanner) 错误处理
+  - [x] 为扫描错误分配错误码
+  - [x] 统一错误消息格式
+- [x] 重构 L2 (Linker) 错误处理
+  - [x] 为链接错误分配错误码
+  - [x] 统一错误消息格式
+- [x] 重构 L3 (Validator) 错误处理
+  - [x] 为验证错误分配错误码
+  - [x] 统一错误消息格式
+- [x] 重构 L4 (Spec) 错误处理
+  - [x] 为 Spec 错误分配错误码
+  - [x] 统一错误消息格式
+- [x] 更新 JSON 输出
+  - [x] 更新 commands/utils.py 的 json_serializer
+  - [x] 包含完整的错误码信息
+- [x] 测试
+  - [x] 添加错误码验证测试 (28 个测试用例)
+  - [x] 确保 JSON 输出包含所有字段
+- [x] 文档
+  - [x] 创建错误码对照表文档 (docs/error-codes.md)
+  - [x] 更新开发者文档
 
 ## 提议的错误码体系
 

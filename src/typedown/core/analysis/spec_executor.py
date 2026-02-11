@@ -19,7 +19,10 @@ from pathlib import Path
 from rich.console import Console
 
 from typedown.core.ast import Document, SpecBlock, EntityBlock
-from typedown.core.base.errors import TypedownError
+from typedown.core.base.errors import (
+    TypedownError, ErrorCode, ErrorLevel,
+    spec_error, DiagnosticReport
+)
 from typedown.core.base.utils import AttributeWrapper
 from typedown.core.analysis.query import QueryEngine
 from typedown.core.base.symbol_table import SymbolTable
@@ -141,6 +144,7 @@ class DiagnosticCollector:
                     "test_id": test_id
                 })
 
+
 class BlameRegistry:
     """Stores explicit blame calls from specs."""
     def __init__(self):
@@ -166,6 +170,7 @@ class BlameRegistry:
                 "reason": reason
             })
 
+
 class SpecExecutor:
     """
     Executes spec blocks with @target selector binding using Pytest as the engine.
@@ -173,7 +178,7 @@ class SpecExecutor:
     
     def __init__(self, console: Console):
         self.console = console
-        self.diagnostics: List[TypedownError] = []
+        self.diagnostics = DiagnosticReport()
     
     def execute_specs(
         self, 
@@ -220,6 +225,13 @@ class SpecExecutor:
                             class_name_str = node.class_name if hasattr(node, "class_name") else "unknown"
                             self.console.print(f"[dim] - Entity: {class_name_str} ({node.id})[/dim]")
                     
+                    self.diagnostics.add(spec_error(
+                        ErrorCode.E0423,
+                        spec_id=spec.id or spec.name,
+                        selector=selector.raw,
+                        location=spec.location,
+                        level=ErrorLevel.WARNING
+                    ))
                     self.console.print(f"    [yellow]⚠[/yellow] Spec '{spec.id or spec.name}' has no matching entities for selector: {selector.raw}")
                     continue
 
@@ -394,10 +406,11 @@ class SpecExecutor:
                 
                 # 1. Spec-side diagnostic (Rule perspective)
                 # Always show the error on the spec itself
-                self.diagnostics.append(TypedownError(
-                    f"Spec '{spec.id}' failed: {reason}",
-                    location=spec.location,
-                    severity="error"
+                self.diagnostics.add(spec_error(
+                    ErrorCode.E0421,
+                    spec_id=spec.id,
+                    details=reason,
+                    location=spec.location
                 ))
                 
                 if blamed_records:
@@ -409,10 +422,12 @@ class SpecExecutor:
                         # Find the entity object for location
                         target_entity = symbol_table.get(target_id)
                         if target_entity and target_entity.location:
-                            self.diagnostics.append(TypedownError(
-                                f"Violates spec '{spec.id}': {blame_reason}",
-                                location=target_entity.location,
-                                severity="error"
+                            self.diagnostics.add(spec_error(
+                                ErrorCode.E0424,
+                                spec_id=spec.id,
+                                entity_id=target_id,
+                                details=blame_reason,
+                                location=target_entity.location
                             ))
                         else:
                             # Fallback if entity not found in symbol table (might be dynamic)
@@ -420,10 +435,12 @@ class SpecExecutor:
                 else:
                     # No explicit blame: broadcast to default subject (legacy behavior)
                     if default_entity.location:
-                         self.diagnostics.append(TypedownError(
-                            f"Violates spec '{spec.id}': {reason}",
-                            location=default_entity.location,
-                            severity="error"
+                         self.diagnostics.add(spec_error(
+                            ErrorCode.E0424,
+                            spec_id=spec.id,
+                            entity_id=default_entity.id,
+                            details=reason,
+                            location=default_entity.location
                         ))
 
                 self.console.print(
@@ -472,5 +489,3 @@ class SpecExecutor:
                     matches.append(node)
         
         return matches
-
-

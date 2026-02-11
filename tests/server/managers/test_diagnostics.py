@@ -18,7 +18,8 @@ def test_to_lsp_diagnostic():
     
     diag = to_lsp_diagnostic(err)
     
-    assert diag.message == "Syntax Error"
+    assert "Syntax Error" in diag.message
+    assert "[E0981]" in diag.message
     assert diag.severity == DiagnosticSeverity.Error
     # LSP is 0-indexed, so line 10 becomes 9
     assert diag.range.start.line == 9
@@ -30,6 +31,6 @@ def test_to_lsp_diagnostic_no_location():
     err = TypedownError(message="Generic Error", severity="warning")
     diag = to_lsp_diagnostic(err)
     
-    assert diag.message == "Generic Error"
+    assert "Generic Error" in diag.message
     assert diag.severity == DiagnosticSeverity.Warning
     assert diag.range.start == Position(line=0, character=0)

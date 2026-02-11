@@ -8,9 +8,13 @@ from typedown.core.ast import Document, SourceLocation, EntityBlock
 from typedown.core.parser import TypedownParser
 from typedown.core.base.utils import IgnoreMatcher
 from typedown.core.base.config import ScriptConfig
-from typedown.core.base.errors import TypedownError
+from typedown.core.base.errors import (
+    TypedownError, ErrorCode, ErrorLevel, 
+    scanner_error, DiagnosticReport
+)
 
 from typedown.core.analysis.source_provider import SourceProvider, DiskProvider
+
 
 class Scanner:
     def __init__(self, project_root: Path, console: Console, provider: Optional[SourceProvider] = None):
@@ -18,7 +22,7 @@ class Scanner:
         self.console = console
         self.parser = TypedownParser()
         self.ignore_matcher = IgnoreMatcher(project_root)
-        self.diagnostics: List[TypedownError] = []
+        self.diagnostics = DiagnosticReport()
         self.provider = provider or DiskProvider()
 
     def scan(self, target: Path, script: Optional[ScriptConfig] = None) -> Tuple[Dict[Path, Document], Set[Path]]:
@@ -104,7 +108,13 @@ class Scanner:
             documents[path] = doc
         except Exception as e:
             self.console.print(f"[yellow]Warning:[/yellow] Failed to parse {path}: {e}")
-            self.diagnostics.append(TypedownError(f"Parse Error: {e}", location=SourceLocation(file_path=str(path), line_start=0, line_end=0, col_start=0, col_end=0)))
+            loc = SourceLocation(file_path=str(path), line_start=0, line_end=0, col_start=0, col_end=0)
+            self.diagnostics.add(scanner_error(
+                ErrorCode.E0101,
+                details=str(e),
+                location=loc,
+                file=str(path)
+            ))
 
     def _matches_script(self, path: Path, script: ScriptConfig) -> bool:
         try:
@@ -139,29 +149,30 @@ class Scanner:
             # Check 1: Nested Lists
             for entity in doc.entities:
                 if self._check_nested_lists(entity.raw_data):
-                    error = TypedownError(
-                        f"Nested list detected in entity '{entity.id}'. "
-                        f"This is an anti-pattern. Consider extracting to a separate Model.",
+                    error = scanner_error(
+                        ErrorCode.E0103,
+                        entity_id=entity.id,
+                        details=f"Nested list detected in entity '{entity.id}'. Consider extracting to a separate Model.",
                         location=entity.location
                     )
-                    self.diagnostics.append(error)
+                    self.diagnostics.add(error)
                     has_errors = True
 
             # Check 2: Config Placement
             if doc.configs:
                 if path.name != "config.td":
-                    error = TypedownError(
-                        f"Config blocks detected in '{path.name}'. "
-                        f"Config blocks should only appear in 'config.td' files. "
-                        f"Please move this logic to the directory scope.",
+                    error = scanner_error(
+                        ErrorCode.E0102,
+                        file_name=path.name,
+                        details=f"Config blocks should only appear in 'config.td' files",
                         location=doc.configs[0].location,
-                        severity="error"
+                        level=ErrorLevel.ERROR
                     )
-                    self.diagnostics.append(error)
+                    self.diagnostics.add(error)
                     has_errors = True
         
         if has_errors:
-            self.console.print(f"    [red]✗[/red] Lint failed with {len(self.diagnostics)} error(s).")
+            self.console.print(f"    [red]✗[/red] Lint failed with {len(self.diagnostics.by_level(ErrorLevel.ERROR))} error(s).")
             return False
         else:
             self.console.print(f"    [green]✓[/green] Lint passed.")

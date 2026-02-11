@@ -5,7 +5,7 @@ from rich.console import Console
 from typedown.core.ast import Document, EntityBlock
 from typedown.core.base.utils import find_project_root, AttributeWrapper
 from typedown.core.base.config import TypedownConfig, ScriptConfig
-from typedown.core.base.errors import TypedownError, print_diagnostic
+from typedown.core.base.errors import TypedownError, print_diagnostic, DiagnosticReport
 from typedown.core.base.symbol_table import SymbolTable
 
 from typedown.core.analysis.scanner import Scanner
@@ -32,18 +32,24 @@ class Compiler:
         self.symbol_table: SymbolTable = SymbolTable()
         self.model_registry: Dict[str, Any] = {}
         self.active_script: Optional[ScriptConfig] = None
-        self.diagnostics: List[TypedownError] = []
+        self.diagnostics: DiagnosticReport = DiagnosticReport()
         self.dependency_graph: Optional[Any] = None # Graph
         self.resources: Dict[str, Any] = {} # Path -> Resource
         
     def compile(self, script_name: Optional[str] = None, run_specs: bool = True) -> bool:
         """Runs the full compilation pipeline."""
-        self.diagnostics.clear()
+        self.diagnostics = DiagnosticReport()
         
         self.active_script = None
         if script_name:
             if script_name not in self.config.scripts:
-                self.diagnostics.append(TypedownError(f"Script '{script_name}' not found", severity="error"))
+                from typedown.core.base.errors import ErrorCode, ErrorLevel
+                self.diagnostics.add(TypedownError(
+                    f"Script '{script_name}' not found", 
+                    code=ErrorCode.E0903,
+                    level=ErrorLevel.ERROR,
+                    details={"script": script_name}
+                ))
                 self._print_diagnostics()
                 return False
             self.active_script = self.config.scripts[script_name]
@@ -55,14 +61,14 @@ class Compiler:
             # Stage 1: Scanner (Uses SourceProvider)
             scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
             self.documents, self.target_files = scanner.scan(self.target, self.active_script)
-            self.diagnostics.extend(scanner.diagnostics)
+            self.diagnostics.extend(scanner.diagnostics.errors)
             
             # Stage 2: Linker
             linker = Linker(self.project_root, self.config, self.console)
             linker.link(self.documents)
             self.symbol_table = linker.symbol_table
             self.model_registry = linker.model_registry
-            self.diagnostics.extend(linker.diagnostics)
+            self.diagnostics.extend(linker.diagnostics.errors)
             
             # Stage 2.5 & 3: Validator (L2 + L3)
             validator = Validator(self.console)
@@ -73,20 +79,18 @@ class Compiler:
             # L3: Reference Resolution & Graph
             validator.validate(self.documents, self.symbol_table, self.model_registry)
             
-            self.diagnostics.extend(validator.diagnostics)
+            self.diagnostics.extend(validator.diagnostics.errors)
             self.dependency_graph = validator.dependency_graph
             
             # Stage 3.5: Specs (Internal Self-Validation)
             if run_specs:
-                if not any(d.severity == "error" for d in self.diagnostics):
+                if not self.diagnostics.has_errors():
                     self._run_specs() 
 
 
             # Check for Errors
             has_error = False
-            for d in self.diagnostics:
-                if d.severity == "error":
-                    has_error = True
+            has_error = self.diagnostics.has_errors()
             
             self._print_diagnostics()
             return not has_error
@@ -121,16 +125,16 @@ class Compiler:
         # For now, append is fine as compile() clears all diagnostics usually.
         # BUT if we run this ad-hoc (CodeLens), currently diagnostics are NOT cleared before this call 
         # unless compile() was called.
-        self.diagnostics.extend(spec_executor.diagnostics)
+        self.diagnostics.extend(spec_executor.diagnostics.errors)
         return specs_passed
 
     def _print_diagnostics(self):
-        if not self.diagnostics:
+        if not self.diagnostics.errors:
             return
-        self.console.print(f"\n[bold]Diagnostics ({len(self.diagnostics)}):[/bold]")
-        for d in self.diagnostics:
-            print_diagnostic(self.console, d)
-        self.console.print("")
+        summary = self.diagnostics.to_dict_list()
+        self.console.print(f"\n[bold]Diagnostics ({len(summary)}):[/bold]")
+        from typedown.core.base.errors import print_diagnostic_report
+        print_diagnostic_report(self.console, self.diagnostics)
 
     def query(self, query_string: str, context_path: Optional[Path] = None) -> Any:
         """
@@ -200,20 +204,20 @@ class Compiler:
 
     def lint(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
         """L1: Syntax Check (Scanner only)."""
-        self.diagnostics.clear()
+        self.diagnostics = DiagnosticReport()
         target = target or self.target
         script = self.config.scripts.get(script_name) if script_name else None
         
         scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
         self.documents, _ = scanner.scan(target, script)
-        self.diagnostics.extend(scanner.diagnostics)
+        self.diagnostics.extend(scanner.diagnostics.errors)
         
         # Run lint checks
         lint_passed = scanner.lint(self.documents)
-        self.diagnostics.extend(scanner.diagnostics)
+        self.diagnostics.extend(scanner.diagnostics.errors)
         
         self._print_diagnostics()
-        return lint_passed and not any(d.severity == "error" for d in self.diagnostics)
+        return lint_passed and not self.diagnostics.has_errors()
 
     def check(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
         """L2: Schema Compliance (Scanner + Linker + Pydantic)."""
@@ -225,16 +229,16 @@ class Compiler:
         linker.link(self.documents)
         self.symbol_table = linker.symbol_table
         self.model_registry = linker.model_registry
-        self.diagnostics.extend(linker.diagnostics)
+        self.diagnostics.extend(linker.diagnostics.errors)
 
         # Validation (Pydantic-only part of Phase 3)
         # L2 check: Now strictly structure compliance only.
         validator = Validator(self.console)
         validator.check_schema(self.documents, self.symbol_table, self.model_registry)
-        self.diagnostics.extend(validator.diagnostics)
+        self.diagnostics.extend(validator.diagnostics.errors)
         
         self._print_diagnostics()
-        return not any(d.severity == "error" for d in self.diagnostics)
+        return not self.diagnostics.has_errors()
 
     def update_source(self, path: Path, content: str) -> bool:
         """
@@ -289,14 +293,14 @@ class Compiler:
         Runs Linker and Validator on current in-memory documents.
         Skips Scanner (File IO).
         """
-        self.diagnostics.clear()
+        self.diagnostics = DiagnosticReport()
         
         # Linker
         linker = Linker(self.project_root, self.config, self.console)
         linker.link(self.documents)
         self.symbol_table = linker.symbol_table
         self.model_registry = linker.model_registry
-        self.diagnostics.extend(linker.diagnostics)
+        self.diagnostics.extend(linker.diagnostics.errors)
         
         # Validator
         validator = Validator(self.console)
@@ -305,12 +309,12 @@ class Compiler:
         
         # L3: Reference Resolution
         validator.validate(self.documents, self.symbol_table, self.model_registry)
-        self.diagnostics.extend(validator.diagnostics)
+        self.diagnostics.extend(validator.diagnostics.errors)
         self.dependency_graph = validator.dependency_graph
         
         # Stage 3.5: Specs (Internal Self-Validation)
         # Re-enabled for Automatic Validation in Playground
-        if not any(d.severity == "error" for d in self.diagnostics):
+        if not self.diagnostics.has_errors():
             self._run_specs()
     
     def run_script(
