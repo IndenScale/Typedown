@@ -4,7 +4,7 @@ from typing import Optional
 from typedown.core.compiler import Compiler
 
 def test(
-    path: Path = typer.Option(Path("."), "--path", "-p", help="Project root directory"),
+    path: Path = typer.Argument(Path("."), help="Project root directory"),
     tags: str = typer.Option("", "--tags", help="Filter specs by tag (comma separated)"),
 ):
     """L4: External Verification (Oracles & Reality Check)."""

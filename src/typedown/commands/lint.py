@@ -3,7 +3,7 @@ from pathlib import Path
 from typedown.core.compiler import Compiler
 
 def lint(
-    path: Path = typer.Option(Path("."), "--path", "-p", help="Project root directory"),
+    path: Path = typer.Argument(Path("."), help="Project root directory"),
 ):
     """L1: Syntax & Format Check (Fast Loop)."""
     compiler = Compiler(path)

@@ -9,7 +9,7 @@ from io import StringIO
 from typedown.commands.utils import output_result
 
 def check(
-    path: Path = typer.Option(Path("."), "--path", "-p", help="Project root directory"),
+    path: Path = typer.Argument(Path("."), help="Project root directory"),
     script: Optional[str] = typer.Option(None, "--script", "-s", help="Script configuration to use"),
     as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
