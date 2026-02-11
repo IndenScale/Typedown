@@ -3,7 +3,7 @@ id: FEAT-0001
 type: feature
 status: open
 stage: draft
-parent: monoco::EPIC-0004
+parent: EPIC-0000
 title: Typedown CLI Observability
 created_at: '2026-01-13T11:48:00'
 opened_at: '2026-01-13T11:48:00'
@@ -12,8 +12,8 @@ dependencies: []
 related: []
 domains: []
 tags:
+- '#EPIC-0000'
 - '#FEAT-0001'
-- '#monoco::EPIC-0004'
 - cli
 - telemetry
 ---

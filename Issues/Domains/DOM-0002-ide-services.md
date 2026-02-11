@@ -8,7 +8,7 @@ created_at: 2026-01-19
 tags: [lsp, vscode, typescript, rust]
 ---
 
-# Domain: IDE Services & LSP
+# DOM-0002-ide-services
 
 ## 1. Definition (定义)
 

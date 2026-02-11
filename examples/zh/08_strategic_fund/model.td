@@ -4,8 +4,6 @@
 
 
 ```model: Domain
-from enum import Enum
-
 class Domain(str, Enum):
     AI = "Artificial Intelligence"
     BIO = "Biotechnology"

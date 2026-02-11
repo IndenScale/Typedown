@@ -16,7 +16,7 @@ tags:
 - '#FIX-0001'
 files: []
 criticality: high
-solution: null
+solution: implemented
 opened_at: '2026-02-06T17:55:46'
 isolation:
   type: branch
@@ -86,7 +86,6 @@ Got unexpected extra argument (.)
 - [x] 测试 `td check` 和 `td check .` 命令
 
 ## Review Comments
-<!-- Required for Review/Done stage. Record review feedback here. -->
 
 ### 修复总结
 

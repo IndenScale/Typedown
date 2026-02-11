@@ -401,7 +401,7 @@ wheels = [
 
 [[package]]
 name = "typedown"
-version = "0.2.17"
+version = "0.2.18"
 source = { editable = "." }
 dependencies = [
     { name = "markdown-it-py" },

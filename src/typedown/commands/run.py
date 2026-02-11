@@ -4,8 +4,9 @@ td run 命令：执行脚本系统
 
 import typer
 from pathlib import Path
-from rich.console import Console
-from typedown.core.compiler import Compiler
+
+from typedown.commands.context import cli_session
+from typedown.commands.output import cli_result, cli_error, cli_success
 
 
 def run(
@@ -19,6 +20,11 @@ def run(
         False,
         "--dry-run",
         help="仅打印命令而不执行"
+    ),
+    as_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output as JSON"
     )
 ):
     """
@@ -40,27 +46,27 @@ def run(
         # 仅打印命令而不执行
         $ td run validate user_profile.td --dry-run
     """
-    console = Console()
-    
-    try:
-        # 如果目标是目录，需要先编译以加载文档
-        compiler = Compiler(target, console)
-        
+    with cli_session(target, as_json=as_json, require_project=True) as ctx:
         # 如果目标是文件，先解析该文件
         if target.is_file():
             # 使用 lint 来加载文档（最轻量级的编译）
-            compiler.lint(target)
+            ctx.compiler.lint(target)
         
         # 执行脚本
-        exit_code = compiler.run_script(script_name, target, dry_run)
+        exit_code = ctx.compiler.run_script(script_name, target, dry_run)
         
-        if exit_code == 0:
-            console.print(f"[bold green]✓[/bold green] Script '{script_name}' completed successfully")
+        if as_json:
+            cli_result(ctx, {
+                "script": script_name,
+                "target": str(target),
+                "exit_code": exit_code,
+                "dry_run": dry_run
+            }, exit_on_error=False)
         else:
-            console.print(f"[bold red]✗[/bold red] Script '{script_name}' failed with exit code {exit_code}")
+            if exit_code == 0:
+                cli_success(ctx, f"Script '{script_name}' completed successfully")
+            else:
+                ctx.display_console.print(f"[bold red]✗[/bold red] Script '{script_name}' failed with exit code {exit_code}")
         
-        raise typer.Exit(code=exit_code)
-        
-    except Exception as e:
-        console.print(f"[bold red]Error:[/bold red] {e}")
-        raise typer.Exit(code=1)
+        if exit_code != 0:
+            raise typer.Exit(code=exit_code)

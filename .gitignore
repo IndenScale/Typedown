@@ -55,3 +55,4 @@ test_pytest_*.py
 # Tooling Reference
 _reference/
 \n# Exclude nested doccano reference\n参考实现/components/doccano/
+.references/

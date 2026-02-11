@@ -1,11 +1,9 @@
 import typer
 from pathlib import Path
 from typing import Optional
-from typedown.core.compiler import Compiler
 
-from rich.console import Console
-from io import StringIO
-from typedown.commands.utils import output_result
+from typedown.commands.context import cli_session
+from typedown.commands.output import cli_result
 
 def validate(
     path: Path = typer.Argument(Path("."), help="Project root directory"),
@@ -13,20 +11,17 @@ def validate(
     as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
     """L3: Business Logic Integrity (Graph Resolution + Specs)."""
-    console = Console(file=StringIO(), stderr=False) if as_json else None
-    compiler = Compiler(path, console=console)
-    
-    # compile() runs the full pipeline L1-L3
-    passed = compiler.compile(script_name=script)
-    
-    if as_json:
-        output_result(compiler.diagnostics, True)
-        if not passed:
-             raise typer.Exit(code=1)
-        return
-
-    if passed:
-        typer.echo("[green]Validation Passed[/green]")
-    else:
-        typer.echo("[red]Validation Failed[/red]")
-        raise typer.Exit(code=1)
+    with cli_session(path, as_json=as_json, require_project=True) as ctx:
+        # compile() runs the full pipeline L1-L3
+        passed = ctx.compiler.compile(script_name=script)
+        
+        if as_json:
+            cli_result(ctx, ctx.compiler.diagnostics, exit_on_error=False)
+            if not passed:
+                raise typer.Exit(code=1)
+        else:
+            if passed:
+                ctx.display_console.print("[green]Validation Passed[/green]")
+            else:
+                ctx.display_console.print("[red]Validation Failed[/red]")
+                raise typer.Exit(code=1)

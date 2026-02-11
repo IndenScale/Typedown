@@ -3,7 +3,7 @@ id: FEAT-0002
 type: feature
 status: open
 stage: draft
-parent: monoco::EPIC-0004
+parent: EPIC-0000
 title: Typedown Playground Web Analytics
 created_at: '2026-01-13T11:49:00'
 opened_at: '2026-01-13T11:49:00'
@@ -12,8 +12,8 @@ dependencies: []
 related: []
 domains: []
 tags:
+- '#EPIC-0000'
 - '#FEAT-0002'
-- '#monoco::EPIC-0004'
 - playground
 - web
 ---

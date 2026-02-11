@@ -6,6 +6,16 @@
 - Do NOT add content after MONOCO_GENERATED_END (use separate files instead).
 -->
 
+# Typeddown
+
+<!--
+⚠️ IMPORTANT: This file is partially managed by Monoco.
+- Content between MONOCO_GENERATED_START and MONOCO_GENERATED_END is auto-generated.
+- Use `monoco sync` to refresh this content.
+- Do NOT manually edit the managed block.
+- Do NOT add content after MONOCO_GENERATED_END (use separate files instead).
+-->
+
 <!-- MONOCO_GENERATED_START -->
 ## Monoco
 

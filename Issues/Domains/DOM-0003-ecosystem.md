@@ -8,7 +8,7 @@ created_at: 2026-01-19
 tags: [website, documentation, branding]
 ---
 
-# Domain: Ecosystem
+# DOM-0003-ecosystem
 
 ## 1. Definition (定义)
 

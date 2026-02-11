@@ -8,7 +8,7 @@ created_at: 2026-01-19
 tags: [specs, pm, issue-system]
 ---
 
-# Domain: Governance
+# DOM-0004-governance
 
 ## 1. Definition (定义)
 
