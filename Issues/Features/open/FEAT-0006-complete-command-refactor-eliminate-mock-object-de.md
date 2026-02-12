@@ -16,7 +16,12 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0004'
 - '#FEAT-0006'
-files: []
+files:
+- src/typedown/server/services/__init__.py
+- src/typedown/server/services/completion_service.py
+- src/typedown/server/features/completion.py
+- src/typedown/commands/complete.py
+- tests/server/features/test_completion.py
 criticality: low
 solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-11T21:54:45'
@@ -37,39 +42,39 @@ complete.py 命令为了实现 CLI 调用 LSP 补全功能，创建了 Mock 对�
 
 ## Acceptance Criteria
 
-- [ ] Mock 对象（MockLS, MockWorkspace）完全删除
-- [ ] LSP 和 CLI 补全行为完全一致
-- [ ] 代码覆盖率不下降
-- [ ] 新增补全功能自动对 LSP 和 CLI 同时生效
+- [x] Mock 对象（MockLS, MockWorkspace）完全删除
+- [x] LSP 和 CLI 补全行为完全一致
+- [x] 代码覆盖率不下降
+- [x] 新增补全功能自动对 LSP 和 CLI 同时生效
 
 ## Technical Tasks
 
-- [ ] 分析当前实现
-  - [ ] 研究 typedown/server/features/completion.py
-  - [ ] 识别 completions() 函数实际依赖
-  - [ ] 列出需要抽象的服务接口
-- [ ] 设计 Service 层接口
-  - [ ] 创建 CompletionService 类
-  - [ ] 设计独立于 LSP 协议的输入/输出
-  - [ ] 考虑其他 LSP 特性的 Service 化（可选）
-- [ ] 实现 CompletionService
-  - [ ] 提取补全核心逻辑
-  - [ ] 实现基于 Compiler 的补全
-  - [ ] 处理各种补全场景（实体、引用、属性）
-- [ ] 重构 LSP Server
-  - [ ] 更新 typedown/server/features/completion.py
-  - [ ] 使用 CompletionService
-  - [ ] 保持 LSP 协议兼容性
-- [ ] 重构 CLI complete 命令
-  - [ ] 更新 typedown/commands/complete.py
-  - [ ] 直接调用 CompletionService
-  - [ ] 删除 MockLS 和 MockWorkspace
-- [ ] 统一测试
-  - [ ] 将 Mock 对象测试改为 Service 测试
-  - [ ] 确保 LSP 和 CLI 测试覆盖相同场景
-- [ ] 代码审查
-  - [ ] 确保接口设计合理
-  - [ ] 评估其他 LSP 特性的 Service 化可行性
+- [x] 分析当前实现
+  - [x] 研究 typedown/server/features/completion.py
+  - [x] 识别 completions() 函数实际依赖
+  - [x] 列出需要抽象的服务接口
+- [x] 设计 Service 层接口
+  - [x] 创建 CompletionService 类
+  - [x] 设计独立于 LSP 协议的输入/输出
+  - [x] 考虑其他 LSP 特性的 Service 化（可选）
+- [x] 实现 CompletionService
+  - [x] 提取补全核心逻辑
+  - [x] 实现基于 Compiler 的补全
+  - [x] 处理各种补全场景（实体、引用、属性）
+- [x] 重构 LSP Server
+  - [x] 更新 typedown/server/features/completion.py
+  - [x] 使用 CompletionService
+  - [x] 保持 LSP 协议兼容性
+- [x] 重构 CLI complete 命令
+  - [x] 更新 typedown/commands/complete.py
+  - [x] 直接调用 CompletionService
+  - [x] 删除 MockLS 和 MockWorkspace
+- [x] 统一测试
+  - [x] 将 Mock 对象测试改为 Service 测试
+  - [x] 确保 LSP 和 CLI 测试覆盖相同场景
+- [x] 代码审查
+  - [x] 确保接口设计合理
+  - [x] 评估其他 LSP 特性的 Service 化可行性
 
 ## 技术方案
 

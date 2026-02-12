@@ -1,29 +1,13 @@
 import typer
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from rich.console import Console
-from lsprotocol.types import CompletionParams, Position, TextDocumentIdentifier, CompletionList, CompletionItem
+from lsprotocol.types import CompletionList, CompletionItem
 
 from typedown.commands.context import compiler_session
 from typedown.commands.output import cli_result
-
-
-class MockWorkspace:
-    def __init__(self, file_path: Path, content: str):
-        self.file_path = file_path
-        self.content = content
-        
-    def get_text_document(self, uri: str):
-        # Return a mocked document object with 'source' attribute
-        return type('MockDocument', (), {'source': self.content})
-
-
-class MockLS:
-    def __init__(self, compiler, workspace):
-        self.compiler = compiler
-        self.workspace = workspace
-        self.is_ready = True
+from typedown.server.services import CompletionService, CompletionContext
 
 
 def complete(
@@ -52,21 +36,17 @@ def complete(
                 # If file doesn't exist and no content provided, we can't context match
                 file_content = ""
 
-        # 4. Mock LS Environment
-        workspace = MockWorkspace(target_file, file_content)
-        ls = MockLS(compiler, workspace)
-        
-        # 5. Call Completion Logic
-        from typedown.server.features.completion import completions
-        
-        # Mock Params
-        # URI doesn't matter much as long as workspace.get_text_document returns our mock
-        params = CompletionParams(
-            text_document=TextDocumentIdentifier(uri=str(target_file)),
-            position=Position(line=line, character=character)
+        # 4. Create completion context
+        context = CompletionContext(
+            file_path=target_file,
+            content=file_content,
+            line=line,
+            character=character
         )
         
-        results = completions(ls, params)
+        # 5. Call CompletionService directly
+        service = CompletionService(compiler)
+        results = service.complete(context)
         
         # 6. Output
         if isinstance(results, list):
