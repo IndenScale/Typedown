@@ -51,7 +51,7 @@ opened_at: '2026-02-12T14:28:24'
 <!-- - [ ] Parent Task -->
 <!--   - [ ] Sub Task -->
 
-- [ ] Task 1
+- [x] 构建 Extension 与 Python Core 集成测试框架
 
 ## Review Comments
 
