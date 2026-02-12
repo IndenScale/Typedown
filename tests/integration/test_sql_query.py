@@ -27,14 +27,15 @@ def test_sql_query():
     st.add(user2, Path("users/bob.td"))
     
     # Test SQL
-    results = QueryEngine.execute_sql("SELECT * FROM User ORDER BY age DESC", st)
+    engine = QueryEngine(st)
+    results = engine.execute_sql("SELECT * FROM User ORDER BY age DESC")
     
     assert len(results) == 2
     assert results[0]["name"] == "Alice"
     assert results[1]["name"] == "Bob"
     
     # Test Aggregation
-    agg = QueryEngine.execute_sql("SELECT avg(age) as avg_age FROM User", st)
+    agg = engine.execute_sql("SELECT avg(age) as avg_age FROM User")
     assert agg[0]["avg_age"] == 27.5
 
 def test_sql_query_json_handling():
@@ -53,7 +54,8 @@ def test_sql_query_json_handling():
     # But when we dump to JSON file, they are just JSON types.
     # DuckDB `read_json_auto` creates STRUCT/LIST columns.
     
-    results = QueryEngine.execute_sql("SELECT tags, meta FROM Item", st)
+    engine = QueryEngine(st)
+    results = engine.execute_sql("SELECT tags, meta FROM Item")
     assert len(results) == 1
     
     # DuckDB returns python objects for complex types (list/dict)

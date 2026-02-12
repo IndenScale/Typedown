@@ -9,6 +9,7 @@
 
 import pytest
 from pathlib import Path
+from typing import Any, Optional
 from typedown.core.analysis.query import QueryEngine, QueryError
 from typedown.core.base.errors import ReferenceError
 from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
@@ -51,12 +52,14 @@ class TestQueryEngineIdentifierIntegration:
         symbol_table = MockSymbolTable()
         symbol_table.data["alice"] = {"name": "Alice", "age": 30}
         
+        engine = QueryEngine(symbol_table)
+        
         # 直接解析 Handle
-        result = QueryEngine._resolve_symbol_path("alice", symbol_table)
+        result = engine._resolve_symbol_path("alice")
         assert result == {"name": "Alice", "age": 30}
         
         # 属性访问
-        result = QueryEngine._resolve_symbol_path("alice.name", symbol_table)
+        result = engine._resolve_symbol_path("alice.name")
         assert result == "Alice"
     
     def test_resolve_slug(self):
@@ -64,12 +67,14 @@ class TestQueryEngineIdentifierIntegration:
         symbol_table = MockSymbolTable()
         symbol_table.data["users/alice"] = {"name": "Alice", "role": "admin"}
         
+        engine = QueryEngine(symbol_table)
+        
         # 直接解析 Slug
-        result = QueryEngine._resolve_symbol_path("users/alice", symbol_table)
+        result = engine._resolve_symbol_path("users/alice")
         assert result == {"name": "Alice", "role": "admin"}
         
         # 属性访问
-        result = QueryEngine._resolve_symbol_path("users/alice.role", symbol_table)
+        result = engine._resolve_symbol_path("users/alice.role")
         assert result == "admin"
     
     def test_resolve_hash(self):
@@ -78,12 +83,14 @@ class TestQueryEngineIdentifierIntegration:
         hash_value = "a3b2c1d4e5f6789012345678901234567890123456789012345678901234"
         symbol_table.data[f"sha256:{hash_value}"] = {"content": "immutable data"}
         
+        engine = QueryEngine(symbol_table)
+        
         # 直接解析 Hash
-        result = QueryEngine._resolve_symbol_path(f"sha256:{hash_value}", symbol_table)
+        result = engine._resolve_symbol_path(f"sha256:{hash_value}")
         assert result == {"content": "immutable data"}
         
         # 属性访问
-        result = QueryEngine._resolve_symbol_path(f"sha256:{hash_value}.content", symbol_table)
+        result = engine._resolve_symbol_path(f"sha256:{hash_value}.content")
         assert result == "immutable data"
     
     def test_resolve_uuid(self):
@@ -92,12 +99,14 @@ class TestQueryEngineIdentifierIntegration:
         uuid_str = "550e8400-e29b-41d4-a716-446655440000"
         symbol_table.data[uuid_str] = {"id": uuid_str, "type": "entity"}
         
+        engine = QueryEngine(symbol_table)
+        
         # 直接解析 UUID
-        result = QueryEngine._resolve_symbol_path(uuid_str, symbol_table)
+        result = engine._resolve_symbol_path(uuid_str)
         assert result == {"id": uuid_str, "type": "entity"}
         
         # 属性访问
-        result = QueryEngine._resolve_symbol_path(f"{uuid_str}.type", symbol_table)
+        result = engine._resolve_symbol_path(f"{uuid_str}.type")
         assert result == "entity"
     
     def test_identifier_type_dispatch(self):
@@ -110,11 +119,13 @@ class TestQueryEngineIdentifierIntegration:
         symbol_table.data["sha256:abc123"] = "hash_value"
         symbol_table.data["550e8400-e29b-41d4-a716-446655440000"] = "uuid_value"
         
+        engine = QueryEngine(symbol_table)
+        
         # 验证每种类型都被正确分派
-        assert QueryEngine._resolve_symbol_path("alice", symbol_table) == "handle_value"
-        assert QueryEngine._resolve_symbol_path("users/alice", symbol_table) == "slug_value"
-        assert QueryEngine._resolve_symbol_path("sha256:abc123", symbol_table) == "hash_value"
-        assert QueryEngine._resolve_symbol_path("550e8400-e29b-41d4-a716-446655440000", symbol_table) == "uuid_value"
+        assert engine._resolve_symbol_path("alice") == "handle_value"
+        assert engine._resolve_symbol_path("users/alice") == "slug_value"
+        assert engine._resolve_symbol_path("sha256:abc123") == "hash_value"
+        assert engine._resolve_symbol_path("550e8400-e29b-41d4-a716-446655440000") == "uuid_value"
     
     def test_property_path_traversal(self):
         """测试属性路径遍历"""
@@ -126,30 +137,33 @@ class TestQueryEngineIdentifierIntegration:
             }
         }
         
+        engine = QueryEngine(symbol_table)
+        
         # 嵌套属性访问
-        result = QueryEngine._resolve_symbol_path("user.profile.name", symbol_table)
+        result = engine._resolve_symbol_path("user.profile.name")
         assert result == "Alice"
         
         # 数组索引
-        result = QueryEngine._resolve_symbol_path("user.profile.contacts[0]", symbol_table)
+        result = engine._resolve_symbol_path("user.profile.contacts[0]")
         assert result == "email@example.com"
     
     def test_error_handling(self):
         """测试错误处理"""
         symbol_table = MockSymbolTable()
+        engine = QueryEngine(symbol_table)
         
         # 不存在的 Handle
         with pytest.raises(ReferenceError, match="L2 Fuzzy Match failed"):
-            QueryEngine._resolve_symbol_path("nonexistent", symbol_table)
+            engine._resolve_symbol_path("nonexistent")
         
         # 不存在的 Slug
         with pytest.raises(ReferenceError, match="L1 Exact Match failed"):
-            QueryEngine._resolve_symbol_path("users/nonexistent", symbol_table)
+            engine._resolve_symbol_path("users/nonexistent")
         
         # 不存在的属性
         symbol_table.data["user"] = {"name": "Alice"}
         with pytest.raises(QueryError, match="Segment 'age' not found"):
-            QueryEngine._resolve_symbol_path("user.age", symbol_table)
+            engine._resolve_symbol_path("user.age")
     
     def test_wildcard_operator(self):
         """测试通配符操作符"""
@@ -162,8 +176,10 @@ class TestQueryEngineIdentifierIntegration:
         
         symbol_table.data["user"] = MockEntity({"name": "Alice", "age": 30})
         
+        engine = QueryEngine(symbol_table)
+        
         # 使用通配符返回整个对象
-        result = QueryEngine._resolve_symbol_path("user.*", symbol_table)
+        result = engine._resolve_symbol_path("user.*")
         assert result == {"name": "Alice", "age": 30}
 
 
@@ -262,8 +278,10 @@ class TestIdentifierSystemBenefits:
         symbol_table2.data["alice"] = "value2"
         
         # 同一个 identifier，在不同上下文中解析为不同的值
-        result1 = QueryEngine._resolve_by_identifier(identifier, symbol_table1)
-        result2 = QueryEngine._resolve_by_identifier(identifier, symbol_table2)
+        engine1 = QueryEngine(symbol_table1)
+        engine2 = QueryEngine(symbol_table2)
+        result1 = engine1._resolve_by_identifier(identifier)
+        result2 = engine2._resolve_by_identifier(identifier)
         
         assert result1 == "value1"
         assert result2 == "value2"
