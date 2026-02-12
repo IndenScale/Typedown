@@ -2,11 +2,12 @@
 id: CHORE-0001
 uid: 21ee25
 type: chore
-status: open
-stage: doing
+status: done
+stage: done
 title: 统一代码注释语言为英文
 created_at: '2026-02-12T09:41:27'
 updated_at: '2026-02-12T22:01:10'
+closed_at: '2026-02-12T22:01:10'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -18,12 +19,11 @@ tags:
 files:
 - src/typedown/core/ast/blocks.py
 - src/typedown/core/ast/document.py
-- src/typedown/core/analysis/script_runner.py
-- src/typedown/core/analysis/linker.py
-- src/typedown/commands/run.py
-- src/typedown/commands/*.py
+- src/typedown/core/ast/base.py
+- src/typedown/core/base/identifiers.py
+- src/typedown/core/analysis/query.py
 criticality: low
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented
 opened_at: '2026-02-12T09:41:27'
 ---
 
