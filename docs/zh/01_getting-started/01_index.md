@@ -44,13 +44,29 @@ class User(BaseModel):
 
 ### 3. 逻辑 (Validation)
 
-在文档中强制执行架构规则：
+三层验证，从单字段到全局聚合：
 
 ````typedown
-```spec
-def check_admin_policy(user: User):
-    if user.role == "admin":
-        assert user.has_mfa, "管理员必须开启 MFA"
+# 1. 字段级 - @field_validator
+class User(BaseModel):
+    @field_validator('email')
+    def check_email(cls, v):
+        assert '@' in v, "邮箱格式无效"
+        return v
+
+# 2. 模型级 - @model_validator
+class Order(BaseModel):
+    @model_validator(mode='after')
+    def check_dates(self):
+        assert self.end > self.start, "结束时间必须晚于开始"
+        return self
+
+# 3. 全局级 - spec
+```spec:check_inventory
+@target(type="Item", scope="global")
+def check_total_weight(subject):
+    total = sql("SELECT sum(weight) FROM Item")[0]['total']
+    assert total <= 10000, "总重量超过限制"
 ```
 ````
 
