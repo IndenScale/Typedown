@@ -6,7 +6,7 @@ status: open
 stage: doing
 title: 'Complete command refactor: eliminate mock object dependencies'
 created_at: '2026-02-11T21:54:45'
-updated_at: '2026-02-12T09:20:38'
+updated_at: '2026-02-12T09:20:47'
 parent: EPIC-0000
 dependencies:
 - FEAT-0004
@@ -16,12 +16,7 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0004'
 - '#FEAT-0006'
-files:
-- src/typedown/server/services/__init__.py
-- src/typedown/server/services/completion_service.py
-- src/typedown/server/features/completion.py
-- src/typedown/commands/complete.py
-- tests/server/features/test_completion.py
+files: []
 criticality: low
 solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-11T21:54:45'
