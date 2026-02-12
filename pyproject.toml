@@ -41,6 +41,9 @@ server = [
 sql = [
     "duckdb>=0.9.0",
 ]
+security = [
+    "restrictedpython>=7.0.0",
+]
 
 [project.scripts]
 td = "typedown.main:app"

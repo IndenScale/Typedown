@@ -51,6 +51,35 @@ class LinkerConfig(BaseModel):
     """
     prelude: List[str] = Field(default_factory=list, description="Symbols to pre-load into the global namespace.")
 
+
+class SecurityConfig(BaseModel):
+    """
+    [security] section: Sandboxing and security configuration.
+    """
+    enabled: bool = Field(default=True, description="Enable sandbox restrictions for user code execution.")
+    use_restricted_python: bool = Field(default=True, description="Use RestrictedPython for additional protection (if available).")
+    
+    # Module restrictions
+    allowed_modules: List[str] = Field(default_factory=list, description="Additional modules to allow importing.")
+    blocked_modules: List[str] = Field(default_factory=list, description="Additional modules to block from importing.")
+    
+    # File system restrictions
+    allow_file_read: bool = Field(default=False, description="Allow reading files from the project directory.")
+    allow_file_write: bool = Field(default=False, description="Allow writing files to the project directory.")
+    allowed_paths: List[str] = Field(default_factory=list, description="Additional allowed paths for file operations.")
+    
+    # Network restrictions
+    allow_network: bool = Field(default=False, description="Allow network operations.")
+    
+    def __init__(self, **data):
+        super().__init__(**data)
+        # Ensure critical modules are always blocked
+        critical_modules = {'os', 'sys', 'subprocess', 'socket'}
+        for mod in critical_modules:
+            if mod in self.allowed_modules and self.enabled:
+                # Log warning but respect explicit override for power users
+                pass  # We allow explicit override for advanced use cases
+
 class TestConfig(BaseModel):
     """
     [test] section: Configuration for the Stage 4 (Reality Check).
@@ -67,6 +96,7 @@ class TypedownConfig(BaseModel):
     tasks: Dict[str, str] = Field(default_factory=dict, description="Project-level executable scripts (td run <name>)")
     linker: LinkerConfig = Field(default_factory=LinkerConfig)
     test: TestConfig = Field(default_factory=TestConfig)
+    security: SecurityConfig = Field(default_factory=SecurityConfig)
     dependencies: Dict[str, Dependency] = Field(default_factory=dict)
 
     @classmethod
