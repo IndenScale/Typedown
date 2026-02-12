@@ -18,6 +18,7 @@ from typedown.core.base.config import TypedownConfig
 from typedown.core.base.types import Ref
 from typedown.core.base.utils import AttributeWrapper
 from typedown.core.base.symbol_table import SymbolTable
+from typedown.core.analysis.sandbox import SandboxExecutor
 
 
 class Linker:
@@ -44,6 +45,9 @@ class Linker:
         self.dir_contexts: Dict[Path, Dict[str, Any]] = {}
         
         self.base_globals: Dict[str, Any] = {}
+        
+        # Sandbox executor for restricted code execution
+        self.sandbox = SandboxExecutor(project_root, config.security)
 
     def link(self, documents: Dict[Path, Document]):
         """
@@ -185,7 +189,11 @@ class Linker:
                 current_locals["__file__"] = str(path)
                 
                 try:
-                    exec(cfg.code, current_locals)
+                    # Use sandboxed execution if security is enabled
+                    if self.config.security.enabled:
+                        self.sandbox.execute(cfg.code, current_locals, filename=str(path))
+                    else:
+                        exec(cfg.code, current_locals)
                     self.console.print(f"    [dim]✓ Executed config in {path}[/dim]")
                 except Exception as e:
                     self.diagnostics.add(linker_error(
@@ -241,7 +249,11 @@ class Linker:
                     
                     local_scope["__file__"] = str(doc.path)
                     try:
-                        exec(model.code, local_scope)
+                        # Use sandboxed execution if security is enabled
+                        if self.config.security.enabled:
+                            self.sandbox.execute(model.code, local_scope, filename=str(doc.path))
+                        else:
+                            exec(model.code, local_scope)
                         
                         # L2 Check: Strict Class Name Consistency
                         # The model block ID MUST match the defined Pydantic class name
