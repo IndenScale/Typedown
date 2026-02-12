@@ -1,111 +1,150 @@
-# <picture><source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg"><img alt="Typedown Logo" src="assets/brand/logo-light.svg" height="30"></picture> Typedown: Markdown that scales
+# <picture><source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg"><img alt="Typedown Logo" src="assets/brand/logo-light.svg" height="30"></picture> Typedown
 
-[**访问官网 »**](https://www.typedown.space)
+> **Markdown 渐进式形式化**
+
+[**官网**](https://typedown.io) · [**文档**](https://typedown.io/docs) · [**问题反馈**](https://github.com/IndenScale/Typedown/issues)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
 
 > [English](./README.md) | **简体中文**
 
-**Typedown** 将你的**团队文档**进化为经过验证的知识库。它将代码的严谨性引入了自然语言的流动性之中。
-
-> **"拒绝腐烂的文档。"**
+**Typedown** 为 Markdown 添加语义层，将松散的文本转化为可验证的知识库。
 
 ## 问题：Markdown 难以规模化
 
-Markdown 是“技术文档”的通用标准。但当你的文档仓库从 10 个文件增长到 10,000 个文件时，它就变成了一个“只写”的坟场：
+Markdown 是技术文档的通用标准。但当仓库从 10 个文件增长到 10,000 个时，它变成了"只写"的坟场：
 
-- **链接断裂 (Links Break)**：移动文件需要 `grep` 和祈祷。
-- **数据漂移 (Data Drifts)**："Status: Active" vs "status: active" vs "Status: ON"。
-- **上下文衰减 (Context Decays)**：你脑海中的隐性模型没有在文本中强制执行。
+| 问题 | 描述 | Typedown 解决方案 |
+|------|------|-------------------|
+| **Schema 错误** | 数据不一致：`Status: Active` vs `status: active`，缺少必填字段 | **Model** - 使用 Pydantic 定义结构，编译时验证 |
+| **引用失效** | 移动文件后链接断裂：`[[./old-path]]` 指向不存在的位置 | **Reference** - 基于内容哈希的寻址，自动追踪实体变更 |
+| **约束违反** | 规则被打破：管理员未启用 MFA，库存总量超标 | **Spec** - 可执行的业务规则，验证复杂约束 |
 
-## 方案：Typedown
+## 核心概念
 
-Typedown 将你的**文档仓库**转化为一个**数据库**。它为 Markdown 添加了一个语义层，使其能够从松散的文本“相变”为结构化的数据。
+### 1. Model（模型）
 
-关键在于，Typedown 不追求**无摩擦的写作体验**。 它是质量的守门人，会阻止任何违反团队既定约束的新内容进入。
-
-### 1. 结构 (Schema)
-
-使用 Python (Pydantic) 定义你的数据**应该**长什么样。
+使用 Pydantic 定义数据结构：
 
 ````markdown
-<!-- 定义在代码块中 -->
-
 ```model:User
 class User(BaseModel):
     name: str
     role: Literal["admin", "member"]
+    mfa_enabled: bool = False
 ```
 ````
 
-### 2. 空间 (Graph)
+### 2. Entity（实体）
 
-使用永不断裂的**坚固引用**。Typedown 通过 **内容哈希 (L0)**、**句柄 (L1)** 或 **全局 ID (L2)** 来解析链接。
-
-```markdown
-这份报告由 [[users/alice]] 撰写。
-```
-
-### 3. 逻辑 (Validation)
-
-**在文档中强制执行不变性**。确保你的架构规则得到遵守。
+使用严格 YAML 实例化数据：
 
 ````markdown
-```spec
-def check_admin_policy(user: User):
+```entity User: user-alice-v1
+name: "Alice"
+role: "admin"
+mfa_enabled: true
+```
+````
+
+### 3. Reference（引用）
+
+使用 `[[...]]` 语法建立实体链接：
+
+```markdown
+此任务分配给 [[user-alice-v1]]。
+```
+
+支持 **ID 引用**（`[[entity-id]]`）和 **内容哈希**（`[[sha256:...]]`）。
+
+### 4. Spec（验证规则）
+
+三层验证机制：
+
+````markdown
+# 1. 字段级 - @field_validator
+class User(BaseModel):
+    @field_validator('email')
+    def check_email(cls, v):
+        assert '@' in v, "邮箱格式无效"
+        return v
+
+# 2. 模型级 - @model_validator
+class Order(BaseModel):
+    @model_validator(mode='after')
+    def check_dates(self):
+        assert self.end > self.start, "结束时间必须晚于开始"
+        return self
+
+# 3. 全局级 - spec
+```spec:check_admin_mfa
+@target(type="User", scope="local")
+def check_admin_mfa(user: User):
     if user.role == "admin":
-        assert user.has_mfa, "管理员必须开启 MFA"
+        assert user.mfa_enabled, f"管理员 {user.name} 必须启用 MFA"
 ```
 ````
 
 ## 安装
 
-Typedown 旨在主要在编辑器中使用，并由强大的命令行工具提供支持。
+### CLI 工具（用于 CI/CD）
 
-### 1. 编辑器集成 (推荐)
+```bash
+# 使用 uv（推荐）
+uv tool install typedown
 
-为了获得真正的“编写即验证”体验，请安装 VS Code 扩展：
+# 使用 pip
+pip install typedown
+```
+
+### VS Code 扩展
 
 - [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
 - [**Open VSX**](https://open-vsx.org/extension/Typedown/typedown-vscode)
 
-### 2. 全局 CLI (用于 CI/CD)
+## 快速开始
 
-```bash
-# 即时运行 (无需安装)
-uvx typedown check
+创建 `hello.td` 文件（Typedown 使用 `.td` 扩展名，完全兼容 Markdown）：
 
-# 全局安装
-uv tool install typedown
+````markdown
+```model:User
+class User(BaseModel):
+    name: str
+    email: str
 ```
 
-### 3. 对于贡献者
+```entity User: alice
+name: "Alice"
+email: "alice@example.com"
+```
+````
 
-如果你想修改编译器本身：
+运行验证：
 
 ```bash
-git clone https://github.com/IndenScale/typedown.git
+typedown check .
 ```
 
-## 核心哲学
+## CLI 命令
 
-Typedown 建立在**代码化共识 (Consensus as Code, CaC)** 的概念之上。
+```bash
+# 验证项目
+typedown check .
 
-- **Markdown (界面)**：人类和 LLM 说自然语言。
-- **Pydantic (结构)**：机器需要架构。
-- **Pytest (律法)**：系统需要不变量。
+# JSON 格式输出
+typedown check --json
 
-我们将此称为**“文学建模 (Literate Modeling)”**——你无需离开文档去定义系统；文档**本身就是**系统。
+# 仅验证指定类型
+typedown check --target User
+```
 
 ## 文档
 
-- **[快速开始](docs/zh/index.md)**：构建你的第一个模型。
-- **[宣言](docs/en/manifesto.md)**：我们为何构建它。
-- **[GEMINI.md](GEMINI.md)**：AI Agent 指南。
-
----
+- [**快速开始**](https://typedown.io/docs/getting-started/) - 构建你的第一个模型
+- [**核心概念**](https://typedown.io/docs/concepts/) - Model、Entity、Reference、Spec
+- [**使用指南**](https://typedown.io/docs/guides/) - 最佳实践和高级主题
 
 ## 许可证
 

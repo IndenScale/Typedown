@@ -1,111 +1,150 @@
-# <picture><source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg"><img alt="Typedown Logo" src="assets/brand/logo-light.svg" height="30"></picture> Typedown: Markdown that scales
+# <picture><source media="(prefers-color-scheme: dark)" srcset="assets/brand/logo-dark.svg"><img alt="Typedown Logo" src="assets/brand/logo-light.svg" height="30"></picture> Typedown
 
-[**Visit Official Website »**](https://www.typedown.space)
+> **Progressive Formalization for Markdown**
+
+[**Website**](https://typedown.io) · [**Documentation**](https://typedown.io/docs) · [**Issues**](https://github.com/IndenScale/Typedown/issues)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
 
 > **English** | [简体中文](./README.zh-CN.md)
 
-**Typedown** evolves your **team's documentation** into a validated knowledge base. It brings the rigor of code to the fluidity of natural language.
-
-> **"Docs that don't rot."**
+**Typedown** adds a semantic layer to Markdown, transforming it from loose text into a validated knowledge base.
 
 ## The Problem: Markdown Doesn't Scale
 
-Markdown is the universal standard for **technical documentation**. But as your repository grows from 10 to 10,000 files, it becomes a "Write-Only" graveyard:
+Markdown is the universal standard for technical documentation. But as your repository grows from 10 to 10,000 files, it becomes a "write-only" graveyard:
 
-- **Links Break**: Moving a file requires `grep` and prayer.
-- **Data Drifts**: "Status: Active" vs "status: active" vs "Status: ON".
-- **Context Decays**: The implicit model in your head isn't enforced in the text.
+| Problem | Description | Typedown Solution |
+|---------|-------------|-------------------|
+| **Schema Errors** | Inconsistent data: `Status: Active` vs `status: active`, missing required fields | **Model** - Define structure with Pydantic, validate at compile time |
+| **Broken References** | Links break after moving files: `[[./old-path]]` points nowhere | **Reference** - Content-addressed links that auto-track entity changes |
+| **Constraint Violations** | Rules are broken: admins without MFA, inventory over limit | **Spec** - Executable business rules for complex constraints |
 
-## The Solution: Typedown
+## Core Concepts
 
-Typedown transforms your **documentation repository** into a **Database**. It adds a semantic layer to Markdown, allowing it to "phase transition" from loose text to structured data.
+### 1. Model (Schema)
 
-### 1. Structure (Schema)
-
-Define what your data _should_ look like using Python (Pydantic).
+Define data structures using Pydantic:
 
 ````markdown
-<!-- Defined in a code block -->
-
 ```model:User
 class User(BaseModel):
     name: str
     role: Literal["admin", "member"]
+    mfa_enabled: bool = False
 ```
 ````
 
-### 2. Space (Graph)
+### 2. Entity (Data)
 
-Use **Solid References** that never break. Typedown resolves links by **Content Hash (L0)**, **Handle (L1)**, or **Global ID (L2)**.
-
-```markdown
-This report is authored by [[users/alice]].
-```
-
-### 3. Logic (Validation)
-
-**Enforce invariants** directly in your documentation. Ensure your architecture rules are respected.
+Instantiate data with strict YAML:
 
 ````markdown
-```spec
-def check_admin_policy(user: User):
+```entity User: user-alice-v1
+name: "Alice"
+role: "admin"
+mfa_enabled: true
+```
+````
+
+### 3. Reference (Graph)
+
+Link entities with `[[...]]` syntax:
+
+```markdown
+This task is assigned to [[user-alice-v1]].
+```
+
+Supports **ID references** (`[[entity-id]]`) and **content hash** (`[[sha256:...]]`).
+
+### 4. Spec (Validation)
+
+Three layers of validation:
+
+````markdown
+# 1. Field-level - @field_validator
+class User(BaseModel):
+    @field_validator('email')
+    def check_email(cls, v):
+        assert '@' in v, "Invalid email"
+        return v
+
+# 2. Model-level - @model_validator
+class Order(BaseModel):
+    @model_validator(mode='after')
+    def check_dates(self):
+        assert self.end > self.start, "End must be after start"
+        return self
+
+# 3. Global-level - spec
+```spec:check_admin_mfa
+@target(type="User", scope="local")
+def check_admin_mfa(user: User):
     if user.role == "admin":
-        assert user.has_mfa, "Admins need MFA"
+        assert user.mfa_enabled, f"Admin {user.name} must enable MFA"
 ```
 ````
 
 ## Installation
 
-Typedown is designed to be used primarily in your editor, backed by a powerful CLI.
+### CLI (For CI/CD)
 
-### 1. Editor Integration (Recommended)
+```bash
+# Using uv (recommended)
+uv tool install typedown
 
-For the true "Write-and-Validate" experience, install the VS Code extension:
+# Using pip
+pip install typedown
+```
+
+### VS Code Extension
 
 - [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
 - [**Open VSX**](https://open-vsx.org/extension/Typedown/typedown-vscode)
 
-### 2. Global CLI (For CI/CD)
+## Quick Start
 
-Verify your knowledge base in CI pipelines using `uv` (recommended) or `pip`:
+Create a `hello.td` file (Typedown uses `.td` extension, fully compatible with Markdown):
 
-```bash
-# Instant run (no install needed)
-uvx typedown check
-
-# Install globally
-uv tool install typedown
+````markdown
+```model:User
+class User(BaseModel):
+    name: str
+    email: str
 ```
 
-### 3. For Contributors
+```entity User: alice
+name: "Alice"
+email: "alice@example.com"
+```
+````
 
-If you want to hack on the compiler itself:
+Run validation:
 
 ```bash
-git clone https://github.com/IndenScale/typedown.git
+typedown check .
 ```
 
-## Core Philosophy
+## CLI Commands
 
-Typedown is built on the concept of **Consensus as Code (CaC)**.
+```bash
+# Validate the project
+typedown check .
 
-- **Markdown (The Interface)**: Humans and LLMs speak natural language.
-- **Pydantic (The Structure)**: Machines need schemas.
-- **Pytest (The Law)**: Systems need invariants.
+# Check with JSON output
+typedown check --json
 
-We call this **"Literate Modeling"**—you don't leave the document to define the system; the document _is_ the system.
+# Run specific validation
+typedown check --target User
+```
 
 ## Documentation
 
-- **[Quick Start](docs/en/index.md)**: Build your first model.
-- **[Manifesto](docs/en/manifesto.md)**: Why we built this.
-- **[GEMINI.md](GEMINI.md)**: Instructions for AI Agents.
-
----
+- [**Getting Started**](https://typedown.io/docs/getting-started/) - Build your first model
+- [**Concepts**](https://typedown.io/docs/concepts/) - Model, Entity, Reference, Spec
+- [**Guides**](https://typedown.io/docs/guides/) - Best practices and advanced topics
 
 ## License
 
