@@ -12,9 +12,9 @@ class Reference(Node):  # Inherit from Node to get location? No, Reference in do
     # Let's keep it as BaseModel from original but it's better if it's consistent.
     # Let's stick to original definition for safety.
     """
-    AST 节点：表示 Typedown 文本中的 [[query]] 引用
+    AST Node: Represents a [[query]] reference in Typedown text.
     """
-    target: str         # 原始查询字符串
+    target: str         # Raw query string
     # location is in Node if we inherit, but let's redefine to match original exact structure first, 
     # OR better: make it inherit Node since Node has location.
     # Original Reference: target, location, identifier, resolved_entity_id, resolved_value
@@ -32,7 +32,7 @@ class Reference(Node):  # Inherit from Node to get location? No, Reference in do
         return self
 
 class EntityRef(Node):
-    """描述对其他 Entity 的引用关系 (former / derived_from)"""
+    """Describes a reference relationship to another Entity (former / derived_from)."""
     target_query: str
 
 class ModelBlock(Node):
@@ -48,18 +48,20 @@ class ModelBlock(Node):
 
 class EntityBlock(Node):
     """
-    AST 节点：表示 Typedown 中的一个 entity 代码块。
-    ```entity:Type
-    ...
-    ```
-    """
-    # 基础元数据 (id is inherited from Node)
-    class_name: str # e.g., "User", "models.rpg.Character"
+    AST Node: Represents an entity code block in Typedown.
     
-    # 原始数据 (YAML/JSON 解析后)
+    Syntax:
+        ```entity:Type
+        ...
+        ```
+    """
+    # Basic metadata (id is inherited from Node)
+    class_name: str  # e.g., "User", "models.rpg.Character"
+    
+    # Raw data (after YAML/JSON parsing)
     raw_data: Dict[str, Any] = Field(default_factory=dict)
     
-    # 解析后的完整数据 (Desugared/Merged)
+    # Fully parsed data (Desugared/Merged)
     resolved_data: Dict[str, Any] = Field(default_factory=dict)
     
     # L3: UUID - Explicitly defined in body as `uuid: ...`

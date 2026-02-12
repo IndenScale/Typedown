@@ -2,7 +2,7 @@ from typing import Optional, Protocol, runtime_checkable
 from pydantic import BaseModel
 
 class SourceLocation(BaseModel):
-    """描述一个元素在源文件中的位置"""
+    """Describes the location of an element in the source file."""
     file_path: str
     line_start: int
     line_end: int
@@ -21,5 +21,5 @@ class Node(BaseModel):
 
     @property
     def content_hash(self) -> str:
-        """返回节点内容的 SHA-256 哈希值"""
+        """Returns the SHA-256 hash of the node's content."""
         raise NotImplementedError("Subclasses must implement content_hash if they are hashable.")

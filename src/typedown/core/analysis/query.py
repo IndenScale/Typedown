@@ -363,10 +363,10 @@ class QueryEngine:
 
     def _traverse_property_path(self, current_data: Any, property_path: List[str], original_query: str) -> Any:
         """
-        遍历属性访问路径，支持：
-        - 属性访问：User.name
-        - 数组索引：items[0]
-        - 通配符：User.*（返回整个对象）
+        Traverse property access path, supporting:
+        - Property access: User.name
+        - Array indexing: items[0]
+        - Wildcard: User.* (returns the entire object)
         """
         # Unwrap Variable Handles at the start
         if hasattr(current_data, "type") and getattr(current_data, "type") == "variable" and hasattr(current_data, "value"):

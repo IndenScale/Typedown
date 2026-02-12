@@ -7,35 +7,35 @@ import hashlib
 
 class Document(BaseModel):
     """
-    AST 节点：表示一个 Typedown 文件
+    AST Node: Represents a Typedown file.
     """
     path: Path
     
-    # Front Matter 元数据
+    # Front Matter metadata
     tags: List[str] = Field(default_factory=list)
     
-    # 配置上下文 (从 config.td 继承合并后的结果)
+    # Configuration context (inherited and merged from config.td)
     config: Dict[str, Any] = Field(default_factory=dict)
     
-    # 提取出的结构化节点
+    # Extracted structured nodes
     configs: List[ConfigBlock] = Field(default_factory=list)
     models: List[ModelBlock] = Field(default_factory=list)
     entities: List[EntityBlock] = Field(default_factory=list)
     specs: List[SpecBlock] = Field(default_factory=list)
     references: List[Reference] = Field(default_factory=list)
     
-    # 辅助信息
+    # Auxiliary information
     headers: List[Dict[str, Any]] = Field(default_factory=list)
     
-    # 原始 Typedown 内容 (用于后续回填/物化)
+    # Raw Typedown content (for later backfill/materialization)
     raw_content: str = ""
 
     @property
     def content_hash(self) -> str:
         """
-        聚合所有 Block 的哈希值，生成文档级别的 Merkle 哈希。
+        Aggregates hash values of all blocks to generate a document-level Merkle hash.
         """
-        # 收集所有块的哈希
+        # Collect hashes from all blocks
         block_hashes = []
         for block in self.configs:
             block_hashes.append(block.content_hash)
@@ -46,37 +46,37 @@ class Document(BaseModel):
         for block in self.specs:
             block_hashes.append(block.content_hash)
         
-        # 排序以确保确定性
+        # Sort to ensure deterministic ordering
         block_hashes.sort()
         combined = "".join(block_hashes)
         return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 
 class Resource(BaseModel):
     """
-    AST 节点：表示外部资源文件 (非 Typedown 文档)
-    用于支持 [[assets/image.png]] 形式的引用访问。
+    AST Node: Represents an external resource file (non-Typedown document).
+    Used to support references like [[assets/image.png]].
     """
-    id: str             # 资源的逻辑 ID (通常是相对于 Project Root 的路径, 如 "data/table.csv")
-    path: Path          # 文件绝对路径
-    content: bytes      # 文件字节流内容
-    content_hash: str   # 内容哈希
+    id: str             # Logical ID of the resource (usually relative to Project Root, e.g., "data/table.csv")
+    path: Path          # Absolute file path
+    content: bytes      # Raw file content
+    content_hash: str   # Content hash
 
 class Project(BaseModel):
     """
-    AST 根节点：表示整个 Typedown 项目
+    AST Root Node: Represents the entire Typedown project.
     """
     root_dir: Path
-    documents: Dict[str, Document] = Field(default_factory=dict) # path -> Document
-    resources: Dict[str, Resource] = Field(default_factory=dict) # path(id) -> Resource
+    documents: Dict[str, Document] = Field(default_factory=dict)  # path -> Document
+    resources: Dict[str, Resource] = Field(default_factory=dict)  # path(id) -> Resource
     
-    # 全局符号表 (Symbol Table)
+    # Global Symbol Table
     # entity_id -> EntityBlock or Resource
     symbol_table: Dict[str, Any] = Field(default_factory=dict)
     
-    # 规则表 (Spec Table)
+    # Spec Table
     # spec_id -> SpecBlock
     spec_table: Dict[str, SpecBlock] = Field(default_factory=dict)
     
-    # 依赖图 (用于拓扑排序)
+    # Dependency Graph (for topological sorting)
     # entity_id -> List[dependency_entity_ids]
     dependency_graph: Dict[str, List[str]] = Field(default_factory=dict)
