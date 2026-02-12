@@ -6,8 +6,7 @@ status: closed
 stage: done
 title: 'Linker sandbox: restrict user code execution privileges'
 created_at: '2026-02-11T21:54:44'
-updated_at: '2026-02-12T09:35:00'
-closed_at: '2026-02-12T09:35:00'
+updated_at: '2026-02-12T09:33:26'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -16,13 +15,17 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0003'
 files:
-- src/typedown/core/analysis/sandbox.py
+- Issues/Features/open/FEAT-0003-linker-sandbox-restrict-user-code-execution-privil.md
+- pyproject.toml
 - src/typedown/core/analysis/linker.py
+- src/typedown/core/analysis/sandbox.py
 - src/typedown/core/base/config.py
 - tests/core/analysis/test_sandbox.py
+- uv.lock
 criticality: high
 solution: implemented
 opened_at: '2026-02-11T21:54:44'
+closed_at: '2026-02-12T09:35:00'
 ---
 
 ## FEAT-0003: Linker sandbox: restrict user code execution privileges
