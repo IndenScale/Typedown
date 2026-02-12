@@ -1,0 +1,3 @@
+[submodule "extensions/zed/grammars/markdown"]
+	path = extensions/zed/grammars/markdown
+	url = https://github.com/tree-sitter-grammars/tree-sitter-markdown.git

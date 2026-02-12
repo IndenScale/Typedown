@@ -1,0 +1,159 @@
+# Typedown for Zed
+
+Progressive Formalization for Markdown - Zed Editor Support
+
+## Features
+
+- 🎨 **Syntax Highlighting**: Full support for Typedown syntax (`.td` files)
+- 🔗 **Wiki Link Navigation**: Jump to entity definitions with `gd` or `Cmd+Click`
+- 📐 **Code Folding**: Fold model, entity, spec, and config blocks
+- 📋 **Outline View**: See document structure in Zed's outline panel
+- 🔍 **LSP Integration**: Real-time validation, completions, and diagnostics
+
+## Installation
+
+### Quick Setup (Recommended)
+
+Install Typedown CLI and run the setup command:
+
+```bash
+# Install Typedown
+uv tool install typedown
+
+# One-click Zed setup
+typedown setup zed
+```
+
+This command will:
+- ✅ Configure Typedown LSP server in Zed
+- ✅ Associate `.td` files with Markdown
+- ✅ Enable wiki link navigation and diagnostics
+
+Then restart Zed and open any `.td` file!
+
+### Method 1: Dev Extension (Better Syntax Highlighting)
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/IndenScale/Typedown.git
+   cd Typedown/extensions/zed
+   ```
+
+2. **Install in Zed:**
+   ```bash
+   # In the zed extension directory
+   zed: install dev extension .
+   ```
+
+   Or manually:
+   - Open Zed
+   - `Cmd+Shift+P` → "zed: install dev extension"
+   - Select `extensions/zed` directory
+
+3. **Run setup command:**
+   ```bash
+   typedown setup zed
+   ```
+
+### Method 2: Manual Configuration (No CLI Setup)
+
+If you prefer not to install the extension, you can use pure LSP configuration:
+
+```json
+{
+  "file_types": {
+    "Markdown": ["td"]
+  },
+  "lsp": {
+    "typedown": {
+      "binary": {
+        "path": "uv",
+        "arguments": ["tool", "run", "td", "lsp"]
+      }
+    }
+  },
+  "languages": {
+    "Markdown": {
+      "language_servers": ["typedown", "..."]
+    }
+  }
+}
+```
+
+## Project-Level Configuration
+
+For project-specific settings, create `.zed/settings.json`:
+
+```json
+{
+  "lsp": {
+    "typedown": {
+      "binary": {
+        "path": "uv",
+        "arguments": ["run", "--extra", "server", "td", "lsp"]
+      }
+    }
+  }
+}
+```
+
+## Usage
+
+### Wiki Link Navigation
+
+```markdown
+This task is assigned to [[user-alice-v1]].
+                              ^
+                              └─ Press 'gd' or Cmd+Click to jump
+```
+
+| Key | Action |
+|-----|--------|
+| `gd` | Go to definition |
+| `gr` | Find references |
+| `Ctrl+o` | Jump back |
+
+### Available LSP Features
+
+- ✅ Diagnostics (validation errors)
+- ✅ Auto-completion (entity IDs, field names)
+- ✅ Hover information
+- ✅ Go to definition
+- ✅ Find references
+- ✅ Document symbols
+
+## Troubleshooting
+
+### LSP Server Not Starting
+
+1. Check Typedown is installed:
+   ```bash
+   td --version
+   ```
+
+2. Test LSP manually:
+   ```bash
+   td lsp
+   # Should start without errors
+   ```
+
+3. Check Zed logs:
+   - `Cmd+Shift+P` → "zed: open log"
+
+### Wiki Links Not Working
+
+- Ensure cursor is inside `[[...]]`
+- Check the entity ID exists (run `td check .`)
+- Verify the LSP server is running (check Zed status bar)
+
+## Development
+
+To modify this extension:
+
+1. Edit files in `extensions/zed/`
+2. Reload window: `Cmd+Shift+P` → "zed: reload extensions"
+3. Test changes
+
+## License
+
+MIT © [IndenScale](https://github.com/IndenScale)

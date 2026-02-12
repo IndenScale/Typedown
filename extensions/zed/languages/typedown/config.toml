@@ -1,0 +1,8 @@
+name = "Typedown"
+grammar = "markdown"
+path_suffixes = ["td", "typedown"]
+line_comments = ["<!-- ", "<!--"]
+block_comment = ["<!--", "-->"]
+tab_size = 2
+hard_tabs = false
+first_line_pattern = '^\s*```(model|entity|spec|config)\s*:'
