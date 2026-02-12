@@ -1,4 +1,3 @@
-import pytest
 
 # 这是一个模拟的 Spec 文件，展示如何对全局 Entity 进行验证
 

@@ -3,14 +3,14 @@ import importlib
 import typing
 import datetime
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from pydantic import BaseModel, Field, field_validator, model_validator
 from enum import Enum
 
 from typedown.core.ast.document import Document
 from typedown.core.ast.base import SourceLocation
 from typedown.core.base.errors import (
-    TypedownError, ErrorCode, ErrorLevel,
+    ErrorCode, ErrorLevel,
     linker_error, DiagnosticReport
 )
 from typedown.core.base.compiler_context import CompilerContext

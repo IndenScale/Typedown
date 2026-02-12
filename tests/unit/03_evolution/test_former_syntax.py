@@ -6,7 +6,7 @@ Error Codes: E0343 (Evolution target not found)
 
 import pytest
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors
+from test.conftest import assert_error_exists
 
 
 class TestFormerSyntax:

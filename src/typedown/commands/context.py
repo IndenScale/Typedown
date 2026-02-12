@@ -11,7 +11,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 from io import StringIO
 from pathlib import Path
-from typing import Any, Callable, Generator, Optional, Union
+from typing import Generator, Optional
 
 import typer
 from rich.console import Console

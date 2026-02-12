@@ -12,12 +12,8 @@ import tempfile
 import shutil
 from pathlib import Path
 from typing import Dict, Any, Optional, Generator, AsyncGenerator
-from contextlib import asynccontextmanager
-import subprocess
-import time
 import socket
 
-from pygls.lsp.server import LanguageServer
 from lsprotocol.types import (
     InitializeParams,
     ClientCapabilities,
@@ -31,7 +27,7 @@ from lsprotocol.types import (
     SemanticTokensClientCapabilities,
 )
 
-from typedown.server.application import TypedownLanguageServer, server as lsp_server
+from typedown.server.application import TypedownLanguageServer
 from typedown.core.compiler import Compiler
 from rich.console import Console
 
@@ -326,7 +322,6 @@ class LSPClientServerPair:
         
     async def initialize(self, capabilities: ClientCapabilities) -> Dict[str, Any]:
         """Initialize the LSP server."""
-        from lsprotocol.types import InitializeParams
         
         self._client_capabilities = capabilities
         self.server = TypedownLanguageServer("test-server", "0.0.1")

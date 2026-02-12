@@ -1,4 +1,4 @@
-from typing import Any, Callable, Type
+from typing import Callable
 import functools
 
 class TypedownSpecError(Exception):

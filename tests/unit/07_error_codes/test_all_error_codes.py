@@ -7,7 +7,7 @@ Each error code from the documentation should have a test that triggers it.
 
 import pytest
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, TestProjectBuilder
+from test.conftest import assert_error_exists
 
 
 class TestL1ScannerErrors:

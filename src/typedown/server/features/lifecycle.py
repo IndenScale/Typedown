@@ -2,7 +2,7 @@
 
 import logging
 from pathlib import Path
-from typing import Dict, Any, Union, List
+from typing import Any, List
 from pydantic import BaseModel
 
 from typedown.server.application import server

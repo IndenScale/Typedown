@@ -1,7 +1,10 @@
 from enum import Enum
-from typing import List
+from typing import TYPE_CHECKING
 from pydantic import BaseModel, Field
 from typedown.core.base.types import Ref
+
+if TYPE_CHECKING:
+    from .hr import Employee
 
 class ProjectStatus(str, Enum):
     PLANNING = "PLANNING"

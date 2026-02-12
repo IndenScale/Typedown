@@ -1,4 +1,4 @@
-from typing import TypeVar, Generic, Annotated
+from typing import TypeVar, Annotated
 from pydantic import GetCoreSchemaHandler
 from pydantic_core import core_schema
 

@@ -15,8 +15,8 @@ from pathlib import Path
 from typing import List, Dict, Any, Optional, Set
 from rich.console import Console
 
-from typedown.core.ast import Document, EntityBlock
-from typedown.core.base.utils import find_project_root, AttributeWrapper
+from typedown.core.ast import Document
+from typedown.core.base.utils import find_project_root
 from typedown.core.base.config import TypedownConfig
 from typedown.core.base.errors import TypedownError, DiagnosticReport
 from typedown.core.base.symbol_table import SymbolTable

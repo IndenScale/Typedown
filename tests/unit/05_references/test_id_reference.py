@@ -4,8 +4,7 @@ Related Doc: docs/zh/03_guides/01_references.md Section "ID 规范"
 Error Codes: E0341 (Reference resolution failed)
 """
 
-import pytest
-from test.conftest import assert_error_exists, assert_no_errors
+from test.conftest import assert_no_errors
 
 
 class TestIdReference:

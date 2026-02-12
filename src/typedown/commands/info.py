@@ -2,7 +2,7 @@ import typer
 from pathlib import Path
 
 from typedown.commands.context import cli_session
-from typedown.commands.output import cli_result, cli_error
+from typedown.commands.output import cli_result
 
 def info(
     path: Path = typer.Option(Path("."), "--path", "-p", help="Path inside the project"),

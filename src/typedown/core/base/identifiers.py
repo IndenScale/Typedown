@@ -14,7 +14,6 @@ Typedown Identifier System - 标识符体系
 3. **类型安全**: 通过类型系统防止混淆不同层级的标识符
 """
 
-import re
 import uuid
 from abc import ABC, abstractmethod
 from typing import Union

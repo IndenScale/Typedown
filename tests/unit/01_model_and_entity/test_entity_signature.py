@@ -4,9 +4,8 @@ Related Doc: docs/zh/02_concepts/01_model-and-entity.md Section "Entity（实体
 Error Codes: E0241 (Duplicate ID), E0363 (ID conflict), E0364 (Missing model)
 """
 
-import pytest
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors, assert_error_count
+from test.conftest import assert_error_exists, assert_no_errors
 
 
 class TestEntitySignature:

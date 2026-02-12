@@ -1,5 +1,4 @@
-from typing import Protocol, List, Any, Dict
-from pathlib import Path
+from typing import Protocol, List, Any
 
 class Oracle(Protocol):
     """
@@ -21,10 +20,6 @@ class PytestOracle:
     Default L4 implementation using local Pytest specs.
     """
     def run(self, compiler_context: Any, tags: List[str]) -> int:
-        import pytest
-        import sys
-        import tempfile
-        import os
         
         # In a real implementation, we would extract spec blocks 
         # and write them to a temporary environment or use a custom pytest plugin.

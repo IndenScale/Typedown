@@ -6,7 +6,7 @@ from collections import defaultdict
 project_root = Path(__file__).resolve().parents[3]
 sys.path.append(str(project_root / "src"))
 
-from typedown.core.workspace import Workspace
+from typedown.core.workspace import Workspace  # noqa: E402
 
 def main():
     use_case_root = Path(__file__).resolve().parents[1]
@@ -26,7 +26,7 @@ def main():
     
     # Check default policy
     remote_policy = policies.get("REMOTE")
-    default_allowance = remote_policy.travel_allowance_per_day if remote_policy else 0.0
+    _ = remote_policy.travel_allowance_per_day if remote_policy else 0.0  # default_allowance unused
 
     print("\n--- Monthly Performance & Budget Report (2024-03) ---\n")
     
@@ -68,7 +68,8 @@ def main():
     
     for exp in expenses:
         proj = projects.get(exp.project_id)
-        if not proj: continue
+        if not proj:
+            continue
         
         project_costs[proj.id]["expense"] += exp.amount
         print(f"{proj.name:<25} | {exp.category.value:<15} | {exp.vendor or '-':<15} | {exp.amount:>10,.2f} | {exp.description}")
@@ -80,7 +81,8 @@ def main():
     
     for proj_id, costs in project_costs.items():
         proj = projects.get(proj_id)
-        if not proj: continue
+        if not proj:
+            continue
         
         total_labor = costs["labor"]
         total_allow = costs["travel_allowance"]

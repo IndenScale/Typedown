@@ -1,13 +1,12 @@
-import os
 from pathlib import Path
-from typing import Dict, Set, Optional, Tuple
+from typing import Dict, Set, Optional, Tuple, Any
 from rich.console import Console
 
 from typedown.core.ast import Document, SourceLocation
 from typedown.core.parser import TypedownParser
 from typedown.core.base.utils import IgnoreMatcher
 from typedown.core.base.errors import (
-    TypedownError, ErrorCode, ErrorLevel, 
+    ErrorCode, ErrorLevel, 
     scanner_error, DiagnosticReport
 )
 
@@ -133,7 +132,7 @@ class Scanner:
                     error = scanner_error(
                         ErrorCode.E0102,
                         file_name=path.name,
-                        details=f"Config blocks should only appear in 'config.td' files",
+                        details="Config blocks should only appear in 'config.td' files",
                         location=doc.configs[0].location,
                         level=ErrorLevel.ERROR
                     )
@@ -144,7 +143,7 @@ class Scanner:
             self.console.print(f"    [red]✗[/red] Lint failed with {len(self.diagnostics.by_level(ErrorLevel.ERROR))} error(s).")
             return False
         else:
-            self.console.print(f"    [green]✓[/green] Lint passed.")
+            self.console.print("    [green]✓[/green] Lint passed.")
             return True
     
     def _check_nested_lists(self, data: any) -> bool:

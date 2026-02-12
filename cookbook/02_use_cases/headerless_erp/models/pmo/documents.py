@@ -1,7 +1,12 @@
-from typing import Optional, List
+from typing import List
 from pydantic import Field
 from ..core.primitives import BaseEntity, Money
 from typedown.core.base.types import Ref
+
+# Forward reference for Employee
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..hr.employee import Employee
 
 class RFI(BaseEntity):
     """Request for Information (RFI) document"""

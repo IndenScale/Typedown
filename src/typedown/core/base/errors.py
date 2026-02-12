@@ -9,7 +9,7 @@ Error Code Format: E{level}{category}{sequence}
 Example: E0101 = L1 Syntax Error #01
 """
 
-from enum import Enum, auto
+from enum import Enum
 from typing import Any, Optional, Dict, List
 from dataclasses import dataclass, field
 from rich.console import Console
@@ -430,7 +430,7 @@ def print_diagnostic_report(console: Console, report: DiagnosticReport):
     infos = report.by_level(ErrorLevel.INFO)
     hints = report.by_level(ErrorLevel.HINT)
     
-    console.print(f"\n[bold]Diagnostic Report:[/bold]")
+    console.print("\n[bold]Diagnostic Report:[/bold]")
     console.print(f"  [red]Errors: {len(errors)}[/red]")
     console.print(f"  [yellow]Warnings: {len(warnings)}[/yellow]")
     console.print(f"  [blue]Info: {len(infos)}[/blue]")

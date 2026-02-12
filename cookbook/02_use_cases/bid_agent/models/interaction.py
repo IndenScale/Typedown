@@ -1,8 +1,7 @@
 from enum import Enum
-from typing import List, Optional, Dict, Any, Union
+from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field
 from datetime import datetime
-from .core import Expert
 
 class TicketStatus(str, Enum):
     OPEN = "OPEN"           # 新建工单，等待处理

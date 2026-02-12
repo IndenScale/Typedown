@@ -13,11 +13,10 @@ from rich.console import Console
 
 from typedown.core.ast import Document
 from typedown.core.parser import TypedownParser
-from typedown.core.base.errors import DiagnosticReport
 from typedown.core.analysis.source_provider import SourceProvider, OverlayProvider
 
 if TYPE_CHECKING:
-    from typedown.core.compiler import Compiler
+    pass
 
 
 class SourceService:

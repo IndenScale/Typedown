@@ -1,6 +1,5 @@
 from pathlib import Path
-from typing import Dict, Optional, List, Any, Union
-import hashlib
+from typing import Dict, Optional, List, Any
 import json
 import tempfile
 import os
@@ -306,8 +305,8 @@ class SymbolTable:
             if not safe_keys:
                 continue
                 
-            cols_def = ", ".join([f"{k} TEXT" for k in safe_keys]) # Default to TEXT for simplicity
-            
+            _ = ", ".join([f"{k} TEXT" for k in safe_keys])  # Default to TEXT for simplicity (cols_def unused)
+
             # Improved Inference: Check first non-null value for type?
             # For now, strict typing in SQLite is loose, so TEXT/NUMERIC is fine.
             # But let's try to be a bit better:

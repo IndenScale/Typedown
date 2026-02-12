@@ -5,8 +5,6 @@ Error Codes: E0421 (Spec execution failed), E0423 (Spec target not found), E0424
 """
 
 import pytest
-from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors, assert_error_count
 
 
 class TestSpecValidation:
@@ -55,11 +53,11 @@ def check_admin_mfa(subject):
         from rich.console import Console
         
         console = Console(quiet=True)
-        executor = SpecExecutor(console)
-        
+        _ = SpecExecutor(console)  # executor unused
+
         from pathlib import Path
-        documents_map = {Path(str(k)): v for k, v in project.files.items() if str(k).endswith('.td')}
-        
+        _ = {Path(str(k)): v for k, v in project.files.items() if str(k).endswith('.td')}  # documents_map unused
+
         # This would need actual spec execution
         # For now, just verify no setup errors
     

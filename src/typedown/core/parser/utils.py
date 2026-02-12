@@ -1,4 +1,4 @@
-from typing import Tuple, Dict, Optional, List
+from typing import Tuple, Dict, Optional
 
 class InfoStringParser:
     @staticmethod

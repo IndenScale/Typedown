@@ -11,15 +11,7 @@ Each scenario tests a complete user workflow from start to finish.
 
 import pytest
 import asyncio
-from pathlib import Path
-from typing import List, Dict, Any
 
-from lsprotocol.types import (
-    CompletionItem,
-    Hover,
-    Location,
-    DocumentSymbol,
-)
 
 
 # =============================================================================
@@ -675,8 +667,8 @@ More text here.
         await asyncio.sleep(0.6)
         
         # Request hover on reference
-        hover = await lsp_pair.request_hover("refs.td", 5, 5)
-        
+        _ = await lsp_pair.request_hover("refs.td", 5, 5)
+
         # Should return hover info (may be None if not implemented)
         # Just verify it does not crash
         assert True

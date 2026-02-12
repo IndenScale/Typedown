@@ -1,9 +1,8 @@
 import typer
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
-from rich.console import Console
-from lsprotocol.types import CompletionList, CompletionItem
+from lsprotocol.types import CompletionList
 
 from typedown.commands.context import compiler_session
 from typedown.commands.output import cli_result

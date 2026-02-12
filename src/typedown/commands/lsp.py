@@ -1,6 +1,5 @@
 import typer
 import sys
-import logging
 
 
 def lsp(

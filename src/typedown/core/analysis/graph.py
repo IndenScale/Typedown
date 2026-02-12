@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional, Set
+from typing import Dict, List, Set
 from typedown.core.base.errors import CycleError
 
 class DependencyGraph:

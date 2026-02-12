@@ -61,16 +61,16 @@ If you prefer not to install the extension, you can use pure LSP configuration:
 
 ```json
 {
-  "file_types": {
-    "Markdown": ["td"]
-  },
   "lsp": {
     "typedown": {
       "binary": {
         "path": "uv",
-        "arguments": ["tool", "run", "td", "lsp"]
+        "arguments": ["tool", "run", "typedown", "lsp"]
       }
     }
+  },
+  "file_types": {
+    "Markdown": ["td"]
   },
   "languages": {
     "Markdown": {
@@ -90,7 +90,7 @@ For project-specific settings, create `.zed/settings.json`:
     "typedown": {
       "binary": {
         "path": "uv",
-        "arguments": ["run", "--extra", "server", "td", "lsp"]
+        "arguments": ["run", "--extra", "server", "typedown", "lsp"]
       }
     }
   }
@@ -128,12 +128,12 @@ This task is assigned to [[user-alice-v1]].
 
 1. Check Typedown is installed:
    ```bash
-   td --version
+   typedown --version
    ```
 
 2. Test LSP manually:
    ```bash
-   td lsp
+   typedown lsp
    # Should start without errors
    ```
 
@@ -143,7 +143,7 @@ This task is assigned to [[user-alice-v1]].
 ### Wiki Links Not Working
 
 - Ensure cursor is inside `[[...]]`
-- Check the entity ID exists (run `td check .`)
+- Check the entity ID exists (run `typedown check .`)
 - Verify the LSP server is running (check Zed status bar)
 
 ## Development

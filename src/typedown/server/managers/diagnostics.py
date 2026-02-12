@@ -1,4 +1,4 @@
-from typing import List, Dict, Tuple, Optional
+from typing import List, Dict
 from pygls.lsp.server import LanguageServer
 from lsprotocol.types import (
     Diagnostic,
@@ -55,7 +55,6 @@ def to_lsp_diagnostic(error: TypedownError) -> Diagnostic:
     message = f"[{error.code}] {error.message}"
     
     # Build related information from details if available
-    related_info = None
     if error.details:
         # Could add related information here if needed
         pass

@@ -11,16 +11,8 @@ These tests verify:
 
 import pytest
 import asyncio
-from pathlib import Path
 
-from lsprotocol.types import (
-    Diagnostic,
-    DiagnosticSeverity,
-    Position,
-    Range,
-)
 
-from typedown.server.managers.diagnostics import publish_diagnostics, uri_to_path
 
 
 # =============================================================================
@@ -65,7 +57,6 @@ value: hello
         
         # Document should be in memory overlay
         compiler = lsp_pair.server.compiler
-        doc_path = integration_project.get_path() / "test_entity.md"
         # Document tracking check (implementation detail)
         assert compiler.source_provider is not None
     
@@ -84,8 +75,7 @@ value: hello
         
         # Overlay should reflect the change
         compiler = lsp_pair.server.compiler
-        doc_path = simple_project.get_path() / "change_test.md"
-        
+
         # The compiler should have the latest content
         # Check if document is tracked (implementation dependent)
         assert compiler.source_provider is not None
@@ -106,8 +96,7 @@ value: hello
         
         # Compiler should use memory version
         compiler = lsp_pair.server.compiler
-        doc_path = integration_project.get_path() / "shadow_test.md"
-        
+
         # Check if document is tracked (implementation dependent)
         # Document content check skipped - implementation detail
         assert compiler.source_provider is not None
@@ -268,9 +257,8 @@ class TestIncrementalCompilation:
         await wait_for_diagnostics()
         
         # Should have final version
-        compiler = lsp_pair.server.compiler
-        doc_path = integration_project.get_path() / "debounce.md"
-        
+        _ = lsp_pair.server.compiler  # compiler unused
+
         # Check if document is tracked (implementation dependent)
             # Content check skipped: Version 4
 

@@ -1,6 +1,5 @@
 from typing import Optional, Protocol, runtime_checkable
 from pydantic import BaseModel
-import hashlib
 
 class SourceLocation(BaseModel):
     """描述一个元素在源文件中的位置"""

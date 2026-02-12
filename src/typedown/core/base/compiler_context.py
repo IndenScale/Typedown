@@ -2,7 +2,6 @@ import sys
 import importlib.abc
 import importlib.util
 from pathlib import Path
-from typing import Optional
 from typedown.core.base.resolver import Resolver
 
 class TypedownMetaFinder(importlib.abc.MetaPathFinder):

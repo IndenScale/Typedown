@@ -249,7 +249,7 @@ td check global
 
 - [x] **阶段统计输出**
   ```
-  td check local
+  typedown check local
   [syntax] 12 files parsed - OK (15ms)
   [structure] 45 entities instantiated - OK (120ms)
   [local] 45 entities validated - OK (80ms)

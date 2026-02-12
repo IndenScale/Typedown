@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List
 from datetime import date
 from ...models.pmo.project import Project
 from ...models.hr.competency import EmployeeCertification, CertificateType

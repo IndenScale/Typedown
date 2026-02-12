@@ -3,8 +3,10 @@
 该脚本逻辑应当被 typedown 的 Spec Runner 执行。
 """
 
-from typing import List
-from templates.bid_agent.models.review import ReviewResultEntry, Criticality
+# 模拟数据 (实际应从 typedown 加载)
+check_results = []  # type: ignore[var-name]
+score_results = []  # type: ignore[var-name]
+
 
 def generate_report(project_id: str):
     # 1. 加载所有数据 (模拟 loader)

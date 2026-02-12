@@ -3,7 +3,6 @@ Test: Front Matter Parsing
 Related Doc: docs/zh/02_concepts/04_config.md Section "2. Front Matter"
 """
 
-import pytest
 from test.conftest import assert_no_errors
 
 

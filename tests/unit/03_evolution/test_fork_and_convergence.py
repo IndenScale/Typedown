@@ -6,7 +6,6 @@ Known Issue: These features are documented but not fully implemented.
 """
 
 import pytest
-from test.conftest import assert_error_exists
 
 
 class TestForkDetection:

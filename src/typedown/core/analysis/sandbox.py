@@ -2,28 +2,22 @@
 Sandboxed execution environment for user code.
 Restricts dangerous operations while allowing safe configuration and model definitions.
 """
-import sys
-import os
-import io
 import builtins
-import typing
-import datetime
 import importlib
 import ast
 from pathlib import Path
-from typing import Dict, Any, Optional, Set, List
+from typing import Dict, Any, Optional, Set
 from types import ModuleType
 
 from typedown.core.base.config import SecurityConfig
 from typedown.core.base.errors import (
-    TypedownError, ErrorCode, ErrorLevel,
-    linker_error
+    TypedownError
 )
 
 # Try to import RestrictedPython, fallback to restricted mode if not available
 try:
-    from restrictedpython import compile_restricted, safe_globals
-    from restrictedpython.Guards import safe_builtins, full_write_guard
+    from restrictedpython import compile_restricted  # noqa: F401
+    from restrictedpython.Guards import safe_builtins  # noqa: F401
     RESTRICTED_PYTHON_AVAILABLE = True
 except ImportError:
     RESTRICTED_PYTHON_AVAILABLE = False
@@ -157,7 +151,7 @@ class SandboxExecutor:
         
         if visitor.violations:
             raise SandboxViolationError(
-                f"Sandbox security violations detected:\n" + 
+                "Sandbox security violations detected:\n" + 
                 "\n".join(f"  - {v}" for v in visitor.violations)
             )
         

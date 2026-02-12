@@ -8,7 +8,6 @@ This module enables Typedown's "self-validation" capability by:
 """
 
 import re
-import ast
 import sys
 import types
 import tempfile
@@ -20,7 +19,7 @@ from rich.console import Console
 
 from typedown.core.ast import Document, SpecBlock, EntityBlock
 from typedown.core.base.errors import (
-    TypedownError, ErrorCode, ErrorLevel,
+    ErrorCode, ErrorLevel,
     spec_error, DiagnosticReport
 )
 from typedown.core.base.utils import AttributeWrapper
@@ -295,8 +294,7 @@ class SpecExecutor:
         sys.modules[ctx_name] = ctx
         
         # 3. Generate Test File
-        mapping = {} 
-        test_id_tracker = []
+        mapping = {}
         test_file_content = [
             "import pytest",
             f"from {ctx_name} import models, subjects, AttributeWrapper, query, sql, blame, blame_registry, current_test_id_var",

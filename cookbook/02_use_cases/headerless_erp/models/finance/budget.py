@@ -1,6 +1,6 @@
 from enum import Enum
 from typing import List, Optional
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, validator
 from ..core.primitives import Money, BaseEntity
 
 class BudgetCategory(str, Enum):

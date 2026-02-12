@@ -1,17 +1,15 @@
-from typing import Dict, Any, List, Set, get_origin, get_args, Annotated
+from typing import Dict, Any, List, get_origin, get_args, Annotated
 from pathlib import Path
 from rich.console import Console
 
-from typedown.core.ast import Document, EntityBlock, SourceLocation
+from typedown.core.ast import Document, EntityBlock
 from typedown.core.base.errors import (
-    TypedownError, CycleError, ReferenceError,
-    ErrorCode, ErrorLevel,
-    validator_error, DiagnosticReport
+    CycleError, ReferenceError,
+    ErrorCode, validator_error, DiagnosticReport
 )
 from typedown.core.graph import DependencyGraph
 from typedown.core.analysis.query import QueryEngine, QueryError, REF_PATTERN
 from typedown.core.base.types import ReferenceMeta
-from typedown.core.base.identifiers import Identifier
 from typedown.core.base.symbol_table import SymbolTable
 from typedown.core.base.utils import AttributeWrapper
 from pydantic import BaseModel
@@ -57,11 +55,11 @@ class Validator:
         self.dependency_graph = DependencyGraph()
         entities_by_id = {}
         
-        from typedown.core.parser.desugar import Desugarer
 
         for doc in documents.values():
             for entity in doc.entities:
-                if not entity.id: continue
+                if not entity.id:
+                    continue
                 entities_by_id[entity.id] = entity
                 
                 if entity.former:

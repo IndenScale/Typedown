@@ -5,7 +5,7 @@ from typing import Optional
 from rich.table import Table
 
 from typedown.commands.context import cli_session
-from typedown.commands.output import cli_result, cli_error
+from typedown.commands.output import cli_result
 
 def query(
     query_str: str = typer.Argument(..., help="The query string to execute (e.g., 'User.alice' or 'SELECT * FROM User')"),

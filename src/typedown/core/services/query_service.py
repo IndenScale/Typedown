@@ -17,7 +17,7 @@ from typedown.core.base.symbol_table import SymbolTable
 from typedown.core.analysis.query import QueryEngine
 
 if TYPE_CHECKING:
-    from typedown.core.compiler import Compiler
+    pass
 
 
 class QueryService:

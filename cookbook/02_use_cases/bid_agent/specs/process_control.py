@@ -1,7 +1,7 @@
-from typing import List, Dict
+from typing import List
 from templates.bid_agent.models.review import (
     SupplierEvaluationState, ReviewResultEntry, 
-    ReviewStage, Criticality, ComplianceItem
+    Criticality, ComplianceItem
 )
 
 def evaluate_preliminary_stage(

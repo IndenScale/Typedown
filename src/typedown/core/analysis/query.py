@@ -5,12 +5,11 @@ from typing import Any, Dict, List, Optional
 from rich.console import Console
 
 try:
-    import duckdb
+    import duckdb  # noqa: F401
     HAS_DUCKDB = True
 except ImportError:
     HAS_DUCKDB = False
 
-from typedown.core.ast import EntityBlock
 from typedown.core.base.errors import ReferenceError, QueryError
 from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
 
@@ -333,21 +332,25 @@ class QueryEngine:
         if hasattr(self.symbol_table, "resolve_handle"):
             if isinstance(identifier, Hash):
                 val = self.symbol_table.resolve_hash(identifier.hash_value)
-                if val is None: raise ReferenceError(f"Hash not found: {identifier}")
+                if val is None:
+                    raise ReferenceError(f"Hash not found: {identifier}")
                 return val
             elif isinstance(identifier, Handle):
                 val = self.symbol_table.resolve_handle(identifier.name, context_path)
-                if val is None: raise ReferenceError(f"L1 Match failed: Handle '{identifier}' not found in current context.")
+                if val is None:
+                    raise ReferenceError(f"L1 Match failed: Handle '{identifier}' not found in current context.")
                 return val
             elif isinstance(identifier, UUID):
                 val = self.symbol_table.resolve_uuid(identifier.uuid_value)
-                if val is None: raise ReferenceError(f"UUID not found: {identifier}")
+                if val is None:
+                    raise ReferenceError(f"UUID not found: {identifier}")
                 return val
 
         # Fallback to generic resolve or dict lookup (Legacy/Testing)
         if hasattr(self.symbol_table, "resolve"):
              val = self.symbol_table.resolve(str(identifier), context_path)
-             if val is None: raise ReferenceError(f"Identifier not found: {identifier}")
+             if val is None:
+                 raise ReferenceError(f"Identifier not found: {identifier}")
              return val
              
         # Dict fallback

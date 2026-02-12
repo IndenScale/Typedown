@@ -4,8 +4,6 @@ Related Doc: docs/zh/02_concepts/02_validation.md Section "2. 模型级验证"
 Error Codes: E0361 (Schema validation failed)
 """
 
-import pytest
-from datetime import datetime
 from typedown.core.base.errors import ErrorCode
 from test.conftest import assert_error_exists, assert_no_errors
 

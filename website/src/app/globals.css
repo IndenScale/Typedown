@@ -111,19 +111,19 @@ body {
   border-bottom-color: var(--gray-700) !important;
 }
 
-.markdown-content td {
+.markdown-content typedown {
   padding: 1rem 1.5rem !important;
   border-bottom: 1px solid var(--gray-100) !important;
   vertical-align: top !important;
 }
 
-.dark .markdown-content td {
+.dark .markdown-content typedown {
   border-bottom-color: var(
     --gray-100
   ) !important; /* Note: adjust if gray-100 is too bright in dark mode */
 }
 
-.markdown-content tr:last-child td {
+.markdown-content tr:last-child typedown {
   @apply border-b-0;
 }
 

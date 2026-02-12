@@ -19,7 +19,7 @@ Parse the file and inspect the structured data:
 td inspect cookbook/01_getting_started/en/00_hello_world/00_intro.td
 
 # Or using uvx (no installation required)
-uvx td inspect cookbook/01_getting_started/en/00_hello_world/00_intro.td
+uvx typedown inspect cookbook/01_getting_started/en/00_hello_world/00_intro.td
 ```
 
 ### 2. Validate

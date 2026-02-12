@@ -1,7 +1,6 @@
 import sys
 import os
 import asyncio
-import json
 import logging
 from types import ModuleType
 
@@ -23,17 +22,20 @@ class MockObserver:
     def unschedule_all(self): pass
 m_observers.Observer = MockObserver
 sys.modules["watchdog.observers"] = m_observers
-class FileSystemEventHandler: pass
-class FileSystemEvent: pass
+class FileSystemEventHandler:
+    pass
+
+
+class FileSystemEvent:
+    pass
 m_events.FileSystemEventHandler = FileSystemEventHandler
 m_events.FileSystemEvent = FileSystemEvent
 # --- HACK END ---
 
 # Import Server
-from typedown.server.application import server
-import pygls
-from pygls.protocol import LanguageServerProtocol
-from lsprotocol.types import TextDocumentSyncKind
+from typedown.server.application import server  # noqa: E402
+from pygls.protocol import LanguageServerProtocol  # noqa: E402
+from lsprotocol.types import TextDocumentSyncKind  # noqa: E402
 
 # Use Full Sync for simplicity with OverlayProvider (Memory Overlay).
 # Compiler replaces the entire file content in memory.
@@ -44,7 +46,7 @@ try:
     from importlib.metadata import version
     ver = version("pygls")
     # print(f"DEBUG: Python Kernel 3, pygls version: {ver}")
-except:
+except Exception:
     # print("DEBUG: Python Kernel 3, pygls version: unknown")
     pass
 
@@ -109,7 +111,8 @@ class WebTransport(asyncio.Transport):
         return self._extra.get(name, default)
 
     def write(self, data):
-        if self._closed: return
+        if self._closed:
+            return
         try:
             msg_str = data if isinstance(data, str) else data.decode('utf-8')
             parts = msg_str.split('\r\n\r\n', 1)
@@ -157,7 +160,7 @@ def wire_server():
             protocol.set_writer(transport)
             # print("DEBUG: Wired output via protocol.set_writer()")
             success = True
-        except Exception as e:
+        except Exception:
              # print(f"DEBUG: set_writer failed: {e}")
              pass
              
@@ -167,7 +170,8 @@ def wire_server():
              protocol.connection_made(transport)
              # print("DEBUG: Wired output via protocol.connection_made()")
              success = True
-        except: pass
+        except Exception:
+            pass
 
     # Fallback: direct assignment
     if not success:

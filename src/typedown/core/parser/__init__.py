@@ -1,1 +1,1 @@
-from .typedown_parser import TypedownParser
+from .typedown_parser import TypedownParser as TypedownParser

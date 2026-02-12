@@ -1,8 +1,12 @@
 from enum import Enum
 from typing import Optional
-from pydantic import Field
 from ..core.primitives import BaseEntity, Money
 from typedown.core.base.types import Ref
+
+# Forward reference for Employee
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from ..hr.employee import Employee
 
 class ProjectStatus(str, Enum):
     PLANNING = "Planning"

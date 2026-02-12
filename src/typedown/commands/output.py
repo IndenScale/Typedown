@@ -8,9 +8,8 @@ This module provides standardized functions for:
 """
 
 import json
-import sys
 from pathlib import Path
-from typing import Any, Callable, Optional, Union
+from typing import Any, Callable, Optional
 
 import typer
 from pydantic import BaseModel

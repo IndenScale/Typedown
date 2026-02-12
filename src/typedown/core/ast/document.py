@@ -1,9 +1,7 @@
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 from pathlib import Path
 from pydantic import BaseModel, Field
-from .base import SourceLocation
 from .blocks import EntityBlock, ModelBlock, ConfigBlock, SpecBlock, Reference
-from ..base.identifiers import Identifier, AnyIdentifier
 
 import hashlib
 

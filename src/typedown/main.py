@@ -62,7 +62,7 @@ def main(
     pass
 
 # Import unified check command
-from typedown.commands.check import check as check_cmd
+from typedown.commands.check import check as check_cmd  # noqa: E402
 
 # Register 'lsp' command
 app.command(name="lsp")(lsp_cmd)
@@ -73,13 +73,13 @@ app.command(name="query")(query_cmd)
 # Register unified 'check' command (FEAT-0008)
 app.command(name="check")(check_cmd)
 
-from typedown.commands.info import info as info_cmd
+from typedown.commands.info import info as info_cmd  # noqa: E402
 app.command(name="info")(info_cmd)
 
-from typedown.commands.complete import complete as complete_cmd
+from typedown.commands.complete import complete as complete_cmd  # noqa: E402
 app.command(name="complete")(complete_cmd)
 
-from typedown.commands.setup import setup_cmd
+from typedown.commands.setup import setup_cmd  # noqa: E402
 app.add_typer(setup_cmd, name="setup")
 
 @app.command()

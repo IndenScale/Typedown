@@ -3,7 +3,6 @@ Test: List Reference Syntax
 Related Doc: docs/zh/03_guides/01_references.md Section "列表引用"
 """
 
-import pytest
 from test.conftest import assert_no_errors
 
 

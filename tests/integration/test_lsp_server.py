@@ -11,19 +11,9 @@ These tests verify that the LSP server correctly:
 
 import pytest
 import asyncio
-from pathlib import Path
-from typing import Optional
 
-from lsprotocol.types import (
-    InitializeResult,
-    TextDocumentSyncKind,
-    CompletionOptions,
-    HoverOptions,
-    ServerCapabilities,
-    MessageType,
-)
 
-from typedown.server.application import TypedownLanguageServer, initialize, shutdown
+from typedown.server.application import TypedownLanguageServer, initialize
 
 
 # =============================================================================
@@ -224,7 +214,7 @@ class TestErrorHandling:
         # Should handle gracefully
         try:
             await lsp_pair.open_document("../../../etc/passwd", "# Test")
-        except Exception as e:
+        except Exception:
             # May raise or handle gracefully - both are acceptable
             pass
     

@@ -1,5 +1,4 @@
 # create __init__.py files
-import os
 
 files = [
     "/Users/indenscale/Documents/Projects/Typedown/use_cases/headerless_erp/models/__init__.py",

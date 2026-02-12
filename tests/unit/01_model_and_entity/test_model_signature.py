@@ -179,7 +179,8 @@ class BadModel(BaseModel):
         from typedown.core.parser import TypedownParser
         parser = TypedownParser()
         
-        import tempfile, os as os_module
+        import tempfile
+        import os as os_module
         temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.td', delete=False)
         temp_file.write(content)
         temp_file.close()
@@ -217,4 +218,4 @@ class Status(str, Enum):
 
 
 # Need to import here to avoid circular import in fixture
-from test.conftest import TestProjectBuilder
+from test.conftest import TestProjectBuilder  # noqa: E402

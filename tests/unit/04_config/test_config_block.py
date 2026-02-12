@@ -4,7 +4,6 @@ Related Doc: docs/zh/02_concepts/04_config.md Section "1. Config 代码块"
 Error Codes: E0102 (Config block location error), E0222 (Config execution failed)
 """
 
-import pytest
 from typedown.core.base.errors import ErrorCode
 from test.conftest import assert_error_exists, assert_no_errors
 

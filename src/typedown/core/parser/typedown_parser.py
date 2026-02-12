@@ -324,10 +324,10 @@ class TypedownParser:
             # Enforce naming consistency between Block ID and Python Function Name
             # Pattern: ```spec:weight_limit -> def weight_limit(subject):
             
-            # Extract function name from code
+            # Extract function name from code (for validation)
             func_name_match = re.search(r'def\s+(\w+)\s*\(', code)
-            func_name = func_name_match.group(1) if func_name_match else None
-            
+            _ = func_name_match.group(1) if func_name_match else None  # func_name unused
+
             if spec_id:
                 # 1. Strict Charset Validation (Equivalent to Variable Name)
                 if not re.match(r'^[a-zA-Z_]\w*$', spec_id):

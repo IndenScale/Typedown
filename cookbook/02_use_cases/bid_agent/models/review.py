@@ -1,7 +1,6 @@
 from enum import Enum
-from typing import List, Optional, Union, Dict, Any
+from typing import List, Optional, Union, Dict
 from pydantic import BaseModel, Field
-from .core import BidProject, Supplier, Expert
 from .evidence import BaseQualification, EvidenceSource
 
 # --- 枚举定义 ---

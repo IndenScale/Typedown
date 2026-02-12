@@ -11,7 +11,6 @@ from rich.console import Console
 
 from typedown.core.parser import TypedownParser
 from typedown.core.analysis import Scanner, Linker, Validator
-from typedown.core.analysis.spec_executor import SpecExecutor
 from typedown.core.base.config import TypedownConfig
 from typedown.core.base.errors import ErrorCode, DiagnosticReport
 

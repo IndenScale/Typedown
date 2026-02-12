@@ -13,7 +13,7 @@
 1.  **检查校验结果**:
 
     ```bash
-    td check --path cookbook/01_getting_started/zh/01_schema_constraints
+    typedown check --path cookbook/01_getting_started/zh/01_schema_constraints
     ```
 
     你会看到 `bad_pricing` 实体报错，因为 `discount_price` 高于 `price`。
@@ -21,7 +21,7 @@
 2.  **查看自动修正**:
 
     ```bash
-    td query "SELECT * FROM Book" --path cookbook/01_getting_started/zh/01_schema_constraints --sql
+    typedown query "SELECT * FROM Book" --path cookbook/01_getting_started/zh/01_schema_constraints --sql
     ```
 
     注意这里的标题 "the hitchhiker's guide to the galaxy" 会被自动修正为标题大写格式 "The Hitchhiker's Guide To The Galaxy"。

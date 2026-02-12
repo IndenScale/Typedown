@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Union
 import re
 
 from lsprotocol.types import CompletionItem, CompletionItemKind, CompletionList
@@ -47,9 +47,7 @@ class CompletionService:
         line = lines[context.line]
         col = context.character
         prefix = line[:col]
-        
-        items = []
-        
+
         # CASE 1: [[class:
         class_match = re.search(r'\[\[class:([\w\.\-_]*)$', prefix)
         if class_match:

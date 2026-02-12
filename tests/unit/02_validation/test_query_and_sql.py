@@ -16,8 +16,8 @@ class TestQueryFunction:
         # Setup symbol table with test entity
         st = SymbolTable()
         # Add test entity
-        
-        engine = QueryEngine(st)
+
+        _ = QueryEngine(st)  # engine unused
         # Test query resolution
     
     def test_query_with_wildcard(self):

@@ -1,5 +1,4 @@
 import logging
-import sys
 import threading
 import asyncio
 from pathlib import Path
@@ -16,7 +15,6 @@ from lsprotocol.types import (
     InitializeParams,
     MessageType,
     LogMessageParams,
-    TextDocumentSyncKind,
 )
 from rich.console import Console
 
@@ -214,11 +212,6 @@ def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
 # Feature Registration
 # ======================================================================================
 # Importing these modules registers their @server.feature handlers
-import typedown.server.features.completion
-import typedown.server.features.hover
-import typedown.server.features.navigation
-import typedown.server.features.semantic_tokens
-import typedown.server.features.lifecycle
 
 # ======================================================================================
 # Entry Point

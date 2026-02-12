@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Iterator, List, Optional, Set
+from typing import Dict, Iterator, Set
 import os
 
 class SourceProvider(ABC):

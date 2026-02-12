@@ -1,7 +1,11 @@
 from enum import Enum
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from pydantic import BaseModel, Field
 from typedown.core.base.types import Ref
+
+if TYPE_CHECKING:
+    from .hr import Employee
+    from .pm import Project
 
 class ActivityType(str, Enum):
     DELIVERY = "DELIVERY"       # 现场交付

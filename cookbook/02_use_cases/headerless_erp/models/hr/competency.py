@@ -1,7 +1,6 @@
 from enum import Enum
 from typing import Optional
 from datetime import date
-from pydantic import Field
 from ..core.primitives import BaseEntity
 
 class CertificateType(str, Enum):

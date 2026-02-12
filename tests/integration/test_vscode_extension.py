@@ -15,9 +15,7 @@ import pytest
 import asyncio
 import subprocess
 import time
-import socket
 from pathlib import Path
-from typing import Optional, List, Dict, Any
 
 
 # =============================================================================
@@ -31,7 +29,7 @@ class TestServerLifecycle:
     async def test_server_stdio_mode_startup(self, integration_project):
         """Test server startup in stdio mode (default VSCode behavior)."""
         # Verify the server module can be imported
-        from typedown.server.application import lsp_entry, server
+        from typedown.server.application import server
         
         # Server should exist
         assert server is not None
@@ -166,9 +164,8 @@ content: "changed"
         await lsp_pair.change_document("full_sync.md", changed, version=2)
         
         # Server should have latest content
-        compiler = lsp_pair.server.compiler
-        doc_path = integration_project.get_path() / "full_sync.md"
-        
+        _ = lsp_pair.server.compiler  # compiler unused
+
         # Check if document is tracked (implementation dependent)
             # Content check skipped: changed
     
@@ -213,7 +210,7 @@ name: "Item 3"
             await lsp_pair.open_document(path, content)
         
         # All documents should be tracked
-        compiler = lsp_pair.server.compiler
+        _ = lsp_pair.server.compiler  # compiler unused
         # Multiple documents should be tracked
 
 
@@ -485,7 +482,6 @@ class TestPerformanceAndStress:
     @pytest.mark.asyncio
     async def test_startup_time(self, lsp_pair, simple_project):
         """Test that server startup is fast enough for VSCode."""
-        import time
         
         start = time.time()
         # lsp_pair already initialized by fixture
@@ -497,7 +493,6 @@ class TestPerformanceAndStress:
     @pytest.mark.asyncio
     async def test_large_workspace_startup(self, lsp_pair, integration_project):
         """Test startup with many files."""
-        import time
         
         # Create many files
         (integration_project

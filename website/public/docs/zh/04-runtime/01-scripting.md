@@ -23,7 +23,7 @@ scripts:
   verify-business: 'python scripts/oracle_check.py --id ${entity.id}'
 
   # 组合动作
-  ci-pass: 'td validate ${FILE} && td run verify-business'
+  ci-pass: 'td validate ${FILE} && typedown run verify-business'
 ---
 ```
 
@@ -53,8 +53,8 @@ scripts:
 
 ```bash
 # 执行当前文件的 validate 脚本
-$ td run validate user_profile.td
+$ typedown run validate user_profile.td
 
 # 批量执行 specs/ 目录下所有文件的 test 脚本
-$ td run test specs/
+$ typedown run test specs/
 ```

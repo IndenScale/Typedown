@@ -8,7 +8,7 @@ Responsibilities:
 """
 
 from pathlib import Path
-from typing import Dict, Any, Optional, Set, TYPE_CHECKING
+from typing import Dict, Any, Optional, TYPE_CHECKING
 from rich.console import Console
 
 from typedown.core.ast import Document
@@ -21,7 +21,7 @@ from typedown.core.analysis.validator import Validator
 from typedown.core.analysis.source_provider import SourceProvider
 
 if TYPE_CHECKING:
-    from typedown.core.compiler import Compiler
+    pass
 
 
 class ValidationService:
