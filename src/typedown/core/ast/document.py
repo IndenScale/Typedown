@@ -15,7 +15,6 @@ class Document(BaseModel):
     
     # Front Matter 元数据
     tags: List[str] = Field(default_factory=list)
-    scripts: Dict[str, str] = Field(default_factory=dict)
     
     # 配置上下文 (从 config.td 继承合并后的结果)
     config: Dict[str, Any] = Field(default_factory=dict)
@@ -71,9 +70,6 @@ class Project(BaseModel):
     root_dir: Path
     documents: Dict[str, Document] = Field(default_factory=dict) # path -> Document
     resources: Dict[str, Resource] = Field(default_factory=dict) # path(id) -> Resource
-    
-    # 项目级别脚本 (从 typedown.yaml 加载)
-    scripts: Dict[str, str] = Field(default_factory=dict)
     
     # 全局符号表 (Symbol Table)
     # entity_id -> EntityBlock or Resource

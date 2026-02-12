@@ -8,7 +8,6 @@ Architecture:
     Compiler (Facade/Coordinator)
     ├── PipelineService      # Compilation pipeline orchestration
     ├── ValidationService    # L1/L2/L3 validation
-    ├── ScriptService        # Script system
     ├── TestService          # L4 Specs + Oracles
     ├── QueryService         # Query interface
     └── SourceService        # Source file management
@@ -16,14 +15,12 @@ Architecture:
 
 from .source_service import SourceService
 from .validation_service import ValidationService
-from .script_service import ScriptService
 from .test_service import TestService
 from .query_service import QueryService
 
 __all__ = [
     "SourceService",
     "ValidationService", 
-    "ScriptService",
     "TestService",
     "QueryService",
 ]

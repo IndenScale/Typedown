@@ -23,15 +23,11 @@ def info(
             "config_path": str(ctx.project_root / "typedown.toml"),
             "project_name": project_name,
             "version": project_version,
-            "scripts": list(config.scripts.keys()),
-            "tasks": list(config.tasks.keys()),
             "oracles": config.test.oracles
         }
         
         def print_human(data):
             ctx.display_console.print(f"[bold green]Project:[/bold green] {data['project_name']} ({data['version']})")
             ctx.display_console.print(f"[bold]Root:[/bold] {data['root']}")
-            ctx.display_console.print(f"[bold]Scripts:[/bold] {', '.join(data['scripts'])}")
-            ctx.display_console.print(f"[bold]Tasks:[/bold] {', '.join(data['tasks'])}")
         
         cli_result(ctx, info_data, print_human, exit_on_error=False)

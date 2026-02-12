@@ -12,7 +12,7 @@ from typing import Dict, Any, Optional, Set, TYPE_CHECKING
 from rich.console import Console
 
 from typedown.core.ast import Document
-from typedown.core.base.config import TypedownConfig, ScriptConfig
+from typedown.core.base.config import TypedownConfig
 from typedown.core.base.errors import DiagnosticReport
 from typedown.core.base.symbol_table import SymbolTable
 from typedown.core.analysis.scanner import Scanner
@@ -49,18 +49,21 @@ class ValidationService:
     def lint(
         self,
         target: Path,
-        script: Optional[ScriptConfig] = None
+        script: Optional[Any] = None
     ) -> tuple[bool, DiagnosticReport, Dict[Path, Document]]:
         """
         L1: Syntax Check (Scanner only).
         
         Args:
             target: Target path to lint
-            script: Optional script configuration
+            script: Deprecated, ignored
             
         Returns:
             Tuple of (passed, diagnostics, documents)
         """
+        if script:
+            self.console.print("  [yellow]Scripts are deprecated, ignoring script filter[/yellow]")
+        
         diagnostics = DiagnosticReport()
         
         scanner = Scanner(
@@ -68,7 +71,7 @@ class ValidationService:
             self.console,
             provider=self.source_provider
         )
-        documents, _ = scanner.scan(target, script)
+        documents, _ = scanner.scan(target)
         diagnostics.extend(scanner.diagnostics.errors)
         
         # Run lint checks
@@ -80,14 +83,14 @@ class ValidationService:
     def check(
         self,
         target: Path,
-        script: Optional[ScriptConfig] = None
+        script: Optional[Any] = None
     ) -> tuple[bool, DiagnosticReport, Dict[Path, Document], SymbolTable, Dict[str, Any]]:
         """
         L2: Schema Compliance (Scanner + Linker + Pydantic instantiation + validators).
         
         Args:
             target: Target path to check
-            script: Optional script configuration
+            script: Deprecated, ignored
             
         Returns:
             Tuple of (passed, diagnostics, documents, symbol_table, model_registry)
@@ -103,7 +106,7 @@ class ValidationService:
     def check_structure(
         self,
         target: Path,
-        script: Optional[ScriptConfig] = None,
+        script: Optional[Any] = None,
         documents: Optional[Dict[Path, Document]] = None
     ) -> tuple[bool, DiagnosticReport, Dict[Path, Document], SymbolTable, Dict[str, Any]]:
         """
@@ -111,7 +114,7 @@ class ValidationService:
         
         Args:
             target: Target path (used if documents not provided)
-            script: Optional script configuration
+            script: Deprecated, ignored
             documents: Pre-scanned documents (optional)
             
         Returns:

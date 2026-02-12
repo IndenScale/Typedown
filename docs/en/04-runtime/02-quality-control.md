@@ -65,38 +65,4 @@ Different stages are appropriate for different environments:
 
 **Pre-commit**: Use `global` or `--full` checks. This ensures the entire project is internally consistent before changes are committed.
 
-**Continuous Integration**: Run `global` checks as a mandatory gate. Optionally run custom scripts for external verification.
-
-## External Verification
-
-For checks requiring external services, define custom scripts in your Front Matter or project configuration:
-
-```yaml
-scripts:
-  verify-external: 'python scripts/check_api.py --entity ${entity.id}'
-```
-
-Execute with:
-
-```bash
-typedown run verify-external
-```
-
-These scripts may call external APIs, query databases, or perform other operations with side effects. Run them only in trusted environments like CI/CD pipelines.
-
-## Build Scripts
-
-Artifact generation is handled through the script system:
-
-```yaml
-scripts:
-  build: 'python scripts/generate_schema.py && python scripts/export_sql.py'
-```
-
-Execute with:
-
-```bash
-typedown run build
-```
-
-Build scripts should be idempotent and typically require passing a full check first.
+**Continuous Integration**: Run `global` checks as a mandatory gate.

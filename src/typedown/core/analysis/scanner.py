@@ -1,13 +1,11 @@
 import os
-import fnmatch
 from pathlib import Path
-from typing import Dict, Set, Optional, List, Tuple
+from typing import Dict, Set, Optional, Tuple
 from rich.console import Console
 
-from typedown.core.ast import Document, SourceLocation, EntityBlock
+from typedown.core.ast import Document, SourceLocation
 from typedown.core.parser import TypedownParser
 from typedown.core.base.utils import IgnoreMatcher
-from typedown.core.base.config import ScriptConfig
 from typedown.core.base.errors import (
     TypedownError, ErrorCode, ErrorLevel, 
     scanner_error, DiagnosticReport
@@ -25,16 +23,16 @@ class Scanner:
         self.diagnostics = DiagnosticReport()
         self.provider = provider or DiskProvider()
 
-    def scan(self, target: Path, script: Optional[ScriptConfig] = None) -> Tuple[Dict[Path, Document], Set[Path]]:
+    def scan(self, target: Path, script: Optional[Any] = None) -> Tuple[Dict[Path, Document], Set[Path]]:
         """
         Scans values files in target (or file itself) and returns parsed Documents.
-        Filters based on script configuration if provided.
         Returns: (documents_map, set_of_target_files)
         """
         documents: Dict[Path, Document] = {}
         target_files: Set[Path] = set()
         
-        strict = script.strict if script else False
+        if script:
+            self.console.print("  [yellow]Scripts are deprecated, ignoring script filter[/yellow]")
         
         self.console.print("  [dim]Stage 1: Scanning content...[/dim]")
 
@@ -45,19 +43,8 @@ class Scanner:
         candidates = list(self.provider.list_files(target, extensions, self.ignore_matcher))
 
         for file_path in candidates:
-             # Script Logic (Filtering)
-             is_match = True
-             if script:
-                 is_match = self._matches_script(file_path, script)
-             
-             # In strict mode, only find files matching the script
-             if strict and not is_match:
-                 continue 
-             
              self._process_file(file_path, documents)
-             
-             if is_match:
-                 target_files.add(file_path)
+             target_files.add(file_path)
 
         # ---------------------------------------------------------
         # Critical Fix: Ancestry Config Loading
@@ -115,24 +102,6 @@ class Scanner:
                 location=loc,
                 file=str(path)
             ))
-
-    def _matches_script(self, path: Path, script: ScriptConfig) -> bool:
-        try:
-            rel_path = path.relative_to(self.project_root).as_posix()
-        except ValueError:
-            return False # Path outside project root
-            
-        # Check Exclude first
-        for pat in script.exclude:
-            if fnmatch.fnmatch(rel_path, pat):
-                return False
-                
-        # Check Include
-        for pat in script.include:
-            if fnmatch.fnmatch(rel_path, pat):
-                return True
-                
-        return False
 
     def lint(self, documents: Dict[Path, Document]) -> bool:
         """

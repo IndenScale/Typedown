@@ -16,7 +16,6 @@ def check(
     path: Path = typer.Option(Path("."), "--path", "-p", help="Project root directory"),
     fast: bool = typer.Option(False, "--fast", help="Fast mode: syntax + structure only"),
     full: bool = typer.Option(False, "--full", help="Full mode: all stages including global"),
-    script: Optional[str] = typer.Option(None, "--script", "-s", help="Script configuration to use"),
     as_json: bool = typer.Option(False, "--json", help="Output as JSON"),
 ):
     """
@@ -58,7 +57,7 @@ def check(
         stage_results = {}
         
         for s in stages_to_run:
-            passed = _run_stage(ctx, s, script)
+            passed = _run_stage(ctx, s)
             stage_results[s] = passed
             if not passed:
                 all_passed = False
@@ -92,38 +91,34 @@ def check(
                 raise typer.Exit(code=1)
 
 
-def _run_stage(ctx, stage: Stage, script_name: Optional[str]) -> bool:
+def _run_stage(ctx, stage: Stage) -> bool:
     """Run a single validation stage."""
     console = ctx.display_console
     
     if stage == "syntax":
         console.print("[dim]Stage 1/4:[/dim] [bold]syntax[/bold] - Markdown/YAML parsing...")
-        script = ctx.compiler.config.scripts.get(script_name) if script_name else None
-        passed = ctx.compiler.lint(script=script)
+        passed = ctx.compiler.lint()
         if passed:
             console.print("  [green]✓[/green] Syntax check passed")
         return passed
     
     elif stage == "structure":
         console.print("[dim]Stage 2/4:[/dim] [bold]structure[/bold] - Pydantic instantiation...")
-        script = ctx.compiler.config.scripts.get(script_name) if script_name else None
-        passed = ctx.compiler.check_structure(script=script)
+        passed = ctx.compiler.check_structure()
         if passed:
             console.print("  [green]✓[/green] Structure check passed")
         return passed
     
     elif stage == "local":
         console.print("[dim]Stage 3/4:[/dim] [bold]local[/bold] - Pydantic validators...")
-        script = ctx.compiler.config.scripts.get(script_name) if script_name else None
-        passed = ctx.compiler.check_local(script=script)
+        passed = ctx.compiler.check_local()
         if passed:
             console.print("  [green]✓[/green] Local validation passed")
         return passed
     
     elif stage == "global":
         console.print("[dim]Stage 4/4:[/dim] [bold]global[/bold] - Reference resolution + Specs...")
-        script = ctx.compiler.config.scripts.get(script_name) if script_name else None
-        passed = ctx.compiler.check_global(script=script)
+        passed = ctx.compiler.check_global()
         if passed:
             console.print("  [green]✓[/green] Global validation passed")
         return passed

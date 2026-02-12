@@ -61,38 +61,4 @@ typedown check --full
 
 **提交前**: 使用 `global` 或 `--full` 检查。确保整个项目在提交更改前内部一致。
 
-**持续集成**: 将 `global` 检查作为强制门禁。可选择运行自定义脚本进行外部验证。
-
-## 外部验证
-
-对于需要外部服务的检查，在 Front Matter 或项目配置中定义自定义脚本：
-
-```yaml
-scripts:
-  verify-external: 'python scripts/check_api.py --entity ${entity.id}'
-```
-
-执行方式：
-
-```bash
-typedown run verify-external
-```
-
-这些脚本可能调用外部 API、查询数据库或执行其他有副作用的操作。仅在受信任的环境如 CI/CD 流水线中运行它们。
-
-## 构建脚本
-
-产物生成通过脚本系统处理：
-
-```yaml
-scripts:
-  build: 'python scripts/generate_schema.py && python scripts/export_sql.py'
-```
-
-执行方式：
-
-```bash
-typedown run build
-```
-
-构建脚本应是幂等的，通常需要先通过完整检查。
+**持续集成**: 将 `global` 检查作为强制门禁。
