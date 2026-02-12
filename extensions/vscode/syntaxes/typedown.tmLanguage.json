@@ -15,6 +15,9 @@
       "include": "#model-block"
     },
     {
+      "include": "#wiki-link"
+    },
+    {
       "include": "text.html.markdown"
     }
   ],
@@ -131,6 +134,17 @@
           "include": "source.python"
         }
       ]
+    },
+    "wiki-link": {
+      "comment": "Wiki links: [[Page Title]] or [[Page Title|Display Text]]",
+      "match": "(\\[\\[)([^\\]|]+?)(?:\\|([^\\]]*))?(\\]\\])",
+      "captures": {
+        "1": { "name": "punctuation.definition.link.wiki.begin.typedown" },
+        "2": { "name": "markup.underline.link.wiki.destination.typedown" },
+        "3": { "name": "string.other.link.wiki.title.typedown" },
+        "4": { "name": "punctuation.definition.link.wiki.end.typedown" }
+      },
+      "name": "meta.link.wiki.typedown"
     }
   }
 }

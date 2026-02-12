@@ -1,3 +1,5 @@
 project:
   key: TYP
   name: Typedown
+  spike_repos:
+    zed: https://github.com/zed-industries/zed.git

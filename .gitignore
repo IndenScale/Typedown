@@ -33,6 +33,10 @@ extensions/vscode/node_modules/
 extensions/vscode/out/
 *.vsix
 
+# Zed Extension (Rust)
+extensions/zed/target/
+extensions/zed/Cargo.lock
+
 # VitePress
 docs/.vitepress/cache/
 docs/.vitepress/dist/
@@ -55,3 +59,4 @@ test_pytest_*.py
 _reference/
 \n# Exclude nested doccano reference\n参考实现/components/doccano/
 .references/
+.zed/

@@ -1,50 +1,87 @@
-; inherits: markdown
+; Typedown block syntax highlighting - Extended from Markdown
 
-; Typedown-specific syntax highlighting
-; This extends the base Markdown highlights
+; Headings
+(atx_heading
+  (inline) @text.title)
 
-; Wiki Links: [[entity-id]]
-((link_text) @link_text
-  (#match? @link_text "^\\[\\["))
+(setext_heading
+  (paragraph) @text.title)
 
-; Fenced code blocks with Typedown directives
+; Heading markers
+[
+  (atx_h1_marker)
+  (atx_h2_marker)
+  (atx_h3_marker)
+  (atx_h4_marker)
+  (atx_h5_marker)
+  (atx_h6_marker)
+  (setext_h1_underline)
+  (setext_h2_underline)
+] @punctuation.special
+
+; Code blocks
+[
+  (link_title)
+  (indented_code_block)
+  (fenced_code_block)
+] @text.literal
+
+(fenced_code_block_delimiter) @punctuation.delimiter
+
+(code_fence_content) @none
+
+(link_destination) @text.uri
+
+(link_label) @text.reference
+
+; List markers
+[
+  (list_marker_plus)
+  (list_marker_minus)
+  (list_marker_star)
+  (list_marker_dot)
+  (list_marker_parenthesis)
+  (thematic_break)
+] @punctuation.special
+
+; Block quotes and continuation
+[
+  (block_continuation)
+  (block_quote_marker)
+] @punctuation.special
+
+; Escape sequences
+(backslash_escape) @string.escape
+
+; ============================================
+; TYPEDOWN EXTENSIONS
+; ============================================
+
+; Typedown code blocks with special language markers
+; ```model:EntityName
+; ```entity:EntityName
+; ```spec:SpecName
+; ```config:ConfigName
 (fenced_code_block
   (info_string
-    (language) @keyword.directive)
-  (#match? @keyword.directive "^(model|entity|spec|config)$"))
+    (language) @keyword.special))
 
-; Model block: ```model:ModelName
+; Model blocks - highlighted as code blocks but with special keyword
 (fenced_code_block
   (info_string
-    (language) @keyword.directive
-    ") @entity.name.class
-  (#match? @keyword.directive "^model$"))
+    (language) @_lang
+    (#match? @_lang "^(model|entity|spec|config)"))
+  (code_fence_content) @text.literal)
 
-; Entity block: ```entity Type: entity-id
-(fenced_code_block
-  (info_string
-    (language) @keyword.directive)
-  (#match? @keyword.directive "^entity$"))
+; Metadata blocks (YAML frontmatter)
+(minus_metadata) @text.literal
+(plus_metadata) @text.literal
 
-; Spec block: ```spec:spec_name
-(fenced_code_block
-  (info_string
-    (language) @keyword.directive)
-  (#match? @keyword.directive "^spec$"))
+; Table support (GFM)
+(pipe_table) @text.table
+(pipe_table_header) @text.title
+(pipe_table_delimiter_row) @punctuation.special
+(pipe_table_cell) @text
 
-; Config block: ```config:python
-(fenced_code_block
-  (info_string
-    (language) @keyword.directive)
-  (#match? @keyword.directive "^config$"))
-
-; Highlight the [[ and ]] brackets in wiki links
-([
-  "[["
-  "]]"
-] @punctuation.bracket)
-
-; Make wiki link text stand out
-(
-  (link_text) @string.special.symbol
-  (#match? @string.special.symbol "^\\[\\[.+\\]\\]$"))
+; HTML blocks
+(html_block) @text.html

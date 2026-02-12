@@ -1,7 +1,7 @@
 name = "Typedown"
-grammar = "markdown"
+grammar = "typedown"
 path_suffixes = ["td", "typedown"]
-line_comments = ["<!-- ", "<!--"]
+line_comments = ["<!-- ", "-->"]
 block_comment = ["<!--", "-->"]
 tab_size = 2
 hard_tabs = false

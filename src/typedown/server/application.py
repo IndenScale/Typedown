@@ -213,6 +213,9 @@ def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
 # ======================================================================================
 # Importing these modules registers their @server.feature handlers
 
+# Import all feature modules to register their handlers
+from typedown.server.features import navigation, hover, completion, semantic_tokens
+
 # ======================================================================================
 # Entry Point
 # ======================================================================================

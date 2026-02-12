@@ -1,6 +1,6 @@
 # data.td
 
-# We can refer to ProjectTask defined in models.td
+We can refer to ProjectTask defined in models.td
 
 ```entity ProjectTask: launch
 name: "Launch v1.0"

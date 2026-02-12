@@ -170,7 +170,9 @@ def _find_reference_at_position(doc, line: int, col: int):
     candidates = [ref for ref in doc.references if ref.location.line_start == line + 1] 
     
     for ref in candidates:
-        if ref.location.col_start <= col <= ref.location.col_end:
+        # Use half-open interval [col_start, col_end) for column comparison
+        # This aligns with LSP convention where end position is exclusive
+        if ref.location.col_start <= col < ref.location.col_end:
             return ref
     return None
 

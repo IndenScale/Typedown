@@ -1,3 +1,12 @@
 [submodule "extensions/zed/grammars/markdown"]
 	path = extensions/zed/grammars/markdown
 	url = https://github.com/tree-sitter-grammars/tree-sitter-markdown.git
+[submodule "extensions/zed/grammars-src/typedown"]
+	path = extensions/zed/grammars-src/typedown
+	url = https://github.com/tree-sitter-grammars/tree-sitter-markdown.git
+[submodule "extensions/zed/grammars/typedown"]
+	path = extensions/zed/grammars/typedown
+	url = ./extensions/zed/grammars-src/typedown
+[submodule "extensions/zed/grammars/typedown_inline"]
+	path = extensions/zed/grammars/typedown_inline
+	url = ./extensions/zed/grammars-src/typedown

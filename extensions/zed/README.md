@@ -150,9 +150,38 @@ This task is assigned to [[user-alice-v1]].
 
 To modify this extension:
 
-1. Edit files in `extensions/zed/`
-2. Reload window: `Cmd+Shift+P` → "zed: reload extensions"
-3. Test changes
+1. **Build the Rust extension:**
+   ```bash
+   cd extensions/zed
+   cargo build --release
+   ```
+
+2. **Install as dev extension in Zed:**
+   - Open Zed
+   - `Cmd+Shift+P` → "zed: install dev extension"
+   - Select `extensions/zed` directory
+
+3. **Reload and test:**
+   - `Cmd+Shift+P` → "zed: reload extensions"
+   - Test changes
+
+### Project Structure
+
+```
+extensions/zed/
+├── Cargo.toml              # Rust package configuration
+├── src/
+│   └── lib.rs              # Extension code (LSP integration)
+├── extension.toml          # Extension manifest
+└── languages/
+    └── typedown/
+        ├── config.toml     # Language configuration
+        ├── highlights.scm  # Syntax highlighting queries
+        ├── brackets.scm    # Bracket matching
+        ├── indents.scm     # Indentation rules
+        ├── injections.scm  # Language injections
+        └── outline.scm     # Outline/structure view
+```
 
 ## License
 

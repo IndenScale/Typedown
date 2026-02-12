@@ -1,7 +1,26 @@
 id = "typedown"
 name = "Typedown"
-version = "0.1.0"
+version = "0.2.0"
 schema_version = 1
 authors = ["Typedown Team <hfu7565ytru@gmail.com>"]
-description = "Progressive Formalization for Markdown - Typedown language support"
+description = "Progressive Formalization for Markdown - Typedown language support with wiki links and model blocks"
 repository = "https://github.com/IndenScale/Typedown"
+
+# Languages
+languages = ["languages/typedown", "languages/typedown_inline"]
+
+# Grammars - 使用本地修改的 tree-sitter-markdown 支持 wiki link 等扩展
+[grammars.typedown]
+repository = "file:///Users/indenscale/Documents/Projects/Monoco/Typedown/extensions/zed/grammars-src/typedown"
+rev = "cdbce9b37a24507cf810ea1d60574b8dcfd7d3f8"
+path = "tree-sitter-markdown"
+
+[grammars.typedown_inline]
+repository = "file:///Users/indenscale/Documents/Projects/Monoco/Typedown/extensions/zed/grammars-src/typedown"
+rev = "cdbce9b37a24507cf810ea1d60574b8dcfd7d3f8"
+path = "tree-sitter-markdown-inline"
+
+# Language Server
+[language_servers.typedown-lsp]
+name = "Typedown LSP"
+languages = ["Typedown"]
