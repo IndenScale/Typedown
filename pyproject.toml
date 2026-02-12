@@ -77,4 +77,11 @@ norecursedirs = [
 filterwarnings = [
     "ignore::DeprecationWarning:pygls.*",
 ]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[dependency-groups]
+dev = [
+    "pytest-asyncio>=1.3.0",
+]
 
