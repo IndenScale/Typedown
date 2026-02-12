@@ -2,8 +2,8 @@
 id: FEAT-0010
 uid: fea71a
 type: feature
-status: open
-stage: doing
+status: closed
+stage: done
 title: 重构 Docs 概念策展结构
 created_at: '2026-02-12T12:51:50'
 updated_at: '2026-02-12T12:51:53'
@@ -18,7 +18,7 @@ tags:
 - refactoring
 files: []
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T12:51:50'
 ---
 
