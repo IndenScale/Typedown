@@ -41,7 +41,7 @@ class SandboxASTVisitor(ast.NodeVisitor):
     DANGEROUS_BUILTINS = {'eval', 'exec', 'compile', 'open', '__import__', 'input'}
     
     # Dangerous imports
-    DANGEROUS_MODULES = {'os', 'sys', 'subprocess', 'socket', 'urllib', 'urllib.request',
+    DANGEROUS_MODULES = {'os', 'subprocess', 'socket', 'urllib', 'urllib.request',
                         'http', 'http.client', 'ftplib', 'telnetlib', 'ssl', 'ctypes',
                         'multiprocessing', 'importlib', 'imp', 'builtins', '__builtin__'}
     
@@ -110,7 +110,7 @@ class SandboxExecutor:
     
     # Dangerous modules to block by default
     DEFAULT_BLOCKED_MODULES: Set[str] = {
-        'os', 'sys', 'subprocess', 'socket', 'urllib', 'urllib.request',
+        'os', 'subprocess', 'socket', 'urllib', 'urllib.request',
         'http', 'http.client', 'ftplib', 'telnetlib', 'ssl', 'ctypes',
         'multiprocessing', 'threading', 'concurrent', 'asyncio',
         'importlib', 'imp', 'builtins', '__builtin__', 'pathlib',

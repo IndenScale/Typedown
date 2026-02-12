@@ -90,8 +90,8 @@ class Linker:
         """Register Entity/Spec nodes into SymbolTable."""
         for path, doc in documents.items():
             # Unified Symbol Table population
-            # We add Entities and Specs. Models are executed, not just linked by ID (usually).
-            for collection in [doc.entities, doc.specs, doc.models]:
+            # We add Entities and Specs. Models are registered after execution in _execute_models.
+            for collection in [doc.entities, doc.specs]:  # Excluding doc.models
                 for node in collection:
                     if node.id:
                         try:
@@ -314,15 +314,15 @@ class Linker:
                                  if is_valid_type and val is not BaseModel and val is not Enum:
                                      if name not in self.model_registry:
                                          self.model_registry[name] = val
-                                     
-                                     # Also register in SymbolTable
-                                     wrapper = AttributeWrapper({
-                                         "id": name,
-                                         "value": val,
-                                         "type": "model",
-                                         "location": model.location
-                                     })
-                                     self.symbol_table.add(wrapper, doc.path)
+                                         
+                                         # Also register in SymbolTable
+                                         wrapper = AttributeWrapper({
+                                             "id": name,
+                                             "value": val,
+                                             "type": "model",
+                                             "location": model.location
+                                         })
+                                         self.symbol_table.add(wrapper, doc.path)
                         
                     except Exception as e:
                         self.diagnostics.add(linker_error(
@@ -346,6 +346,10 @@ class Linker:
                 self.model_registry[name] = val
             
             # 2. Register Everything as a Handle in the current scope
+            # Skip BaseModel and Enum to avoid duplicate registration
+            if is_valid_type and (val is BaseModel or val is Enum):
+                continue
+                
             # Use a wrapper instance with basic Node-like attributes
             wrapper = AttributeWrapper({
                 "id": name, 
@@ -353,4 +357,8 @@ class Linker:
                 "type": "variable",
                 "location": location
             })
-            self.symbol_table.add(wrapper, source_path)
+            try:
+                self.symbol_table.add(wrapper, source_path)
+            except ValueError:
+                # Ignore duplicate registration errors (e.g., from base_globals)
+                pass

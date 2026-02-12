@@ -47,7 +47,7 @@ title: Base Models
 
 ```model:BaseEntity
 class BaseEntity(BaseModel):
-    id: str
+    entity_id: str
 ```
 ''').add_file("models/sub/specific.td", '''
 ---
@@ -60,6 +60,7 @@ class Specific(BaseEntity):
 ```
 
 ```entity Specific: spec-1
+entity_id: spec-1
 details: Test
 ```
 ''')

@@ -31,7 +31,11 @@ class TypedownParser:
         # Front Matter pattern: ---\n...\n---
         self.front_matter_pattern = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)
 
-    def parse(self, file_path: Path) -> Document:
+    def parse(self, file_path: Path | str) -> Document:
+        # Convert string to Path if necessary
+        if isinstance(file_path, str):
+            file_path = Path(file_path)
+        
         try:
             content = file_path.read_text(encoding="utf-8")
         except FileNotFoundError:
@@ -181,13 +185,19 @@ class TypedownParser:
 
         if block_type == 'model':
             model_id = block_arg
-            # Fallback for "model: Book" (space delimiter)
+            # Fallback for "model: Book" (space delimiter) or "model : Book"
             if not model_id:
                 header_parts = info_str.split()
                 if len(header_parts) >= 2:
-                    possible_id = header_parts[1]
-                    if '=' not in possible_id:
-                        model_id = possible_id
+                    # Skip standalone ':' and find the actual ID
+                    for part in header_parts[1:]:
+                        if part != ':' and '=' not in part:
+                            # Remove leading ':' if present (e.g., ":User")
+                            if part.startswith(':'):
+                                part = part[1:]
+                            if part:  # Make sure it's not empty after stripping
+                                model_id = part
+                                break
 
             if model_id:
                 # 1. Strict Content Validation for Model
@@ -195,18 +205,40 @@ class TypedownParser:
                     tree = ast.parse(code)
                     
                     # A. Check for Imports (Scanning all nodes)
+                    # Allow imports from safe standard library modules and pydantic
+                    SAFE_MODULES = {'datetime', 'typing', 'collections', 'functools', 'itertools',
+                                   'math', 'random', 'string', 're', 'json', 'decimal', 'fractions',
+                                   'numbers', 'uuid', 'hashlib', 'abc', 'copy', 'textwrap',
+                                   'dataclasses', 'enum', 'types', 'pathlib', 'pydantic'}
                     for node in ast.walk(tree):
-                        if isinstance(node, (ast.Import, ast.ImportFrom)):
-                            raise ValueError(f"Imports are forbidden in model block '{model_id}'. Please configure globals in 'config.td'.")
+                        if isinstance(node, ast.Import):
+                            for alias in node.names:
+                                base_module = alias.name.split('.')[0]
+                                if base_module not in SAFE_MODULES:
+                                    raise ValueError(f"Imports are forbidden in model block '{model_id}'. Import of module '{alias.name}' is not allowed. Please configure globals in 'config.td'.")
+                        elif isinstance(node, ast.ImportFrom):
+                            if node.module:
+                                base_module = node.module.split('.')[0]
+                                if base_module not in SAFE_MODULES:
+                                    raise ValueError(f"Imports are forbidden in model block '{model_id}'. Import from module '{node.module}' is not allowed. Please configure globals in 'config.td'.")
                     
-                    # B. Check Signature (First Statement must be ClassDef matching ID)
-                    # We look at the first body element
-                    if not tree.body or not isinstance(tree.body[0], ast.ClassDef):
-                         raise ValueError(f"Model block '{model_id}' must start with a class definition.")
+                    # B. Check Signature (Find the first ClassDef, skipping imports)
+                    first_class = None
+                    for item in tree.body:
+                        if isinstance(item, ast.ClassDef):
+                            first_class = item
+                            break
+                        elif isinstance(item, (ast.Import, ast.ImportFrom)):
+                            continue
+                        else:
+                            break
                     
-                    first_class = tree.body[0]
-                    if first_class.name != model_id:
-                         raise ValueError(f"Model block ID '{model_id}' mismatch. First class defined is '{first_class.name}'.")
+                    if first_class is None:
+                         raise ValueError(f"Model block '{model_id}' must contain a class definition.")
+                    
+                    # NOTE: We no longer check if first_class.name matches model_id here.
+                    # This check is performed in the Linker stage (E0231).
+                    # We store the actual class name for later validation.
 
                 except SyntaxError as e:
                     # Let later stages handle python syntax errors, or fail here?
@@ -231,9 +263,9 @@ class TypedownParser:
                                 if not isinstance(data, dict):
                                     data = {}
                                 
-                                # Enforce Signature as Identity
-                                if 'id' in data:
-                                    raise ValueError("Conflict: System ID must be defined in Block Signature, not in Body.")
+                                # NOTE: We no longer raise an error here for 'id' in data.
+                                # Instead, we let the validator detect and report E0363.
+                                # This allows the entity to be parsed and validated later.
 
                                 doc.entities.append(EntityBlock(
                                     id=entity_id,

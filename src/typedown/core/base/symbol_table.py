@@ -61,7 +61,16 @@ class SymbolTable:
         if not hasattr(node, "id") or not node.id:
             return
 
-        # 2. Register in Global Index (L1/L2)
+        # 2. Check for duplicate ID in Global Index (L1/L2)
+        # Allow re-adding the same object (update), but reject different objects with same ID
+        if node.id in self._global_index:
+            existing = self._global_index[node.id]
+            if existing is not node:
+                raise ValueError(f"Duplicate ID '{node.id}' detected.")
+            # Same object, just return without re-adding
+            return
+
+        # 3. Register in Global Index (L1/L2)
         self._global_index[node.id] = node
         
         # 3. Register L3 (UUID) identifiers from AST

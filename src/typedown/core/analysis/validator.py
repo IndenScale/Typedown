@@ -369,32 +369,94 @@ class Validator:
             if not value: 
                 continue
 
-            self._check_field_annotation(field_name, field_info.annotation, value, entity, symbol_table)
+            # Check both annotation and metadata for ReferenceMeta
+            has_ref_meta = False
+            ref_meta = None
+            
+            # Check annotation
+            if get_origin(field_info.annotation) is Annotated:
+                args = get_args(field_info.annotation)
+                for meta in args[1:]:
+                    if isinstance(meta, ReferenceMeta):
+                        has_ref_meta = True
+                        ref_meta = meta
+                        break
+            
+            # Also check metadata (Pydantic v2 stores Annotated metadata here)
+            if not has_ref_meta and hasattr(field_info, 'metadata') and field_info.metadata:
+                for meta in field_info.metadata:
+                    if isinstance(meta, ReferenceMeta):
+                        has_ref_meta = True
+                        ref_meta = meta
+                        break
+            
+            # Handle List[Ref[T]] case
+            if not has_ref_meta:
+                origin = get_origin(field_info.annotation)
+                if origin is list or origin is List:
+                    args = get_args(field_info.annotation)
+                    if args:
+                        inner_type = args[0]
+                        if get_origin(inner_type) is Annotated:
+                            inner_args = get_args(inner_type)
+                            for meta in inner_args[1:]:
+                                if isinstance(meta, ReferenceMeta):
+                                    has_ref_meta = True
+                                    ref_meta = meta
+                                    break
+            
+            if has_ref_meta and ref_meta:
+                # Handle both single value and list of values
+                if isinstance(value, list):
+                    for item in value:
+                        self._check_ref_type(field_name, ref_meta, item, entity, symbol_table)
+                else:
+                    self._check_ref_type(field_name, ref_meta, value, entity, symbol_table)
 
+    def _check_ref_type(self, field_name: str, meta: ReferenceMeta, value: Any, entity: EntityBlock, symbol_table: SymbolTable):
+        """Check if a reference value matches the expected type."""
+        target_entity = None
+        if isinstance(value, str):
+            target_entity = symbol_table.get(value)
+        elif isinstance(value, EntityBlock):
+            # Value has already been resolved to an EntityBlock
+            target_entity = value
+        
+        if target_entity and hasattr(target_entity, 'class_name'):
+            # Check if class_name matches any of the allowed target types (polymorphic support)
+            if not meta.matches(target_entity.class_name):
+                self.diagnostics.add(validator_error(
+                    ErrorCode.E0362,
+                    field=field_name,
+                    expected=meta.target_type if len(meta.target_types) == 1 else str(meta.target_types),
+                    value=value.id if isinstance(value, EntityBlock) else value,
+                    actual=target_entity.class_name,
+                    location=entity.location
+                ))
+    
     def _check_field_annotation(self, field_name: str, annotation: Any, value: Any, entity: EntityBlock, symbol_table: SymbolTable):
         # Ref[T] or Ref[T1, T2, ...] is Annotated[str, ReferenceMeta(T)]
         if get_origin(annotation) is Annotated:
             args = get_args(annotation)
             for meta in args[1:]:
                 if isinstance(meta, ReferenceMeta):
-                    if isinstance(value, str):
-                        target_entity = symbol_table.get(value)
-                        if target_entity and hasattr(target_entity, 'class_name'):
-                            # Check if class_name matches any of the allowed target types (polymorphic support)
-                            if not meta.matches(target_entity.class_name):
-                                self.diagnostics.add(validator_error(
-                                    ErrorCode.E0362,
-                                    field=field_name,
-                                    expected=meta.target_type if len(meta.target_types) == 1 else str(meta.target_types),
-                                    value=value,
-                                    actual=target_entity.class_name,
-                                    location=entity.location
-                                ))
+                    self._check_ref_type(field_name, meta, value, entity, symbol_table)
         
-        # Recursion for Lists
+        # Recursion for Lists - handle List[Ref[T]]
         origin = get_origin(annotation)
         if origin is list or origin is List:
-            arg = get_args(annotation)[0]
-            if isinstance(value, list):
-                for item in value:
-                    self._check_field_annotation(field_name, arg, item, entity, symbol_table)
+            args = get_args(annotation)
+            if args:
+                inner_type = args[0]
+                # Check if inner type contains ReferenceMeta (e.g., List[Ref[T]])
+                if get_origin(inner_type) is Annotated:
+                    inner_args = get_args(inner_type)
+                    for meta in inner_args[1:]:
+                        if isinstance(meta, ReferenceMeta) and isinstance(value, list):
+                            for item in value:
+                                self._check_ref_type(field_name, meta, item, entity, symbol_table)
+                            return
+                # Fall back to recursive check
+                if isinstance(value, list):
+                    for item in value:
+                        self._check_field_annotation(field_name, inner_type, item, entity, symbol_table)

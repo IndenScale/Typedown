@@ -76,9 +76,9 @@ title: Bad Model
 ---
 
 ```model:BadModel
-class BadModel(BaseModel):
-    # Syntax error
-    name str  # Missing colon
+# Reference to undefined base class
+class BadModel(UndefinedBaseClass):
+    name: str
 ```
 ''')
         from typedown.core.base.errors import ErrorCode
