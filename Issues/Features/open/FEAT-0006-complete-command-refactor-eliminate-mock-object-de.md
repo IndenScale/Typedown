@@ -16,7 +16,12 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0004'
 - '#FEAT-0006'
-files: []
+files:
+- src/typedown/server/services/__init__.py
+- src/typedown/server/services/completion_service.py
+- src/typedown/server/features/completion.py
+- src/typedown/commands/complete.py
+- tests/server/features/test_completion.py
 criticality: low
 solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-11T21:54:45'
