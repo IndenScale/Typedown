@@ -6,7 +6,7 @@ status: open
 stage: doing
 title: 构建 Extension 与 Python Core 集成测试框架
 created_at: '2026-02-12T14:28:24'
-updated_at: '2026-02-12T14:28:27'
+updated_at: '2026-02-12T14:43:35'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -14,7 +14,18 @@ domains: []
 tags:
 - '#EPIC-0000'
 - '#FEAT-0012'
-files: []
+files:
+- pyproject.toml
+- scripts/run-integration-tests.sh
+- tests/integration/FRAMEWORK_SUMMARY.md
+- tests/integration/README.md
+- tests/integration/__init__.py
+- tests/integration/conftest.py
+- tests/integration/test_compiler_lsp.py
+- tests/integration/test_e2e_scenarios.py
+- tests/integration/test_lsp_server.py
+- tests/integration/test_vscode_extension.py
+- uv.lock
 criticality: medium
 solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T14:28:24'
