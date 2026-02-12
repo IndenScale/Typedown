@@ -54,4 +54,8 @@ opened_at: '2026-02-12T14:28:24'
 - [ ] Task 1
 
 ## Review Comments
-<!-- Required for Review/Done stage. Record review feedback here. -->
+
+集成测试框架已成功构建：
+- 68 个测试通过
+- 9 个测试跳过（待实现完整 LSP 协议栈支持）
+- 测试覆盖 LSP 协议、Compiler 集成、端到端场景
