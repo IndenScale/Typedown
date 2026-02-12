@@ -146,6 +146,13 @@ typedown check --target User
 - [**Concepts**](https://typedown.io/docs/concepts/) - Model, Entity, Reference, Spec
 - [**Guides**](https://typedown.io/docs/guides/) - Best practices and advanced topics
 
+## Cookbook
+
+查看 [`cookbook/`](./cookbook/) 目录获取学习资源：
+
+- **`cookbook/01_getting_started/`** - 渐进式入门教程（中英文）
+- **`cookbook/02_use_cases/`** - 完整实战用例（评标系统、PMO SaaS、ERP 等）
+
 ## License
 
 MIT © [IndenScale](https://github.com/IndenScale)

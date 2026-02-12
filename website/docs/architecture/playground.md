@@ -105,7 +105,7 @@ Typedown 的设计假设是基于文件系统的。为了在浏览器中复用�
 
 Pyodide 启动后，根目录 `/` 即为虚拟文件系统的根。
 
-- `config.td`: 位于项目根目录，通常被映射到 `/config.td` 或 `/examples/config.td`。
+- `config.td`: 位于项目根目录，通常被映射到 `/config.td` 或 `/cookbook/01_getting_started/en/config.td`。
 - `user-files`: 用户的 `.td` 文件被写入相应的虚拟路径。
 
 ### 重置机制

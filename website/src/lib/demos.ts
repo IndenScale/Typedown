@@ -16,7 +16,7 @@ export type Demo = {
 
 export const getDemos = (lang: string = "en"): Demo[] => {
   const isZh = lang === "zh";
-  const ex = isZh ? "/examples/zh" : "/examples/en";
+  const ex = isZh ? "/cookbook/01_getting_started/zh" : "/cookbook/01_getting_started/en";
 
   return [
     {

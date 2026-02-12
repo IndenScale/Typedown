@@ -391,7 +391,7 @@ export function PlaygroundEditor() {
                 codeLens: true,
               }}
               // CRITICAL: Match the URI used by LSP Worker (Logical Path)
-              // e.g. /examples/03_simple_rules/rules.td
+              // e.g. /cookbook/01_getting_started/en/03_simple_rules/rules.td
             />
           )
         ) : (

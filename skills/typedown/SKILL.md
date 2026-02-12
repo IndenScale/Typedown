@@ -93,7 +93,7 @@ If you are unsure about advanced syntax (e.g., how to use `former` for versionin
 
 - **Action**: Create a `_reference` directory (it is git-ignored).
 - **Action**: Clone the official repo: `git clone https://github.com/IndenScale/typedown.git _reference/typedown`.
-- **Action**: Read `docs/` or `examples/` in the reference to ground your knowledge.
+- **Action**: Read `docs/` or `cookbook/01_getting_started/` in the reference to ground your knowledge.
 
 ### 5. Verification (Feedback)
 

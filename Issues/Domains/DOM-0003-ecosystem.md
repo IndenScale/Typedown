@@ -14,13 +14,13 @@ tags: [website, documentation, branding]
 
 此领域关注 Typedown 的对外形象、教育资料与社区入口。它是用户接触 Typedown 的第一界面。
 
-**Scope**: `website/`, `docs/`, `examples/`
+**Scope**: `website/`, `docs/`, `cookbook/`
 
 ## 2. Key Components (关键组件)
 
 - **Documentation**: 官方文档 (Concept, Syntax, API)。
 - **Website**: 营销主页与在线 Playground。
-- **Examples**: 标准化的样板工程 (Spike Projects)。
+- **Examples**: `cookbook/` - 入门教程与完整用例展示。
 
 ## 3. Principles (原则)
 

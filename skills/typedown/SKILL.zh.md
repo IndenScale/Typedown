@@ -93,7 +93,7 @@ Typedown 不仅仅是一种语法，它是一套将松散的自然语言转化�
 
 - **动作**：创建一个 `_reference` 目录（该目录已被 git-ignored）。
 - **动作**：克隆官方仓库：`git clone https://github.com/IndenScale/typedown.git _reference/typedown`。
-- **动作**：阅读参考仓库中的 `docs/` 或 `examples/` 以巩固知识。
+- **动作**：阅读参考仓库中的 `docs/` 或 `cookbook/01_getting_started/` 以巩固知识。
 
 ### 5. 持续验证 (Feedback)
 

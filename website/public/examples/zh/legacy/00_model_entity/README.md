@@ -16,10 +16,10 @@ Parse the file and inspect the structured data:
 
 ```bash
 # Using installed td
-td inspect examples/00_hello_world/00_intro.td
+td inspect cookbook/01_getting_started/en/00_hello_world/00_intro.td
 
 # Or using uvx (no installation required)
-uvx td inspect examples/00_hello_world/00_intro.td
+uvx td inspect cookbook/01_getting_started/en/00_hello_world/00_intro.td
 ```
 
 ### 2. Validate
@@ -27,5 +27,5 @@ uvx td inspect examples/00_hello_world/00_intro.td
 Check if the entity matches the model definition:
 
 ```bash
-td check examples/00_hello_world/00_intro.td
+td check cookbook/01_getting_started/en/00_hello_world/00_intro.td
 ```
