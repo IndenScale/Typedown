@@ -109,3 +109,29 @@ def complete(...):
 
 ## Review Comments
 
+### Code Review Summary
+
+**CompletionService 设计**:
+- 成功将补全逻辑从 LSP 协议中解耦
+- 使用 `CompletionContext` 作为独立的输入 DTO
+- 返回标准的 LSP `CompletionItem` 类型（保持与客户端兼容）
+
+**文件变更**:
+- 新增 `src/typedown/server/services/` 目录
+- 新增 `completion_service.py` 包含核心逻辑
+- 重构 `completion.py` 使用 Service 层
+- 重构 `complete.py` 删除 Mock 对象
+- 更新测试为纯 Service 测试
+
+**测试覆盖**:
+- 7 个 completion 测试全部通过
+- 覆盖所有补全场景：snippets、entities、headers、files
+- 命令集成测试 51 个通过
+- 服务器功能测试 21 个通过
+
+**架构改进**:
+- LSP 和 CLI 现在共享同一套补全逻辑
+- 新增补全功能自动对两者生效
+- 消除了测试用的 Mock 对象 hack
+- 为其他 LSP 特性的 Service 化提供了范例
+
