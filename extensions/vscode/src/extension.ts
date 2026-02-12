@@ -219,7 +219,7 @@ async function startServer(context: vscode.ExtensionContext) {
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
     initializationOptions: {
-      logLevel: 'debug',
+      mode: 'disk',  // 'disk' for standard LSP, 'memory' for Web/WASM environments
     },
   }
 
