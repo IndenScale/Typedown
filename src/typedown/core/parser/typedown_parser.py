@@ -23,7 +23,10 @@ class TypedownParser:
         # Strict Reference Pattern (L0 Hash | L1 System ID)
         # L0: sha256:...
         # L1: Alphanumeric, dots, dashes, underscores (no spaces)
-        self.strict_ref_pattern = re.compile(r'^(?:sha256:[a-fA-F0-9]+|[a-zA-Z0-9_\.-]+)$')
+        # Strict ID pattern: letters, digits, underscores, hyphens, and dots
+        # Note: Documentation has inconsistency - references.md allows dots, model-and-entity.md doesn't
+        # Following the references.md specification which is more permissive
+        self.strict_ref_pattern = re.compile(r'^(?:sha256:[a-fA-F0-9]+|[a-zA-Z0-9_.-]+)$')
         
         # Front Matter pattern: ---\n...\n---
         self.front_matter_pattern = re.compile(r'^---\s*\n(.*?)\n---\s*\n', re.DOTALL)

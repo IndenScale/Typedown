@@ -372,23 +372,24 @@ class Validator:
             self._check_field_annotation(field_name, field_info.annotation, value, entity, symbol_table)
 
     def _check_field_annotation(self, field_name: str, annotation: Any, value: Any, entity: EntityBlock, symbol_table: SymbolTable):
-        # Ref[T] is Annotated[str, ReferenceMeta(T)]
+        # Ref[T] or Ref[T1, T2, ...] is Annotated[str, ReferenceMeta(T)]
         if get_origin(annotation) is Annotated:
             args = get_args(annotation)
             for meta in args[1:]:
                 if isinstance(meta, ReferenceMeta):
-                    target_type = meta.target_type
                     if isinstance(value, str):
                         target_entity = symbol_table.get(value)
-                        if target_entity and hasattr(target_entity, 'class_name') and target_entity.class_name != target_type:
-                            self.diagnostics.add(validator_error(
-                                ErrorCode.E0362,
-                                field=field_name,
-                                expected=target_type,
-                                value=value,
-                                actual=target_entity.class_name,
-                                location=entity.location
-                            ))
+                        if target_entity and hasattr(target_entity, 'class_name'):
+                            # Check if class_name matches any of the allowed target types (polymorphic support)
+                            if not meta.matches(target_entity.class_name):
+                                self.diagnostics.add(validator_error(
+                                    ErrorCode.E0362,
+                                    field=field_name,
+                                    expected=meta.target_type if len(meta.target_types) == 1 else str(meta.target_types),
+                                    value=value,
+                                    actual=target_entity.class_name,
+                                    location=entity.location
+                                ))
         
         # Recursion for Lists
         origin = get_origin(annotation)

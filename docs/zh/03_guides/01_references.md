@@ -45,7 +45,7 @@ base_config: [[sha256:a1b2c3d4...]]
 ### 单值引用
 
 ```yaml
-# 编译器将 [[user-alice-v1]] 转换为 Reference 对象
+# 编译器将 [[user-alice-v1]] 转换为 Ref 对象
 manager: [[user-alice-v1]]
 ```
 
@@ -63,25 +63,25 @@ reviewers: [[[user-emperor-v1]], [[user-thrawn-v1]]]
 
 **底层处理**：
 1. YAML 解析为 `[['user-vader-v1'], ['user-tarkin-v1']]`
-2. 发现字段类型为 `List[Reference[T]]`
+2. 发现字段类型为 `List[Ref[T]]`
 3. 自动扁平化为 `[Ref('user-vader-v1'), Ref('user-tarkin-v1')]`
 
 ## 类型安全
 
-使用 `Reference` 泛型强制类型约束：
+使用 `Ref` 泛型强制类型约束：
 
 ```python
-from typedown.types import Reference
+from typedown.types import Ref
 
 class Task(BaseModel):
     # 必须引用 User 类型
-    assignee: Reference["User"]
+    assignee: Ref["User"]
     
     # 允许多种类型
-    subscribers: List[Reference["User", "Team"]]
+    subscribers: List[Ref["User", "Team"]]
     
     # 自引用
-    parent: Optional[Reference["Task"]] = None
+    parent: Optional[Ref["Task"]] = None
 ```
 
 ### 编译时检查
