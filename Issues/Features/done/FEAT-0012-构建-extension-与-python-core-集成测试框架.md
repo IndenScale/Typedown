@@ -2,11 +2,12 @@
 id: FEAT-0012
 uid: e7e2bd
 type: feature
-status: open
-stage: doing
+status: done
+stage: done
 title: 构建 Extension 与 Python Core 集成测试框架
 created_at: '2026-02-12T14:28:24'
-updated_at: '2026-02-12T14:43:35'
+updated_at: '2026-02-12T21:05:00'
+closed_at: '2026-02-12T21:05:00'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -27,7 +28,7 @@ files:
 - tests/integration/test_vscode_extension.py
 - uv.lock
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T14:28:24'
 ---
 

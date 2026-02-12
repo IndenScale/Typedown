@@ -1,11 +1,12 @@
 ---
 id: FEAT-0014
 type: feature
-status: open
-stage: doing
+status: done
+stage: done
 title: 支持项目边界隔离（.tdproject 标记文件）
 created_at: '2026-02-12T20:41:14'
-updated_at: '2026-02-12T20:41:57'
+updated_at: '2026-02-12T21:05:00'
+closed_at: '2026-02-12T21:05:00'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -35,7 +36,7 @@ files:
 - cookbook/02_use_cases/compliance_audit/.tdproject
 - cookbook/02_use_cases/pmo_saas/.tdproject
 criticality: medium
-solution: null
+solution: implemented
 opened_at: '2026-02-12T20:41:14'
 ---
 

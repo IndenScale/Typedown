@@ -19,6 +19,7 @@ from lsprotocol.types import (
 from rich.console import Console
 
 from typedown.core.compiler import Compiler
+from typedown.core.base.utils import find_project_root
 from typedown.server.managers.diagnostics import publish_diagnostics, uri_to_path
 
 # ======================================================================================
@@ -35,6 +36,11 @@ class TypedownLanguageServer(LanguageServer):
         
         # Diagnostics Debounce Task
         self.diagnostics_task: Optional[asyncio.Task] = None
+        
+        # Project root tracking for per-file project boundary detection
+        self.project_root: Optional[Path] = None
+        self.memory_only: bool = False
+        self.quiet_console: Optional[Console] = None
 
     def show_message_log(self, message: str, message_type: MessageType = MessageType.Log):
         """Wrapper to safely show messages to the client log using the built-in window_log_message."""
@@ -80,12 +86,14 @@ def initialize(ls: TypedownLanguageServer, params: InitializeParams):
             elif hasattr(init_opts, "mode"):
                  mode = getattr(init_opts, "mode")
         
-        memory_only = (mode == "memory")
+        ls.memory_only = (mode == "memory")
+        ls.quiet_console = quiet_console
         
-        # Initialize Compiler
-        ls.compiler = Compiler(target=root_path, console=quiet_console, memory_only=memory_only)
+        # Initialize Compiler (will be re-initialized per-file based on .tdproject boundaries)
+        ls.compiler = Compiler(target=root_path, console=quiet_console, memory_only=ls.memory_only)
+        ls.project_root = ls.compiler.project_root
         
-        if memory_only:
+        if ls.memory_only:
             # Memory Mode: Wait for loadProject
             ls.is_ready = False
             logging.info(f"Typedown Engine Initialized (Memory Only). Waiting for loadProject at {root_path}")
@@ -121,6 +129,9 @@ def did_open(ls: TypedownLanguageServer, params: DidOpenTextDocumentParams):
         content = params.text_document.text
         
         with ls.lock:
+            # Check if we need to switch project context based on .tdproject boundary
+            _ensure_correct_project_context(ls, path)
+            
             # IMPORTANT: For memory-only files (Playground), we must manually feed 
             # the content to the compiler as it won't be found during disk scan.
             ls.compiler.update_document(path, content)
@@ -161,12 +172,47 @@ def custom_update_file(ls: TypedownLanguageServer, params: Any):
 
 def _update_and_trigger(ls, path, content):
     with ls.lock:
+        # Check if we need to switch project context based on .tdproject boundary
+        _ensure_correct_project_context(ls, path)
+        
         # 1. IMMEDIATE: Update Memory Overlay & Parse (Fast)
         # We don't care if parse fails here, as long as content is in overlay for next completions
         ls.compiler.update_source(path, content)
         
     # 2. DEBOUNCED: Schedule Validation
     asyncio.create_task(trigger_diagnostics(ls))
+
+
+def _ensure_correct_project_context(ls: TypedownLanguageServer, path: Path):
+    """
+    Ensure the compiler is using the correct project root for the given file.
+    Re-initializes the compiler if the file belongs to a different .tdproject boundary.
+    """
+    if not path or ls.memory_only:
+        # Memory-only mode doesn't use file-based project boundaries
+        return
+    
+    # Calculate project root for this specific file
+    try:
+        file_project_root = find_project_root(path)
+    except Exception:
+        # If we can't determine project root, keep current context
+        return
+    
+    # If project root changed, re-initialize compiler with new context
+    if file_project_root != ls.project_root:
+        logging.info(f"Switching project context: {ls.project_root} -> {file_project_root} for {path}")
+        ls.project_root = file_project_root
+        ls.compiler = Compiler(
+            target=file_project_root,
+            console=ls.quiet_console,
+            memory_only=ls.memory_only
+        )
+        # Compile the new project context immediately
+        try:
+            ls.compiler.compile()
+        except Exception as e:
+            logging.error(f"Failed to compile new project context: {e}")
 
 async def trigger_diagnostics(ls: TypedownLanguageServer):
     """Debounced diagnostics trigger to prevent WASM starvation."""

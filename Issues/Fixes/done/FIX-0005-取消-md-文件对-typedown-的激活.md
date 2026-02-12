@@ -2,11 +2,12 @@
 id: FIX-0005
 uid: 72abab
 type: fix
-status: open
-stage: doing
+status: done
+stage: done
 title: 取消 md 文件对 typedown 的激活
 created_at: '2026-02-12T20:41:14'
-updated_at: '2026-02-12T20:41:20'
+updated_at: '2026-02-12T21:05:00'
+closed_at: '2026-02-12T21:05:00'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -16,7 +17,7 @@ tags:
 - '#FIX-0005'
 files: []
 criticality: high
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T20:41:14'
 ---
 

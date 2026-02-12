@@ -2,11 +2,12 @@
 id: FIX-0006
 uid: 405b6f
 type: fix
-status: open
-stage: doing
+status: done
+stage: done
 title: DiskProvider 未在 .tdproject 边界处停止递归扫描
 created_at: '2026-02-12T20:54:00'
-updated_at: '2026-02-12T20:54:02'
+updated_at: '2026-02-12T21:05:00'
+closed_at: '2026-02-12T21:05:00'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -16,7 +17,7 @@ tags:
 - '#FIX-0006'
 files: []
 criticality: high
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T20:54:00'
 ---
 
