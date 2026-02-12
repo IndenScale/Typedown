@@ -217,9 +217,7 @@ def did_save(ls: TypedownLanguageServer, params: DidSaveTextDocumentParams):
 import typedown.server.features.completion
 import typedown.server.features.hover
 import typedown.server.features.navigation
-import typedown.server.features.rename
 import typedown.server.features.semantic_tokens
-import typedown.server.features.code_lens
 import typedown.server.features.lifecycle
 
 # ======================================================================================
