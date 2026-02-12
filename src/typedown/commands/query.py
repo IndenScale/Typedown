@@ -17,6 +17,47 @@ def query(
     """
     Execute a query against the Typedown project.
     Supports Logical IDs, Property Access, and Asset Paths.
+    
+    Query Patterns:
+        User.alice              # Fetch entity by ID
+        User.*                  # Wildcard: all User entities
+        User.alice.name         # Property access
+        ./assets/logo.png       # Asset path lookup
+    
+    [Best Practices]
+    
+    1. Query vs Spec:
+    
+       Use query command for: ad-hoc inspection, debugging, reporting
+         - Finding specific entities during development
+         - Generating reports or summaries
+         - Exploring the data model
+    
+       Use spec block for: validation rules that should always pass
+         - Business invariants checked in CI/CD
+         - Constraints that produce diagnostics on failure
+    
+    2. SQL Mode Guidelines:
+    
+       Use --sql when you need:
+         - Aggregations: COUNT, SUM, AVG across entities
+         - Complex filtering with multiple conditions
+         - Join-like operations across model types
+         - Ordering and pagination
+    
+       Use standard query when you need:
+         - Simple ID or wildcard lookup
+         - Property navigation (User.alice.orders)
+         - Exact path-based resource lookup
+    
+    3. Reference Traversal:
+    
+       Entities with [[ref]] fields can be queried by reference value:
+         # Find all orders for a specific customer
+         Order.*  -- then filter by customer == [[customer-alice]]
+    
+       Note: References are resolved at global validation stage.
+       Query operates on compiled symbol table (post-resolution).
     """
     with cli_session(path, as_json=as_json, require_project=True) as ctx:
         # We need to compile first to populate symbol table and resources

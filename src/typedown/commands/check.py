@@ -34,6 +34,57 @@ def check(
         typedown check --fast       # syntax + structure (shortcut)
         typedown check --full       # All stages (pre-commit)
         typedown check global       # Full validation with specs
+    
+    [Best Practices]
+    
+    1. Validation Logic Placement:
+    
+       Use @field_validator for: single field format/transform
+         - Email format, date parsing, string normalization
+         - Example: ensure email is lowercase
+    
+       Use @model_validator for: cross-field consistency within one entity
+         - Start date < End date, total = sum(items)
+         - Example: validate status transition rules
+    
+       Use spec block for: cross-entity business rules and aggregations
+         - "All admins must have MFA enabled" (queries all User entities)
+         - "Total orders per customer cannot exceed 100" (aggregation)
+         - Example: statistical constraints, global invariants
+    
+    2. Reference Patterns:
+    
+       In Markdown text: Use wiki link syntax [[target]] for inline references.
+       
+       In Entity block: Use [[entity-id]] syntax for typed references:
+         ```entity Order: order-001
+         customer: [[customer-alice]]     # Reference single entity
+         items:
+           - [[product-laptop]]           # Reference in lists
+           - [[product-mouse]]
+         ```
+    
+       DON'T: Manually define id fields as foreign keys
+         ```entity Order: order-001
+         customer_id: "customer-alice"  # Avoid this pattern
+         ```
+    
+       The [[...]] syntax in entities is type-checked and validated during the
+       global stage. References must point to existing entities with valid
+       L1 IDs (alphanumeric, dots, dashes, underscores).
+    
+    3. Statistical Constraints:
+    
+       DON'T create virtual aggregate classes for counts/sums.
+       Instead, write a spec that collects entities and reports diagnostics:
+    
+       ```spec:check_customer_order_limit
+       @target(type="Customer", scope="global")
+       def check_order_limit(customer: Customer, ctx: Context):
+           orders = ctx.find_all("Order", lambda o: o.customer == customer.id)
+           if len(orders) > 100:
+               ctx.report(f"Customer {customer.name} has {len(orders)} orders (limit: 100)")
+       ```
     """
     # Determine target stage
     target_stage: Stage = "local"  # default
