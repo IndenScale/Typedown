@@ -231,7 +231,8 @@ class Validator:
 
         try:
             # In-place reference resolution
-            resolved = QueryEngine.evaluate_data(current_data, symbol_table, context_path=context_path)
+            engine = QueryEngine(symbol_table)
+            resolved = engine.evaluate_data(current_data, context_path=context_path)
             entity.resolved_data = resolved
             
             # 4. Semantic Type Check (Ref[T])

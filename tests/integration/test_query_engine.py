@@ -71,11 +71,12 @@ profile:
 
         
         # Query: "alice.profile.email"
-        email = QueryEngine.resolve_query("alice.profile.email", symbol_table, context_path=self.users_file)
+        engine = QueryEngine(symbol_table)
+        email = engine.resolve_query("alice.profile.email", context_path=self.users_file)
         self.assertEqual(email[0], "alice@example.com")
         
         # Query: "alice.profile.age"
-        age = QueryEngine.resolve_query("alice.profile.age", symbol_table, context_path=self.users_file)
+        age = engine.resolve_query("alice.profile.age", context_path=self.users_file)
         self.assertEqual(age[0], 30)
 
     def test_hash_addressing(self):
@@ -103,13 +104,14 @@ profile:
         
         # So we query "sha256:{hash}"
         q = f"sha256:{computed_hash}"
-        results = QueryEngine.resolve_query(q, symbol_table)
+        engine = QueryEngine(symbol_table)
+        results = engine.resolve_query(q)
         
         self.assertTrue(len(results) > 0, "Should resolve by hash")
         self.assertEqual(results[0], alice_node)
         
         # Also test property access on hash: [[sha256:...]].name
         q_prop = f"sha256:{computed_hash}.name"
-        results_prop = QueryEngine.resolve_query(q_prop, symbol_table)
+        results_prop = engine.resolve_query(q_prop)
         self.assertEqual(results_prop[0], "Alice")
 

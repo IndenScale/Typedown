@@ -17,18 +17,62 @@ from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
 console = Console()
 REF_PATTERN = re.compile(r'\[\[(.*?)\]\]')
 
-class QueryError(Exception):
-    pass
 
 class QueryEngine:
-    @staticmethod
-    def execute_sql(query: str, symbol_table: Any, parameters: Dict[str, Any] = {}) -> List[Any]:
+    """
+    QueryEngine with instance-based design.
+    
+    Provides query execution against symbol tables with support for:
+    - SQL execution (via DuckDB/SQLite)
+    - Data evaluation with reference resolution
+    - String interpolation with [[reference]] syntax
+    - Symbol path resolution with property access
+    
+    Usage:
+        engine = QueryEngine(symbol_table, root_dir)
+        result = engine.resolve_query("User.alice")
+        data = engine.evaluate_data(raw_data)
+    """
+    
+    def __init__(
+        self,
+        symbol_table: Any,
+        root_dir: Optional[Path] = None,
+        resources: Optional[Dict[str, Any]] = None
+    ):
+        """
+        Initialize QueryEngine with dependencies.
+        
+        Args:
+            symbol_table: The SymbolTable or dict for lookups
+            root_dir: Project root directory for asset resolution
+            resources: Resource map for asset lookups
+        """
+        self.symbol_table = symbol_table
+        self.root_dir = root_dir
+        self.resources = resources or {}
+        self._cache: Dict[str, Any] = {}
+    
+    def execute_sql(self, query: str, parameters: Dict[str, Any] = {}) -> List[Any]:
+        """
+        Execute SQL query against the symbol table's database connection.
+        
+        Args:
+            query: SQL query string
+            parameters: Query parameters for binding
+            
+        Returns:
+            List of result rows as dictionaries
+            
+        Raises:
+            QueryError: If execution fails or no connection available
+        """
         # We assume symbol_table has get_duckdb_connection
-        if not hasattr(symbol_table, "get_duckdb_connection"):
+        if not hasattr(self.symbol_table, "get_duckdb_connection"):
              raise QueryError("SymbolTable does not support SQL execution.")
         
         try:
-            con = symbol_table.get_duckdb_connection()
+            con = self.symbol_table.get_duckdb_connection()
             
             # Check if it's DuckDB or SQLite
             is_sqlite = False
@@ -83,28 +127,50 @@ class QueryEngine:
         except Exception as e:
             raise QueryError(f"SQL Execution failed: {e}")
 
-    @staticmethod
-    def evaluate_data(data: Any, symbol_table: Any, context_path: Optional[Path] = None) -> Any:
+    def evaluate_data(self, data: Any, context_path: Optional[Path] = None) -> Any:
         """
         Recursively traverse `data` and replace string references [[query]] 
         with their resolved values from the symbol table.
+        
+        Args:
+            data: Data structure to evaluate (dict, list, str, or primitive)
+            context_path: File path where the data originates (for context resolution)
+            
+        Returns:
+            Evaluated data with references resolved
         """
         if isinstance(data, dict):
-            return {k: QueryEngine.evaluate_data(v, symbol_table, context_path=context_path) for k, v in data.items()}
+            return {k: self.evaluate_data(v, context_path=context_path) for k, v in data.items()}
         elif isinstance(data, list):
-            return [QueryEngine.evaluate_data(v, symbol_table, context_path=context_path) for v in data]
+            return [self.evaluate_data(v, context_path=context_path) for v in data]
         elif isinstance(data, str):
-            return QueryEngine.resolve_string(data, symbol_table, context_path=context_path)
+            return self.resolve_string(data, context_path=context_path)
         else:
             return data
 
-    @staticmethod
-    def resolve_string(text: str, symbol_table: Any, context_path: Optional[Path] = None) -> Any:
+    def resolve_string(self, text: str, context_path: Optional[Path] = None) -> Any:
+        """
+        Resolve references within a string.
+        
+        Supports:
+        - Exact reference: "[[query]]" -> resolved value
+        - Interpolation: "Hello [[name]]!" -> "Hello Alice!"
+        
+        Args:
+            text: String potentially containing references
+            context_path: Context path for resolution
+            
+        Returns:
+            Resolved value (or original string if no references)
+            
+        Raises:
+            ReferenceError: If exact reference not found
+        """
         # Check if the whole string is a reference
         match = REF_PATTERN.fullmatch(text)
         if match:
             query = match.group(1)
-            results = QueryEngine.resolve_query(query, symbol_table, context_path=context_path)
+            results = self.resolve_query(query, context_path=context_path)
             if not results:
                  raise ReferenceError(f"Reference not found: '{query}'")
             return results[0]
@@ -113,7 +179,7 @@ class QueryEngine:
         if REF_PATTERN.search(text):
             def replacer(m):
                 try:
-                    results = QueryEngine.resolve_query(m.group(1), symbol_table, context_path=context_path)
+                    results = self.resolve_query(m.group(1), context_path=context_path)
                     val = results[0] if results else None
                     return str(val) if val is not None else m.group(0)
                 except (QueryError, ReferenceError):
@@ -123,16 +189,17 @@ class QueryEngine:
             
         return text
 
-    @staticmethod
-    def resolve_query(query: str, symbol_table: Any, resources: Dict[str, Any] = {}, root_dir: Optional[Path] = None, scope: Optional[Path] = None, context_path: Optional[Path] = None) -> List[Any]:
+    def resolve_query(
+        self, 
+        query: str, 
+        scope: Optional[Path] = None,
+        context_path: Optional[Path] = None
+    ) -> List[Any]:
         """
         Executes a query against the symbol table and resources.
         
         Args:
             query: The query string (e.g., "User.alice", "assets/image.png", "sha256:...").
-            symbol_table: The SymbolTable object or dictionary.
-            resources: The global resources map (id -> Resource).
-            root_dir: The project root directory (needed for asset resolution).
             scope: Optional directory limit for resolution.
             context_path: The file path where the query originates (for Triple Resolution).
 
@@ -143,12 +210,12 @@ class QueryEngine:
 
         # 1. Try Standard Symbol Resolution (Exact Match ID or Property Access)
         try:
-            val = QueryEngine._resolve_symbol_path(query, symbol_table, context_path=context_path)
+            val = self._resolve_symbol_path(query, context_path=context_path)
             if val is not None:
                 # Check Scope
                 # Assuming val is an EntityBlock or similar Node with location
                 if scope and hasattr(val, 'location') and val.location:
-                   if QueryEngine._is_in_scope(val.location.file_path, scope):
+                   if self._is_in_scope(val.location.file_path, scope):
                        results.append(val)
                 else:
                     # If it's a scalar (no location) or no scope provided, include it
@@ -162,21 +229,21 @@ class QueryEngine:
         target_path_str = query.replace("\\", "/")
         
         # Check explicit resources (pre-loaded)
-        if target_path_str in resources:
-            res = resources[target_path_str]
+        if target_path_str in self.resources:
+            res = self.resources[target_path_str]
              # Check Scope
             if scope:
                  # Resource ID is relative path, so check if it starts with scope relative to root?
                  # Or check absolute path
-                 if QueryEngine._is_in_scope(str(res.path), scope):
+                 if self._is_in_scope(str(res.path), scope):
                      results.append(res)
             else:
                 results.append(res)
         
         # 3. Dynamic File Match
-        if root_dir and not results:
+        if self.root_dir and not results:
              # Try resolving as file path relative to project root
-             candidate_path = root_dir / target_path_str
+             candidate_path = self.root_dir / target_path_str
              if candidate_path.is_file():
                  # Create a transient Resource-like object
                  # This avoids eager scanning
@@ -187,15 +254,15 @@ class QueryEngine:
                  
                  # Check Scope
                  if scope:
-                      if QueryEngine._is_in_scope(str(candidate_path), scope):
+                      if self._is_in_scope(str(candidate_path), scope):
                           results.append(res)
                  else:
                       results.append(res)
 
         return results
 
-    @staticmethod
-    def _is_in_scope(file_path: str, scope: Path) -> bool:
+    def _is_in_scope(self, file_path: str, scope: Path) -> bool:
+        """Check if file_path is within the scope directory."""
         try:
             p = Path(file_path).resolve()
             s = scope.resolve()
@@ -203,8 +270,7 @@ class QueryEngine:
         except ValueError:
             return False
 
-    @staticmethod
-    def _resolve_symbol_path(query: str, symbol_table: Any, context_path: Optional[Path] = None) -> Any:
+    def _resolve_symbol_path(self, query: str, context_path: Optional[Path] = None) -> Any:
         """
         Resolve symbol path using Identifier separation.
         Steps:
@@ -253,52 +319,50 @@ class QueryEngine:
         identifier = Identifier.parse(root_query)
         
         # 2. Resolve Root Object
-        current_data = QueryEngine._resolve_by_identifier(identifier, symbol_table, context_path)
+        current_data = self._resolve_by_identifier(identifier, context_path)
 
         # 3. Traverse Properties
         if not property_path:
             return current_data
             
-        return QueryEngine._traverse_property_path(current_data, property_path, query)
+        return self._traverse_property_path(current_data, property_path, query)
 
-    @staticmethod
-    def _resolve_by_identifier(identifier: Identifier, symbol_table: Any, context_path: Optional[Path] = None) -> Any:
+    def _resolve_by_identifier(self, identifier: Identifier, context_path: Optional[Path] = None) -> Any:
         """Dispatch resolution based on Identifier type."""
         # Use SymbolTable's specific methods if available (Preferred)
-        if hasattr(symbol_table, "resolve_handle"):
+        if hasattr(self.symbol_table, "resolve_handle"):
             if isinstance(identifier, Hash):
-                val = symbol_table.resolve_hash(identifier.hash_value)
+                val = self.symbol_table.resolve_hash(identifier.hash_value)
                 if val is None: raise ReferenceError(f"Hash not found: {identifier}")
                 return val
             elif isinstance(identifier, Handle):
-                val = symbol_table.resolve_handle(identifier.name, context_path)
+                val = self.symbol_table.resolve_handle(identifier.name, context_path)
                 if val is None: raise ReferenceError(f"L2 Fuzzy Match failed: Handle '{identifier}' not found in current context.")
                 return val
             elif isinstance(identifier, Slug):
-                val = symbol_table.resolve_slug(identifier.path)
+                val = self.symbol_table.resolve_slug(identifier.path)
                 if val is None: raise ReferenceError(f"L1 Exact Match failed: System ID '{identifier}' not found in global index.")
                 return val
             elif isinstance(identifier, UUID):
-                val = symbol_table.resolve_uuid(identifier.uuid_value)
+                val = self.symbol_table.resolve_uuid(identifier.uuid_value)
                 if val is None: raise ReferenceError(f"UUID not found: {identifier}")
                 return val
 
         # Fallback to generic resolve or dict lookup (Legacy/Testing)
-        if hasattr(symbol_table, "resolve"):
-             val = symbol_table.resolve(str(identifier), context_path)
+        if hasattr(self.symbol_table, "resolve"):
+             val = self.symbol_table.resolve(str(identifier), context_path)
              if val is None: raise ReferenceError(f"Identifier not found: {identifier}")
              return val
              
         # Dict fallback
         key = str(identifier)
-        if key not in symbol_table:
+        if key not in self.symbol_table:
              raise ReferenceError(f"Identifier {identifier} not found in symbol table.")
-        return symbol_table[key]
+        return self.symbol_table[key]
     
     
 
-    @staticmethod
-    def _traverse_property_path(current_data: Any, property_path: List[str], original_query: str) -> Any:
+    def _traverse_property_path(self, current_data: Any, property_path: List[str], original_query: str) -> Any:
         """
         遍历属性访问路径，支持：
         - 属性访问：User.name
@@ -371,4 +435,7 @@ class QueryEngine:
                     raise QueryError(f"Segment '{name}' is not a list, cannot index in '{original_query}'")
 
         return current_data
-
+    
+    def clear_cache(self) -> None:
+        """Clear internal cache."""
+        self._cache.clear()

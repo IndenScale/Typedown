@@ -2,7 +2,7 @@
 id: FIX-0004
 uid: eee5c3
 type: fix
-status: open
+status: closed
 stage: doing
 title: 将 QueryEngine 从全静态方法重构为实例类
 created_at: '2026-02-12T09:41:26'
@@ -18,8 +18,16 @@ tags:
 - '#FIX-0004'
 files:
 - src/typedown/core/analysis/query.py
+- src/typedown/core/analysis/validator.py
+- src/typedown/core/analysis/spec_executor.py
+- src/typedown/core/services/query_service.py
+- tests/core/analysis/test_query.py
+- tests/core/analysis/test_query_identifier_integration.py
+- tests/core/analysis/test_hash_addressing.py
+- tests/integration/test_query_engine.py
+- tests/integration/test_sql_query.py
 criticality: high
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T09:41:26'
 ---
 

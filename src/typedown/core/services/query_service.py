@@ -61,12 +61,8 @@ class QueryService:
         """
         ctx = context_path or self.project_root
         
-        return QueryEngine.resolve_query(
-            query_string,
-            self.symbol_table,
-            root_dir=self.project_root,
-            context_path=ctx
-        )
+        engine = QueryEngine(self.symbol_table, root_dir=self.project_root)
+        return engine.resolve_query(query_string, context_path=ctx)
     
     def get_entities_by_type(self, type_name: str) -> List[Any]:
         """
