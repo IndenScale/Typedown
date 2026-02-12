@@ -22,7 +22,7 @@
     "Linters"
   ],
   "activationEvents": [
-    "onLanguage:markdown"
+    "onLanguage:typedown"
   ],
   "main": "./out/extension.js",
   "contributes": {

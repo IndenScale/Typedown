@@ -213,8 +213,7 @@ async function startServer(context: vscode.ExtensionContext) {
 
   const clientOptions: LanguageClientOptions = {
     documentSelector: [
-      { scheme: 'file', language: 'markdown' },
-      { scheme: 'file', language: 'typedown' }, // Also support .td
+      { scheme: 'file', language: 'typedown' },
     ],
     outputChannel: outputChannel,
     traceOutputChannel: outputChannel,
