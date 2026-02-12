@@ -6,7 +6,7 @@ status: closed
 stage: done
 title: 重构 Compiler God Class，拆分职责到独立服务
 created_at: '2026-02-12T09:41:25'
-updated_at: '2026-02-12T10:02:09'
+updated_at: '2026-02-12T10:05:22'
 parent: EPIC-0000
 dependencies: []
 related: []
