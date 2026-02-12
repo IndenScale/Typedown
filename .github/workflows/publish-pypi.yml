@@ -28,7 +28,7 @@ jobs:
         run: |
           uv sync --all-extras
           uv run pytest
-          uv run typedown test --path tests/integration_showcase
+          uv run typedown check --full tests/integration_showcase
 
       - name: Build distribution
         run: uv build
