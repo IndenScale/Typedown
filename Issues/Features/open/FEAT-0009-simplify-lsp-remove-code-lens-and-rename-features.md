@@ -6,7 +6,7 @@ status: open
 stage: doing
 title: 'Simplify LSP: Remove Code Lens and Rename features'
 created_at: '2026-02-12T09:13:51'
-updated_at: '2026-02-12T09:13:54'
+updated_at: '2026-02-12T09:14:31'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -15,9 +15,9 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0009'
 files:
+- src/typedown/server/application.py
 - src/typedown/server/features/code_lens.py
 - src/typedown/server/features/rename.py
-- src/typedown/server/application.py
 - tests/server/features/test_code_lens.py
 - tests/server/features/test_rename.py
 criticality: medium
