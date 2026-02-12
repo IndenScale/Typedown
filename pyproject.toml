@@ -74,4 +74,7 @@ norecursedirs = [
     "__pycache__",
     "extensions"
 ]
+filterwarnings = [
+    "ignore::DeprecationWarning:pygls.*",
+]
 

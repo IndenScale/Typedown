@@ -44,8 +44,18 @@ class QueryEngine:
                 cursor.execute(query, parameters)
                 # sqlite3.Row factory handles dict-like access
                 rows = cursor.fetchall()
-                # Convert to pure dicts
-                return [dict(row) for row in rows]
+                # Convert to pure dicts and auto-parse JSON strings
+                results = []
+                for row in rows:
+                    row_dict = dict(row)
+                    for key, value in row_dict.items():
+                        if isinstance(value, str) and (value.startswith('[') or value.startswith('{')):
+                            try:
+                                row_dict[key] = json.loads(value)
+                            except json.JSONDecodeError:
+                                pass  # Keep original string if not valid JSON
+                    results.append(row_dict)
+                return results
             else:
                 # DuckDB
                 con.execute(query, parameters)
@@ -58,7 +68,15 @@ class QueryEngine:
                 
                 results = []
                 for row in rows:
-                    results.append(dict(zip(columns, row)))
+                    row_dict = dict(zip(columns, row))
+                    # Auto-parse JSON strings returned by DuckDB
+                    for key, value in row_dict.items():
+                        if isinstance(value, str) and (value.startswith('[') or value.startswith('{')):
+                            try:
+                                row_dict[key] = json.loads(value)
+                            except json.JSONDecodeError:
+                                pass  # Keep original string if not valid JSON
+                    results.append(row_dict)
                 
                 return results
             

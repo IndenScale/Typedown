@@ -61,13 +61,12 @@ entity User: alice
 
     def test_run_script_project_scope(self):
         """Test simple project scope task execution"""
-        compiler = Compiler(self.project_root, console=MagicMock())
-        
         # Mock ScriptRunner execution to verify logic without actual shell calls
-        with unittest.mock.patch('typedown.core.compiler.ScriptRunner') as MockRunner:
+        with unittest.mock.patch('typedown.core.services.script_service.ScriptRunner') as MockRunner:
             instance = MockRunner.return_value
             instance.run_script.return_value = 0
             
+            compiler = Compiler(self.project_root, console=MagicMock())
             result = compiler.run_script("project-task", target_file=self.target_file)
             
             # Verify compiler found it and passed to runner
@@ -83,12 +82,11 @@ entity User: alice
 
     def test_run_script_directory_scope(self):
         """Test directory scope task discovery"""
-        compiler = Compiler(self.project_root, console=MagicMock())
-        
-        with unittest.mock.patch('typedown.core.compiler.ScriptRunner') as MockRunner:
+        with unittest.mock.patch('typedown.core.services.script_service.ScriptRunner') as MockRunner:
             instance = MockRunner.return_value
             instance.run_script.return_value = 0
             
+            compiler = Compiler(self.project_root, console=MagicMock())
             result = compiler.run_script("dir-task", target_file=self.target_file)
             
             self.assertEqual(result, 0)
@@ -101,12 +99,11 @@ entity User: alice
         Compiler does NOT resolve precedence; ScriptRunner does.
         We just check that all dicts are correctly populated.
         """
-        compiler = Compiler(self.project_root, console=MagicMock())
-        
-        with unittest.mock.patch('typedown.core.compiler.ScriptRunner') as MockRunner:
+        with unittest.mock.patch('typedown.core.services.script_service.ScriptRunner') as MockRunner:
             instance = MockRunner.return_value
             instance.run_script.return_value = 0
             
+            compiler = Compiler(self.project_root, console=MagicMock())
             compiler.run_script("overlap-task", target_file=self.target_file)
             
             args = instance.run_script.call_args[1]

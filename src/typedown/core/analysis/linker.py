@@ -13,7 +13,7 @@ from typedown.core.base.errors import (
     TypedownError, ErrorCode, ErrorLevel,
     linker_error, DiagnosticReport
 )
-from typedown.core.analysis.compiler_context import CompilerContext
+from typedown.core.base.compiler_context import CompilerContext
 from typedown.core.base.config import TypedownConfig
 from typedown.core.base.types import Ref
 from typedown.core.base.utils import AttributeWrapper

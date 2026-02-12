@@ -376,6 +376,14 @@ class DiagnosticReport:
     def to_dict_list(self) -> List[Dict[str, Any]]:
         """Convert all diagnostics to list of dictionaries."""
         return [e.to_dict() for e in self.errors]
+    
+    def __iter__(self):
+        """Allow iterating over errors directly."""
+        return iter(self.errors)
+    
+    def __len__(self) -> int:
+        """Return the number of diagnostics."""
+        return len(self.errors)
 
 
 def print_diagnostic(console: Console, error: TypedownError):

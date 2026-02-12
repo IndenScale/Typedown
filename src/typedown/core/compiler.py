@@ -1,3 +1,17 @@
+"""
+Compiler: Facade/Coordinator for the Typedown compilation pipeline.
+
+The Compiler class has been refactored from a God Class into a Facade that
+coordinates multiple specialized services:
+
+    Compiler (Facade)
+    ├── ValidationService    # L1/L2/L3 validation
+    ├── ScriptService        # Script system
+    ├── TestService          # L4 Specs + Oracles
+    ├── QueryService         # Query interface
+    └── SourceService        # Source file management
+"""
+
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Set
 from rich.console import Console
@@ -5,16 +19,26 @@ from rich.console import Console
 from typedown.core.ast import Document, EntityBlock
 from typedown.core.base.utils import find_project_root, AttributeWrapper
 from typedown.core.base.config import TypedownConfig, ScriptConfig
-from typedown.core.base.errors import TypedownError, print_diagnostic, DiagnosticReport
+from typedown.core.base.errors import TypedownError, DiagnosticReport
 from typedown.core.base.symbol_table import SymbolTable
 
 from typedown.core.analysis.scanner import Scanner
 from typedown.core.analysis.linker import Linker
 from typedown.core.analysis.validator import Validator
-from typedown.core.analysis.script_runner import ScriptRunner
-from typedown.core.analysis.source_provider import SourceProvider, DiskProvider, OverlayProvider
+from typedown.core.analysis.source_provider import DiskProvider, OverlayProvider
+
+from typedown.core.services import (
+    SourceService,
+    ValidationService,
+    ScriptService,
+    TestService,
+    QueryService,
+)
+
 
 class Compiler:
+    """Facade for the Typedown compilation pipeline."""
+    
     def __init__(self, target: Path, console: Optional[Console] = None, memory_only: bool = False):
         self.target = target.resolve()
         self.console = console or Console()
@@ -23,7 +47,6 @@ class Compiler:
         
         # IO Interface (Overlay Support for LSP)
         self.base_provider = DiskProvider()
-        # In memory_only mode, OverlayProvider will refuse to read from base_provider
         self.source_provider = OverlayProvider(self.base_provider, memory_only=memory_only)
         
         # State
@@ -33,32 +56,37 @@ class Compiler:
         self.model_registry: Dict[str, Any] = {}
         self.active_script: Optional[ScriptConfig] = None
         self.diagnostics: DiagnosticReport = DiagnosticReport()
-        self.dependency_graph: Optional[Any] = None # Graph
-        self.resources: Dict[str, Any] = {} # Path -> Resource
+        self.dependency_graph: Optional[Any] = None
+        self.resources: Dict[str, Any] = {}
         
+        # Services
+        self.source_svc = SourceService(self.source_provider, self.console)
+        self.validation_svc = ValidationService(
+            self.project_root, self.config, self.source_provider, self.console
+        )
+        self.script_svc = ScriptService(
+            self.project_root, self.config, self.source_provider, self.console
+        )
+        self.test_svc = TestService(self.project_root, self.config, self.console)
+        self._query_svc: Optional[QueryService] = None
+    
+    def _query_service(self) -> QueryService:
+        """Lazy init/update QueryService (requires symbol_table)."""
+        if self._query_svc is None:
+            self._query_svc = QueryService(self.project_root, self.symbol_table, self.console)
+        return self._query_svc
+    
+    # ==================== Pipeline Operations ====================
+    
     def compile(self, script_name: Optional[str] = None, run_specs: bool = True) -> bool:
         """Runs the full compilation pipeline."""
         self.diagnostics = DiagnosticReport()
-        
-        self.active_script = None
-        if script_name:
-            if script_name not in self.config.scripts:
-                from typedown.core.base.errors import ErrorCode, ErrorLevel
-                self.diagnostics.add(TypedownError(
-                    f"Script '{script_name}' not found", 
-                    code=ErrorCode.E0903,
-                    level=ErrorLevel.ERROR,
-                    details={"script": script_name}
-                ))
-                self._print_diagnostics()
-                return False
-            self.active_script = self.config.scripts[script_name]
-            self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for script [cyan]:{script_name}[/cyan]")
-        else:
-            self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for [cyan]{self.target}[/cyan]")
+        self.active_script = self._resolve_script(script_name)
+        if self.active_script is None and script_name:
+            return False
         
         try:
-            # Stage 1: Scanner (Uses SourceProvider)
+            # Stage 1: Scanner
             scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
             self.documents, self.target_files = scanner.scan(self.target, self.active_script)
             self.diagnostics.extend(scanner.diagnostics.errors)
@@ -70,381 +98,127 @@ class Compiler:
             self.model_registry = linker.model_registry
             self.diagnostics.extend(linker.diagnostics.errors)
             
-            # Stage 2.5 & 3: Validator (L2 + L3)
+            # Stage 2.5 & 3: Validator
             validator = Validator(self.console)
-            
-            # L2: Schema Check (Pydantic)
             validator.check_schema(self.documents, self.symbol_table, self.model_registry)
-            
-            # L3: Reference Resolution & Graph
             validator.validate(self.documents, self.symbol_table, self.model_registry)
-            
             self.diagnostics.extend(validator.diagnostics.errors)
             self.dependency_graph = validator.dependency_graph
             
-            # Stage 3.5: Specs (Internal Self-Validation)
-            if run_specs:
-                if not self.diagnostics.has_errors():
-                    self._run_specs() 
-
-
-            # Check for Errors
-            has_error = False
-            has_error = self.diagnostics.has_errors()
+            # Update QueryService and run specs
+            self._query_svc = None  # Will be recreated on next access
+            if run_specs and not self.diagnostics.has_errors():
+                self.verify_specs()
             
             self._print_diagnostics()
-            return not has_error
+            return not self.diagnostics.has_errors()
             
         except Exception as e:
             self.console.print(f"[bold red]Compiler Crash:[/bold red] {e}")
             import traceback
             self.console.print(traceback.format_exc())
             return False
-
-    def _run_specs(self) -> bool:
-        """Execute internal specs with @target binding."""
-        return self.verify_specs()
-
-    def verify_specs(self, spec_filter: Optional[str] = None, console: Optional[Console] = None) -> bool:
-        """
-        Public API to trigger L4 Spec Validation.
-        Can run all specs or filter by ID.
-        """
-        from typedown.core.analysis.spec_executor import SpecExecutor
+    
+    def _resolve_script(self, script_name: Optional[str]) -> Optional[ScriptConfig]:
+        """Resolve script name to ScriptConfig or handle error."""
+        if not script_name:
+            self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for [cyan]{self.target}[/cyan]")
+            return None
         
-        spec_executor = SpecExecutor(console or self.console)
-        specs_passed = spec_executor.execute_specs(
-            self.documents,
-            self.symbol_table,
-            self.model_registry,
-            project_root=self.project_root,
-            spec_filter=spec_filter
-        )
-        # Extend diagnostics with L4 errors
-        # Note: We might want to clear previous Spec-related diagnostics first?
-        # For now, append is fine as compile() clears all diagnostics usually.
-        # BUT if we run this ad-hoc (CodeLens), currently diagnostics are NOT cleared before this call 
-        # unless compile() was called.
-        self.diagnostics.extend(spec_executor.diagnostics.errors)
-        return specs_passed
-
-    def _print_diagnostics(self):
-        if not self.diagnostics.errors:
-            return
-        summary = self.diagnostics.to_dict_list()
-        self.console.print(f"\n[bold]Diagnostics ({len(summary)}):[/bold]")
-        from typedown.core.base.errors import print_diagnostic_report
-        print_diagnostic_report(self.console, self.diagnostics)
-
-    def query(self, query_string: str, context_path: Optional[Path] = None) -> Any:
-        """
-        GraphQL-like query interface for the symbol table.
-        Example: compiler.query("User.profile.email")
-        """
-        from typedown.core.analysis.query import QueryEngine
-        # Default context to target directory if not specified
-        ctx = context_path or self.target
+        if script_name not in self.config.scripts:
+            from typedown.core.base.errors import ErrorCode, ErrorLevel
+            self.diagnostics.add(TypedownError(
+                f"Script '{script_name}' not found",
+                code=ErrorCode.E0903,
+                level=ErrorLevel.ERROR,
+                details={"script": script_name}
+            ))
+            self._print_diagnostics()
+            return None
         
-        # Return all matches (List[Any])
-        return QueryEngine.resolve_query(
-            query_string, 
-            self.symbol_table, 
-            root_dir=self.project_root,
-            context_path=ctx
-        )
-
-    def run_tests(self, tags: List[str] = []) -> int:
-        """
-        Stage 4: External Verification (Oracles).
-        Internal specs are now run during compile().
-        """
-        overall_exit_code = 0
-        
-        # Step 2: Execute Oracles (External Verification)
-        self.console.print("  [dim]Stage 4: Executing reality checks (Oracles)...[/dim]")
-        
-        import importlib
-        
-        for oracle_path in self.config.test.oracles:
-            try:
-                # Load oracle class
-                if "." not in oracle_path:
-                    continue
-                
-                module_name, class_name = oracle_path.rsplit(".", 1)
-                module = importlib.import_module(module_name)
-                oracle_cls = getattr(module, class_name)
-                oracle = oracle_cls()
-                
-                self.console.print(f"    [blue]Running Oracle: {oracle_path}[/blue]")
-                exit_code = oracle.run(self, tags)
-                if exit_code != 0:
-                    overall_exit_code = exit_code
-            except Exception as e:
-                self.console.print(f"    [bold red]Oracle Error ({oracle_path}): {e}[/bold red]")
-                overall_exit_code = 1
-        
-        return overall_exit_code
-
-    def get_entities_by_type(self, type_name: str) -> List[Any]:
-        """Compatibility method for existing specs."""
-        results = []
-        for node in self.symbol_table.values():
-            if isinstance(node, EntityBlock) and node.class_name == type_name:
-                # Use AttributeWrapper to allow dot notation
-                results.append(AttributeWrapper(node.resolved_data))
-        return results
-
-    def get_entity(self, entity_id: str) -> Optional[Any]:
-        """Compatibility method for existing specs."""
-        entity = self.symbol_table.get(entity_id)
-        if entity:
-            return AttributeWrapper(entity.resolved_data)
-        return None
-
-    def lint(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
-        """L1: Syntax Check (Scanner only)."""
-        self.diagnostics = DiagnosticReport()
-        target = target or self.target
-        script = self.config.scripts.get(script_name) if script_name else None
-        
-        scanner = Scanner(self.project_root, self.console, provider=self.source_provider)
-        self.documents, _ = scanner.scan(target, script)
-        self.diagnostics.extend(scanner.diagnostics.errors)
-        
-        # Run lint checks
-        lint_passed = scanner.lint(self.documents)
-        self.diagnostics.extend(scanner.diagnostics.errors)
-        
-        self._print_diagnostics()
-        return lint_passed and not self.diagnostics.has_errors()
-
-    def check(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
-        """L2: Schema Compliance (Scanner + Linker + Pydantic)."""
-        if not self.lint(target, script_name):
-            return False
-            
-        # Linker (Stage 2)
-        linker = Linker(self.project_root, self.config, self.console)
-        linker.link(self.documents)
-        self.symbol_table = linker.symbol_table
-        self.model_registry = linker.model_registry
-        self.diagnostics.extend(linker.diagnostics.errors)
-
-        # Validation (Pydantic-only part of Phase 3)
-        # L2 check: Now strictly structure compliance only.
-        validator = Validator(self.console)
-        validator.check_schema(self.documents, self.symbol_table, self.model_registry)
-        self.diagnostics.extend(validator.diagnostics.errors)
-        
-        self._print_diagnostics()
-        return not self.diagnostics.has_errors()
-
-    def update_source(self, path: Path, content: str) -> bool:
-        """
-        Lightweight incremental update:
-        1. Update Overlay.
-        2. Parse new content.
-        3. Update Documents State.
-        Returns True if successful, False if parse failed (but overlay updated).
-        """
-        try:
-            # 1. Update Overlay
-            self.source_provider.update_overlay(path, content)
-            
-            from typedown.core.parser import TypedownParser
-            parser = TypedownParser()
-            try:
-                # Parse in-memory
-                new_doc = parser.parse_text(content, str(path))
-                # Update State
-                self.documents[path] = new_doc
-                self.target_files.add(path)
-                return True
-            except Exception as e:
-                # Parse error: We still updated overlay (important for text access)
-                # But we can't update the Document AST.
-                # In strict mode, we might remove the document?
-                # For now, keep old document or mark as invalid?
-                # Keeping old document might be confusing.
-                # Let's log and return False.
-                # self.console.print(f"[yellow]Parse Error for {path}: {e}[/yellow]")
-                return False
-                
-        except Exception as e:
-            self.console.print(f"[yellow]Source Update Failed for {path}: {e}[/yellow]")
-            return False
-
+        script = self.config.scripts[script_name]
+        self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for script [cyan]:{script_name}[/cyan]")
+        return script
+    
     def recompile(self):
-        """
-        Run the full compilation pipeline in-memory (Link -> Validate -> Specs).
-        """
-        self._recompile_in_memory()
-
+        """Run the full compilation pipeline in-memory."""
+        passed, self.diagnostics, self.symbol_table, self.model_registry, self.dependency_graph = \
+            self.validation_svc.validate_in_memory(self.documents, self.symbol_table, self.model_registry)
+        self._query_svc = None
+        if passed:
+            self.verify_specs()
+    
     def update_document(self, path: Path, content: str):
-        """
-        Legacy combined method.
-        """
+        """Update source and recompile."""
         if self.update_source(path, content):
             self.recompile()
-
-    def _recompile_in_memory(self):
-        """
-        Runs Linker and Validator on current in-memory documents.
-        Skips Scanner (File IO).
-        """
-        self.diagnostics = DiagnosticReport()
-        
-        # Linker
-        linker = Linker(self.project_root, self.config, self.console)
-        linker.link(self.documents)
-        self.symbol_table = linker.symbol_table
-        self.model_registry = linker.model_registry
-        self.diagnostics.extend(linker.diagnostics.errors)
-        
-        # Validator
-        validator = Validator(self.console)
-        # L2: Schema Check (Pydantic) - Ensure mandatory fields exist
-        validator.check_schema(self.documents, self.symbol_table, self.model_registry)
-        
-        # L3: Reference Resolution
-        validator.validate(self.documents, self.symbol_table, self.model_registry)
-        self.diagnostics.extend(validator.diagnostics.errors)
-        self.dependency_graph = validator.dependency_graph
-        
-        # Stage 3.5: Specs (Internal Self-Validation)
-        # Re-enabled for Automatic Validation in Playground
-        if not self.diagnostics.has_errors():
-            self._run_specs()
     
-    def run_script(
-        self,
-        script_name: str,
-        target_file: Optional[Path] = None,
-        dry_run: bool = False
-    ) -> int:
-        """
-        执行脚本（Script System）
-        
-        查找顺序（就近原则）：
-        1. File Scope: 目标文件的 Front Matter
-        2. Directory Scope: 目录的 config.td
-        3. Project Scope: typedown.yaml
-        
-        Args:
-            script_name: 脚本名称（如 "validate", "verify-business"）
-            target_file: 目标文件路径（如果为 None，使用 self.target）
-            dry_run: 是否仅打印命令而不执行
-        
-        Returns:
-            退出码（0 表示成功）
-        """
-        target = target_file or self.target
-        
-        # 收集脚本定义
-        file_scripts: Optional[Dict[str, str]] = None
-        dir_scripts: Optional[Dict[str, str]] = None
-        project_scripts: Optional[Dict[str, str]] = None
-        
-        from typedown.core.parser import TypedownParser
-        parser = TypedownParser()
-
-        # L1: File Scope - Get from parsed documents or parse on demand
-        # Check existence via provider (Disk or Overlay)
-        if self.source_provider.exists(target) and not self.source_provider.list_files(target, {".td", ".md"}) and not target.is_dir():
-            # It acts as a file (simple check, list_files returns iterator)
-            # Actually simpler: if target in documents or provider can read it.
-            pass
-
-        # Simplified Logic: Try to get document for target
-        # Problem: target might be directory.
-        if target in self.documents:
-             doc = self.documents[target]
-             if doc.scripts:
-                 file_scripts = doc.scripts
-        else:
-             # Try parsing if it's a file
-             try:
-                 if self.source_provider.exists(target):
-                     # Is it a directory?
-                     # Provider interface doesn't explicitly distinguish without list_files/walk.
-                     # But get_content fails on dir.
-                     # Let's try reading.
-                     try:
-                        content = self.source_provider.get_content(target)
-                        doc = parser.parse_text(content, str(target))
-                        self.documents[target] = doc # Cache it
-                        if doc.scripts:
-                            file_scripts = doc.scripts
-                     except IsADirectoryError:
-                        pass
-                     except Exception:
-                        pass
-             except Exception:
-                 pass
-        
-        # L2: Directory Scope - Get from config.td (need to parse)
-        
-        start_dir = target.parent if (self.source_provider.exists(target) and not target.is_dir()) else target
-        # Actually is_file() checks disk.
-        # Ideally we assume target is file if it has extension?
-        if target.suffix in {'.td', '.md'}:
-             start_dir = target.parent
-        
-        try:
-             start_dir = start_dir.resolve()
-        except Exception:
-             pass
-
-        
-        # Walk up to find the NEAREST config.td
-        # We need to be careful about infinite loops if resolve failed
-        
-        # Safe traversal using parents
-        current = start_dir
-        while True:
-            # Check for project root escape
-            try:
-                if not current.is_relative_to(self.project_root):
-                    # If we started outside, allow one check? No, stick to project.
-                    # Unless target is outside?
-                    break
-            except ValueError:
-                break
-
-            config_path = current / "config.td"
-            if self.source_provider.exists(config_path):
-                if config_path in self.documents:
-                    doc = self.documents[config_path]
-                else:
-                    try:
-                        content = self.source_provider.get_content(config_path)
-                        doc = parser.parse_text(content, str(config_path))
-                        self.documents[config_path] = doc
-                    except Exception:
-                        doc = None
-                
-                if doc and doc.scripts:
-                    dir_scripts = doc.scripts
-                    break # Shadowing
-            
-            if current == self.project_root:
-                break
-            if current.parent == current:
-                break
-            current = current.parent
-        
-        # L3: Project Scope - 从 typedown.toml 获取
-        project_scripts = self.config.tasks
-        
-        # 执行脚本
-        runner = ScriptRunner(self.project_root, self.console)
-        return runner.run_script(
-            script_name,
-            target_file=target if target.suffix in {'.td', '.md'} else None,
-            file_scripts=file_scripts,
-            dir_scripts=dir_scripts,
-            project_scripts=project_scripts,
-            dry_run=dry_run
+    # ==================== Validation Operations ====================
+    
+    def lint(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
+        """L1: Syntax Check (Scanner only)."""
+        script = self.config.scripts.get(script_name) if script_name else None
+        passed, self.diagnostics, self.documents = \
+            self.validation_svc.lint(target or self.target, script)
+        self._print_diagnostics()
+        return passed
+    
+    def check(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
+        """L2: Schema Compliance (Scanner + Linker + Pydantic)."""
+        script = self.config.scripts.get(script_name) if script_name else None
+        passed, self.diagnostics, self.documents, self.symbol_table, self.model_registry = \
+            self.validation_svc.check(target or self.target, script)
+        if passed:
+            self._query_svc = None
+        self._print_diagnostics()
+        return passed
+    
+    # ==================== Source Management ====================
+    
+    def update_source(self, path: Path, content: str) -> bool:
+        """Lightweight incremental update."""
+        return self.source_svc.update_source(path, content, self.documents, self.target_files)
+    
+    # ==================== Script Operations ====================
+    
+    def run_script(self, script_name: str, target_file: Optional[Path] = None, dry_run: bool = False) -> int:
+        """Execute a script with scope-based resolution."""
+        return self.script_svc.run_script(script_name, target_file, self.documents, dry_run)
+    
+    # ==================== Test Operations ====================
+    
+    def verify_specs(self, spec_filter: Optional[str] = None, console: Optional[Console] = None) -> bool:
+        """Public API to trigger L4 Spec Validation."""
+        specs_passed, self.diagnostics = self.test_svc.run_specs(
+            self.documents, self.symbol_table, self.model_registry,
+            spec_filter=spec_filter, existing_diagnostics=self.diagnostics
         )
-
+        return specs_passed
+    
+    def run_tests(self, tags: List[str] = []) -> int:
+        """Stage 4: External Verification (Oracles)."""
+        return self.test_svc.run_oracles(self, tags)
+    
+    # ==================== Query Operations ====================
+    
+    def query(self, query_string: str, context_path: Optional[Path] = None) -> Any:
+        """GraphQL-like query interface for the symbol table."""
+        return self._query_service().query(query_string, context_path)
+    
+    def get_entities_by_type(self, type_name: str) -> List[Any]:
+        """Compatibility method for existing specs."""
+        return self._query_service().get_entities_by_type(type_name)
+    
+    def get_entity(self, entity_id: str) -> Optional[Any]:
+        """Compatibility method for existing specs."""
+        return self._query_service().get_entity(entity_id)
+    
+    # ==================== Utility Methods ====================
+    
+    def _print_diagnostics(self):
+        """Print diagnostics report to console."""
+        if not self.diagnostics.errors:
+            return
+        from typedown.core.base.errors import print_diagnostic_report
+        self.console.print(f"\n[bold]Diagnostics ({len(self.diagnostics.errors)}):[/bold]")
+        print_diagnostic_report(self.console, self.diagnostics)
