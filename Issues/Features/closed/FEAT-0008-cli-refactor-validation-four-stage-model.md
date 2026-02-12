@@ -3,7 +3,7 @@ id: FEAT-0008
 uid: afc0c9
 type: feature
 status: closed
-stage: implemented
+stage: done
 solution: implemented
 title: 'CLI: 重构验证命令为四阶段渐进式模型'
 created_at: '2026-02-12T08:43:54'
@@ -13,11 +13,11 @@ parent: EPIC-0000
 dependencies: []
 related:
 - FEAT-0007
-domains:
-- DOM-0001-compiler-core
+domains: []
 tags:
 - '#EPIC-0000'
 - '#FEAT-0008'
+- '#FEAT-0007'
 - breaking-change
 - cli
 - refactoring
@@ -145,31 +145,31 @@ td check global
 
 ## Acceptance Criteria
 
-- [ ] 新命令 `td check {syntax|structure|local|global}` 可用
-- [ ] 旧命令 `td lint/check/validate/test` 标记为 deprecated（保留向后兼容）
-- [ ] 四阶段验证逻辑清晰分离（代码层面）
-- [ ] 外部 Oracle 系统从核心完全移除
-- [ ] 阶段依赖自动执行机制正确
-- [ ] 错误报告包含阶段信息（"[structure] Field required"）
-- [ ] 性能符合预期（syntax 10ms, structure 100ms, local 100ms, global 1s+）
-- [ ] 文档全面更新（新验证模型、迁移指南）
+- [x] 新命令 `td check {syntax|structure|local|global}` 可用
+- [x] 旧命令 `td lint/check/validate/test` 标记为 deprecated（保留向后兼容）
+- [x] 四阶段验证逻辑清晰分离（代码层面）
+- [x] 外部 Oracle 系统从核心完全移除
+- [x] 阶段依赖自动执行机制正确
+- [x] 错误报告包含阶段信息（"[structure] Field required"）
+- [x] 性能符合预期（syntax 10ms, structure 100ms, local 100ms, global 1s+）
+- [x] 文档全面更新（新验证模型、迁移指南）
 
 ## Technical Tasks
 
 ### Phase 1: 移除 Oracle（清理债务）
 
-- [ ] **移除 Oracle 系统**
-  - [ ] 删除 `src/typedown/core/runtime/oracle.py`
-  - [ ] 从 `compiler.py` 移除 `run_tests()` 方法
-  - [ ] 从 `typedown.toml` 配置移除 Oracle 相关配置
-  - [ ] 删除 `td test` 命令
+- [x] **移除 Oracle 系统**
+  - [x] 删除 `src/typedown/core/runtime/oracle.py`
+  - [x] 从 `compiler.py` 移除 `run_tests()` 方法
+  - [x] 从 `typedown.toml` 配置移除 Oracle 相关配置
+  - [x] 删除 `td test` 命令
 
-- [ ] **清理相关依赖**
-  - [ ] 检查并移除 Oracle 相关的外部依赖
+- [x] **清理相关依赖**
+  - [x] 检查并移除 Oracle 相关的外部依赖
 
 ### Phase 2: 四阶段重构（核心实现）
 
-- [ ] **重构 Compiler 验证方法**
+- [x] **重构 Compiler 验证方法**
   ```python
   # 新架构
   class Compiler:
@@ -193,12 +193,12 @@ td check global
           pass
   ```
 
-- [ ] **拆分 Validator 职责**
-  - [ ] `validator.check_structure()` - 仅实例化，不运行 validators
-  - [ ] `validator.check_local()` - 运行 field/model validators
-  - [ ] `validator.check_global()` - 执行 Spec（引用解析 + 规则验证）
+- [x] **拆分 Validator 职责**
+  - [x] `validator.check_structure()` - 仅实例化，不运行 validators
+  - [x] `validator.check_local()` - 运行 field/model validators
+  - [x] `validator.check_global()` - 执行 Spec（引用解析 + 规则验证）
 
-- [ ] **实现阶段依赖执行**
+- [x] **实现阶段依赖执行**
   ```python
   def check(stage: str) -> bool:
       stages = ["syntax", "structure", "local", "global"]
@@ -212,7 +212,7 @@ td check global
 
 ### Phase 3: CLI 实现
 
-- [ ] **实现新 check 命令**
+- [x] **实现新 check 命令**
   ```python
   @app.command()
   def check(
@@ -232,14 +232,14 @@ td check global
       return run_check(target)
   ```
 
-- [ ] **旧命令向后兼容（Deprecated）**
-  - [ ] `td lint` → 调用 `check("syntax")` + deprecation warning
-  - [ ] `td check` → 调用 `check("local")` + deprecation warning（行为变更需说明）
-  - [ ] `td validate` → 调用 `check("local")` + deprecation warning
+- [x] **旧命令向后兼容（Deprecated）**
+  - [x] `td lint` → 调用 `check("syntax")` + deprecation warning
+  - [x] `td check` → 调用 `check("local")` + deprecation warning（行为变更需说明）
+  - [x] `td validate` → 调用 `check("local")` + deprecation warning
 
 ### Phase 4: 错误报告优化
 
-- [ ] **错误信息包含阶段标识**
+- [x] **错误信息包含阶段标识**
   ```
   [syntax] docs/user.md:15 - YAML parsing error: invalid indentation
   [structure] docs/user.md:20 - Field required: 'name'
@@ -247,7 +247,7 @@ td check global
   [global] specs/budget.md:10 - Assertion failed: Total budget exceeded
   ```
 
-- [ ] **阶段统计输出**
+- [x] **阶段统计输出**
   ```
   td check local
   [syntax] 12 files parsed - OK (15ms)
@@ -257,19 +257,19 @@ td check global
 
 ### Phase 5: 文档更新
 
-- [ ] **更新核心文档**
-  - [ ] `docs/guide/core-concepts/validation.md` - 新四阶段模型
-  - [ ] `docs/reference/cli/commands.md` - 新 CLI API
-  - [ ] `docs/guide/getting-started/first-model.md` - 更新示例命令
+- [x] **更新核心文档**
+  - [x] `docs/guide/core-concepts/validation.md` - 新四阶段模型
+  - [x] `docs/reference/cli/commands.md` - 新 CLI API
+  - [x] `docs/guide/getting-started/first-model.md` - 更新示例命令
 
-- [ ] **迁移指南**
-  - [ ] `docs/migration/v0.3-cli-changes.md`
-  - [ ] 旧命令映射表
-  - [ ] Breaking changes 说明
+- [x] **迁移指南**
+  - [x] `docs/migration/v0.3-cli-changes.md`
+  - [x] 旧命令映射表
+  - [x] Breaking changes 说明
 
-- [ ] **移除 Oracle 相关文档**
-  - [ ] 从 `docs/reference/runtime/` 移除 Oracle 章节
-  - [ ] 更新 `docs/reference/configuration/typedown-toml.md`
+- [x] **移除 Oracle 相关文档**
+  - [x] 从 `docs/reference/runtime/` 移除 Oracle 章节
+  - [x] 更新 `docs/reference/configuration/typedown-toml.md`
 
 ## Design Decisions
 

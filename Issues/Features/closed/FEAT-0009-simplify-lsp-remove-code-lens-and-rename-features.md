@@ -21,7 +21,7 @@ files:
 - tests/server/features/test_code_lens.py
 - tests/server/features/test_rename.py
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented
 opened_at: '2026-02-12T09:13:51'
 ---
 
