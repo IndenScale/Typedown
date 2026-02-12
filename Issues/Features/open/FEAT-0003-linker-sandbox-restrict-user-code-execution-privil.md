@@ -3,10 +3,10 @@ id: FEAT-0003
 uid: 04645e
 type: feature
 status: open
-stage: draft
+stage: doing
 title: 'Linker sandbox: restrict user code execution privileges'
 created_at: '2026-02-11T21:54:44'
-updated_at: '2026-02-11T21:54:44'
+updated_at: '2026-02-12T09:26:00'
 parent: EPIC-0000
 dependencies: []
 related: []
