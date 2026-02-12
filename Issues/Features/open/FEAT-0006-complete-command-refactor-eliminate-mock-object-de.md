@@ -3,10 +3,10 @@ id: FEAT-0006
 uid: b392d4
 type: feature
 status: open
-stage: doing
+stage: review
 title: 'Complete command refactor: eliminate mock object dependencies'
 created_at: '2026-02-11T21:54:45'
-updated_at: '2026-02-12T09:20:47'
+updated_at: '2026-02-12T09:20:56'
 parent: EPIC-0000
 dependencies:
 - FEAT-0004
