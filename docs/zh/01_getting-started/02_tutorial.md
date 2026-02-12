@@ -10,10 +10,10 @@ title: 快速开始
 
 ### 安装 CLI
 
-需要 Python 3.12+：
+需要 Python 3.14+，使用 [uv](https://docs.astral.sh/uv/) 安装：
 
 ```bash
-pip install typedown
+uv tool install typedown
 ```
 
 ### 安装 VS Code 扩展
@@ -43,27 +43,27 @@ class User(BaseModel):
 模型定义后，可以实例化数据：
 
 ````typedown
-```entity User: alice
+```entity User: user-alice-v1
 name: "Alice"
 role: "admin"
 ```
 ````
 
-使用 `entity` 代码块创建类型为 `User`、ID 为 `alice` 的实体。
+使用 `entity` 代码块创建类型为 `User`、ID 为 `user-alice-v1` 的实体。
 
 ## 3. 获取反馈
 
 在终端运行检查：
 
 ```bash
-typedown check .
+uv run typedown check .
 ```
 
 看到 **No errors found** 🎉 表示验证通过！
 
 这就是 Typedown 的核心理念：**强类型 Markdown**。
 
-如果你尝试修改 `alice` 的 `age`（未定义字段）或将 `name` 改为数字，`typedown check` 会立即报错。
+如果你尝试修改 `user-alice-v1` 的 `age`（未定义字段）或将 `name` 改为数字，`typedown check` 会立即报错。
 
 ## 4. 添加验证规则
 
@@ -71,14 +71,14 @@ typedown check .
 
 ````typedown
 ```spec:check_admin_mfa
-@target(type="User")
+@target(type="User", scope="local")
 def check_admin_mfa(user: User):
     if user.role == "admin":
         assert user.mfa_enabled, f"管理员 {user.name} 必须启用 MFA"
 ```
 ````
 
-现在如果 `alice` 的角色是 `admin` 但没有 `mfa_enabled` 字段，将会报错。
+现在如果 `user-alice-v1` 的角色是 `admin` 但没有 `mfa_enabled` 字段，将会报错。
 
 ## 5. 下一步
 
