@@ -54,7 +54,7 @@ opened_at: '2026-02-12T09:13:51'
 - [x] 删除 tests/server/features/test_code_lens.py
 - [x] 删除 tests/server/features/test_rename.py
 - [x] 更新 src/typedown/server/application.py 移除导入
-- [ ] 运行测试验证
+- [x] 运行测试验证 (16 tests passed)
 
 ## Review Comments
 <!-- Required for Review/Done stage. Record review feedback here. -->
