@@ -2,7 +2,7 @@
 title: 脚本系统
 ---
 
-# 脚本系统 (Script System)
+# 脚本系统
 
 Typedown 的脚本系统允许在 `.td` 文件的 Front Matter 中定义操作逻辑，将静态文档转化为可执行的单元。
 
@@ -17,17 +17,17 @@ Typedown 的脚本系统允许在 `.td` 文件的 Front Matter 中定义操作�
 # 定义该文件的专属动作
 scripts:
   # 覆盖标准动作：验证当前文件逻辑
-  validate: 'typedown validate --strict ${FILE}'
+  validate: 'typedown check --full ${FILE}'
 
   # 自定义动作：连接工商局接口核验数据
   verify-business: 'python scripts/oracle_check.py --id ${entity.id}'
 
   # 组合动作
-  ci-pass: 'typedown validate ${FILE} && typedown run verify-business'
+  ci-pass: 'typedown check --full ${FILE} && typedown run verify-business'
 ---
 ```
 
-## 2. 作用域与继承 (Scoping)
+## 2. 作用域与继承
 
 脚本解析遵循**就近原则 (Nearest Winner)**，实现了配置的层级继承：
 

@@ -2,7 +2,7 @@
 title: 文件元数据
 ---
 
-# 文件元数据 (Front Matter)
+# 文件元数据
 
 Typedown 文件支持标准的 YAML Front Matter，位于文件及其开头。用于定义文件级别的元数据和快捷脚本。
 
@@ -24,14 +24,14 @@ scripts: ...
 | **author** | `str`       | 文档作者。                       |
 | **order**  | `int`       | 在目录中的排序优先级。           |
 
-## 脚本 (Scripts)
+## 脚本
 
 `scripts` 字段用于定义该文件的专属操作命令。
 
 ```yaml
 scripts:
   # 覆盖默认的验证命令
-  validate: 'typedown validate --strict ${FILE}'
+  validate: 'typedown check --full ${FILE}'
 
   # 自定义测试命令
   test-api: 'pytest tests/api_test.py --target ${entity.id}'

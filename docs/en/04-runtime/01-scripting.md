@@ -17,13 +17,13 @@ Scripts are defined in the file's Front Matter.
 # Define actions specific to this file
 scripts:
   # Override standard action: validate current file logic
-  validate: 'typedown validate --strict ${FILE}'
+  validate: 'typedown check --full ${FILE}'
 
   # Custom action: connect to business bureau API to verify data
   verify-business: 'python scripts/oracle_check.py --id ${entity.id}'
 
   # Combined action
-  ci-pass: 'typedown validate ${FILE} && typedown run verify-business'
+  ci-pass: 'typedown check --full ${FILE} && typedown run verify-business'
 ---
 ```
 

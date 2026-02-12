@@ -1,77 +1,98 @@
-# 质量控制 (Quality Control)
+# 质量控制
 
-Typedown 的质量控制体系分为四层，从底层的语法校验到顶层的外部事实核验。
+Typedown 提供统一的 `check` 命令，包含四个渐进式验证阶段。每个阶段建立在前一阶段之上，允许根据当前工作流需求在速度和彻底性之间进行权衡。
 
-## 1. QC 层级模型
+## 渐进式验证
+
+四个阶段形成管道，每个阶段都是前一阶段的超集：
 
 ```mermaid
-graph TD
-    L1[L1: Syntax] -->|Pass| L2[L2: Schema Check]
-    L2 -->|Pass| L3[L3: Internal Logic]
-    L3 -->|Pass| L4[L4: External Verification]
+graph LR
+    syntax --> structure --> local --> global
 ```
 
-### L1: 语法与格式 (Syntax & Format)
+### 阶段 1: Syntax
 
-- **对应命令**: `typedown lint`
-- **运行时机**: 编辑时 / Pre-commit
-- **检查内容**:
-  - Markdown AST 结构合法性。
-  - YAML 格式正确性（缩进、特殊字符）。
-  - **不加载 Python 环境**。
+最快的检查，仅解析文件而不加载 Python 环境。
 
-### L2: 数据合规性 (Schema Compliance)
+```bash
+typedown check syntax
+```
 
-- **对应命令**: `typedown check`
-- **运行时机**: 编辑时 / Save
-- **核心引擎**: Pydantic Runtime
-- **检查内容**:
-  - 加载 `model` 定义。
-  - 实例化 `entity`。执行所有 Pydantic 原生校验：
-    - 类型检查 (Type Checking)。
-    - 字段校验器 (`@field_validator`)。
-    - 模型校验器 (`@model_validator`)。
-    - 计算字段 (`@computed_field`)。
-    - 引用格式校验 (Reference Format)。
-  - **边界**: 确保数据在“结构上”是完美的。**不运行 Spec**。
+验证 Markdown AST 结构和 YAML 格式正确性。在活跃编辑期间使用，当你需要即时反馈语法错误时。
 
-### L3: 业务逻辑完整性 (Business Logic)
+### 阶段 2: Structure
 
-- **对应命令**: `typedown validate` (默认包含 L1+L2)
-- **运行时机**: 编译时 / Build 前
-- **核心引擎**: Typedown Runtime + Spec System (基于 Pytest)
-- **检查内容**:
-  - **Graph Resolution**: 确保所有引用指引向存在的实体。
-  - **Selector Binding**: 运行 `spec` 块。
-  - **Complex Rules**: 验证跨实体约束或复杂的特定领域规则（支持 SQL 聚合查询）。
-  - **精准反馈**:
-    - **双向诊断**: 错误同时反馈在 `spec` 规则定义处和受影响的 `entity` 数据定义处。
-    - **精确定位**: 通过解析 Pytest Traceback，直接将错误波浪线标记在 `spec` 块中失败的 `assert` 行。
-    - **智能归因**: 支持通过 `blame()` 函数手动指定违规实体，降低聚合错误时的干扰。
-  - **目标**: 逻辑自洽 (Internal Consistency)。**绝不**发起网络请求。
+加载模型并实例化实体，但不运行验证器。
 
-### L4: 外部事实核验 (External Verification)
+```bash
+typedown check structure
+```
 
-- **对应命令**: `typedown test`
-- **运行时机**: CI / Release
-- **核心引擎**: Oracles
-- **检查内容**:
-  - **Oracle Interaction**: 调用外部预言机（Government API, CRM, DNS 等）。
-  - **Reality Check**: 验证数据与现实世界的一致性。
-  - **目标**: 事实正确 (External Consistency)。**有副作用**。
+确保实体可以从其原始数据构造。这是结构完整性的轻量级检查。使用 `--fast` 标志作为 syntax 加 structure 的快捷方式。
 
-## 2. 隔离原则
+### 阶段 3: Local
 
-为了保证开发效率和本地安全性，Typedown 严格执行**环境隔离**：
+默认检查级别，对所有实体运行 Pydantic 验证器。
 
-- **Fast Loop (L1/L2)**: 纯本地，毫秒级响应。IDE 插件应实时执行。
-- **Safe Loop (L3)**: 纯本地，秒级响应。构建和提交前的必选项。
-- **Trusted Loop (L4)**: 仅在受信任环境（CI/CD）或显式授权下执行。涉及外部交互。
+```bash
+typedown check
+typedown check local
+```
 
-## 3. 标准构建
+执行字段验证器、模型验证器和计算字段。验证引用格式而不解析它们。确保每个实体内部一致。适合编辑器中的保存前验证。
 
-除了上述校验钩子，Typedown 还定义了 `build` 钩子用于产物生成。
+### 阶段 4: Global
 
-- **Command**: `typedown build`
-- **职责**: 幂等地输出 JSON Schema, SQL, HTML 等交付物。
-- **前置条件**: 通常需要通过 L3 (validate) 检查。
+完整的项目验证，包括跨实体引用解析和 spec 执行。
+
+```bash
+typedown check global
+typedown check --full
+```
+
+解析所有引用以验证它们指向存在的实体。运行 spec 块进行复杂的跨实体规则验证。在提交和构建前使用。`--full` 标志运行所有阶段。
+
+## 环境隔离
+
+不同阶段适用于不同环境：
+
+**编辑器集成**: 使用 `syntax` 和 `local` 检查。这些是纯本地操作，响应时间为毫秒级，可安全实时执行。
+
+**提交前**: 使用 `global` 或 `--full` 检查。确保整个项目在提交更改前内部一致。
+
+**持续集成**: 将 `global` 检查作为强制门禁。可选择运行自定义脚本进行外部验证。
+
+## 外部验证
+
+对于需要外部服务的检查，在 Front Matter 或项目配置中定义自定义脚本：
+
+```yaml
+scripts:
+  verify-external: 'python scripts/check_api.py --entity ${entity.id}'
+```
+
+执行方式：
+
+```bash
+typedown run verify-external
+```
+
+这些脚本可能调用外部 API、查询数据库或执行其他有副作用的操作。仅在受信任的环境如 CI/CD 流水线中运行它们。
+
+## 构建脚本
+
+产物生成通过脚本系统处理：
+
+```yaml
+scripts:
+  build: 'python scripts/generate_schema.py && python scripts/export_sql.py'
+```
+
+执行方式：
+
+```bash
+typedown run build
+```
+
+构建脚本应是幂等的，通常需要先通过完整检查。

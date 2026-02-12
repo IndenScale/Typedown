@@ -2,7 +2,7 @@
 title: File Metadata
 ---
 
-# File Metadata (Front Matter)
+# File Metadata
 
 Typedown files support standard YAML Front Matter, located at the very beginning of the file. It is used to define file-level metadata and shortcut scripts.
 
@@ -31,7 +31,7 @@ The `scripts` field is used to define operations specific to the file.
 ```yaml
 scripts:
   # Override default validation command
-  validate: 'typedown validate --strict ${FILE}'
+  validate: 'typedown check --full ${FILE}'
 
   # Custom test command
   test-api: 'pytest tests/api_test.py --target ${entity.id}'

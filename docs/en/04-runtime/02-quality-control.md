@@ -4,74 +4,99 @@ title: Quality Control
 
 # Quality Control
 
-Typedown's quality control system is divided into four layers, ranging from low-level syntax validation to high-level external fact verification.
+Typedown provides a unified `check` command with four progressive validation stages. Each stage builds upon the previous, allowing you to trade speed for thoroughness based on your current workflow needs.
 
-## 1. QC Hierarchy Model
+## Progressive Validation
+
+The four stages form a pipeline where each stage is a superset of the previous:
 
 ```mermaid
-graph TD
-    L1[L1: Syntax] -->|Pass| L2[L2: Schema Check]
-    L2 -->|Pass| L3[L3: Internal Logic]
-    L3 -->|Pass| L4[L4: External Verification]
+graph LR
+    syntax --> structure --> local --> global
 ```
 
-### L1: Syntax & Format
+### Stage 1: Syntax
 
-- **Command**: `typedown lint`
-- **Timing**: Editing / Pre-commit
-- **Checks**:
-  - Markdown AST structure validity.
-  - YAML format correctness (indentation, special characters).
-  - **Does not load Python environment**.
+The fastest check, parsing files without loading the Python environment.
 
-### L2: Schema Compliance
+```bash
+typedown check syntax
+```
 
-- **Command**: `typedown check`
-- **Timing**: Editing / Save
-- **Core Engine**: Pydantic Runtime
-- **Checks**:
-  - Load `model` definitions.
-  - Instantiate `entity`. Execute all Pydantic native validations:
-    - Type Checking.
-    - Field Validators (`@field_validator`).
-    - Model Validators (`@model_validator`).
-    - Computed Fields (`@computed_field`).
-    - Reference Format validation.
-  - **Boundary**: Ensures data is "structurally" perfect. **Does not run Specs**.
+Validates Markdown AST structure and YAML format correctness. Use during active editing when you need instant feedback on syntax errors.
 
-### L3: Business Logic
+### Stage 2: Structure
 
-- **Command**: `typedown validate` (Defaults to include L1+L2)
-- **Timing**: Compile time / Before Build
-- **Core Engine**: Typedown Runtime + Spec System
-- **Checks**:
-  - **Graph Resolution**: Ensures all references point to existing entities.
-  - **Selector Binding**: Run `spec` blocks.
-  - **Complex Rules**: Validate cross-entity constraints or complex domain-specific rules.
-  - **Goal**: Internal Consistency. **Never** initiates network requests.
+Loads models and instantiates entities without running validators.
 
-### L4: External Verification
+```bash
+typedown check structure
+```
 
-- **Command**: `typedown test`
-- **Timing**: CI / Release
-- **Core Engine**: Oracles
-- **Checks**:
-  - **Oracle Interaction**: Call external oracles (Government API, CRM, DNS, etc.).
-  - **Reality Check**: Verify consistency between data and the real world.
-  - **Goal**: External Consistency. **Has side effects**.
+Ensures entities can be constructed from their raw data. This is a lightweight check for structural integrity. Use the `--fast` flag as a shortcut for syntax plus structure.
 
-## 2. Isolation Principle
+### Stage 3: Local
 
-To ensure development efficiency and local safety, Typedown strictly enforces **Environment Isolation**:
+The default check level, running all Pydantic validators on individual entities.
 
-- **Fast Loop (L1/L2)**: Purely local, millisecond-level response. IDE plugins should execute in real-time.
-- **Safe Loop (L3)**: Purely local, second-level response. Mandatory before build and commit.
-- **Trusted Loop (L4)**: Executed only in trusted environments (CI/CD) or with explicit authorization. Involves external interaction.
+```bash
+typedown check
+typedown check local
+```
 
-## 3. Standard Build
+Executes field validators, model validators, and computed fields. Validates reference formats without resolving them. Ensures each entity is internally consistent. Suitable for pre-save validation in editors.
 
-In addition to the validation hooks above, Typedown defines a `build` hook for artifact generation.
+### Stage 4: Global
 
-- **Command**: `typedown build`
-- **Responsibility**: Idempotently output JSON Schema, SQL, HTML, and other deliverables.
-- **Precondition**: Usually requires passing L3 (validate) checks.
+Full project validation including cross-entity reference resolution and spec execution.
+
+```bash
+typedown check global
+typedown check --full
+```
+
+Resolves all references to verify they point to existing entities. Runs spec blocks for complex cross-entity rules. Use this before commits and builds. The `--full` flag runs all stages.
+
+## Environment Isolation
+
+Different stages are appropriate for different environments:
+
+**Editor Integration**: Use `syntax` and `local` checks. These are pure local operations with millisecond response times, safe for real-time execution.
+
+**Pre-commit**: Use `global` or `--full` checks. This ensures the entire project is internally consistent before changes are committed.
+
+**Continuous Integration**: Run `global` checks as a mandatory gate. Optionally run custom scripts for external verification.
+
+## External Verification
+
+For checks requiring external services, define custom scripts in your Front Matter or project configuration:
+
+```yaml
+scripts:
+  verify-external: 'python scripts/check_api.py --entity ${entity.id}'
+```
+
+Execute with:
+
+```bash
+typedown run verify-external
+```
+
+These scripts may call external APIs, query databases, or perform other operations with side effects. Run them only in trusted environments like CI/CD pipelines.
+
+## Build Scripts
+
+Artifact generation is handled through the script system:
+
+```yaml
+scripts:
+  build: 'python scripts/generate_schema.py && python scripts/export_sql.py'
+```
+
+Execute with:
+
+```bash
+typedown run build
+```
+
+Build scripts should be idempotent and typically require passing a full check first.
