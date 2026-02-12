@@ -2,8 +2,8 @@
 id: FEAT-0006
 uid: b392d4
 type: feature
-status: open
-stage: review
+status: closed
+stage: done
 title: 'Complete command refactor: eliminate mock object dependencies'
 created_at: '2026-02-11T21:54:45'
 updated_at: '2026-02-12T09:20:56'
@@ -18,7 +18,7 @@ tags:
 - '#FEAT-0006'
 files: []
 criticality: low
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented
 opened_at: '2026-02-11T21:54:45'
 ---
 
