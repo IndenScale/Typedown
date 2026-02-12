@@ -4,7 +4,7 @@ Related Doc: docs/zh/02_concepts/01_model-and-entity.md Section "作用域"
 Related Doc: docs/zh/04_reference/02_glossary.md Section "Scope"
 """
 
-from test.conftest import assert_no_errors
+from tests.conftest import assert_no_errors
 
 
 class TestScopeRules:

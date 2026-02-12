@@ -5,7 +5,7 @@ Error Codes: E0102 (Config block location error), E0222 (Config execution failed
 """
 
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors
+from tests.conftest import assert_error_exists, assert_no_errors
 
 
 class TestConfigBlock:

@@ -6,7 +6,7 @@ Error Codes: E0231 (Class name mismatch), E0233 (Invalid model type)
 
 import pytest
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors
+from tests.conftest import assert_error_exists, assert_no_errors
 
 
 class TestModelSignatureStrictness:
@@ -218,4 +218,4 @@ class Status(str, Enum):
 
 
 # Need to import here to avoid circular import in fixture
-from test.conftest import TestProjectBuilder  # noqa: E402
+from tests.conftest import TestProjectBuilder  # noqa: E402

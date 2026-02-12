@@ -5,7 +5,7 @@ Error Codes: E0241 (Duplicate ID), E0363 (ID conflict), E0364 (Missing model)
 """
 
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists, assert_no_errors
+from tests.conftest import assert_error_exists, assert_no_errors
 
 
 class TestEntitySignature:

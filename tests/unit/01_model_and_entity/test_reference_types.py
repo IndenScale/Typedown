@@ -6,7 +6,7 @@ Error Codes: E0362 (Type mismatch in Ref[T])
 
 import pytest
 from typedown.core.base.errors import ErrorCode
-from test.conftest import assert_error_exists
+from tests.conftest import assert_error_exists
 
 
 class TestReferenceTypes:
