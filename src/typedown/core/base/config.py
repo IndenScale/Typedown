@@ -35,16 +35,6 @@ class WorkspaceConfig(BaseModel):
     """
     members: List[str] = ["."]
 
-class ScriptConfig(BaseModel):
-    """
-    [scripts] section: Compilation presets.
-    """
-    include: List[str] = Field(default_factory=lambda: ["**"])
-    exclude: List[str] = Field(default_factory=list)
-    strict: bool = False
-    tags: List[str] = Field(default_factory=list)
-    tags_exclude: List[str] = Field(default_factory=list)
-
 class LinkerConfig(BaseModel):
     """
     [linker] section: Configuration for the linkage stage.
@@ -92,8 +82,6 @@ class TypedownConfig(BaseModel):
     """
     package: Optional[PackageConfig] = None
     workspace: Optional[WorkspaceConfig] = None
-    scripts: Dict[str, ScriptConfig] = Field(default_factory=dict)
-    tasks: Dict[str, str] = Field(default_factory=dict, description="Project-level executable scripts (td run <name>)")
     linker: LinkerConfig = Field(default_factory=LinkerConfig)
     test: TestConfig = Field(default_factory=TestConfig)
     security: SecurityConfig = Field(default_factory=SecurityConfig)

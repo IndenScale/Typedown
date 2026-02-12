@@ -23,7 +23,6 @@ def main(
 
 # Import unified check command
 from typedown.commands.check import check as check_cmd
-from typedown.commands.run import run as run_cmd
 
 # Register 'lsp' command
 app.command(name="lsp")(lsp_cmd)
@@ -33,9 +32,6 @@ app.command(name="query")(query_cmd)
 
 # Register unified 'check' command (FEAT-0008)
 app.command(name="check")(check_cmd)
-
-# Register 'run' command (Script System)
-app.command(name="run")(run_cmd)
 
 from typedown.commands.info import info as info_cmd
 app.command(name="info")(info_cmd)

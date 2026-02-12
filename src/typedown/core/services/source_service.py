@@ -109,26 +109,6 @@ class SourceService:
             recompile_callback()
         return success
     
-    def get_document_scripts(
-        self,
-        target: Path,
-        documents: Dict[Path, Document]
-    ) -> Optional[Dict[str, str]]:
-        """
-        Get scripts defined in a document's front matter.
-        
-        Args:
-            target: Path to the document
-            documents: Current documents dictionary
-            
-        Returns:
-            Dictionary of script names to commands, or None if not found
-        """
-        if target in documents:
-            doc = documents[target]
-            return doc.scripts
-        return None
-    
     def parse_document_on_demand(
         self,
         target: Path,

@@ -56,23 +56,6 @@ author: John Doe
         
         assert_no_errors(scan_diag)
     
-    def test_front_matter_scripts(self, project):
-        """Test scripts field parsing."""
-        project.add_config().add_file("test.td", '''
----
-title: Scripted Doc
-scripts:
-  validate: 'typedown check --full ${FILE}'
-  test-api: 'pytest tests/api.py --id ${entity.id}'
-  ci-pass: 'typedown check --full ${FILE} && typedown run test-api'
----
-
-# Content
-''')
-        scan_diag, _, _ = project.compile()
-        
-        assert_no_errors(scan_diag)
-    
     def test_front_matter_order(self, project):
         """Test order field parsing."""
         project.add_config().add_file("test.td", '''

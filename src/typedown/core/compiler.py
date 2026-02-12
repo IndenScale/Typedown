@@ -6,7 +6,6 @@ coordinates multiple specialized services:
 
     Compiler (Facade)
     ├── ValidationService    # L1/L2/L3 validation
-    ├── ScriptService        # Script system
     ├── TestService          # L4 Specs + Oracles
     ├── QueryService         # Query interface
     └── SourceService        # Source file management
@@ -18,7 +17,7 @@ from rich.console import Console
 
 from typedown.core.ast import Document, EntityBlock
 from typedown.core.base.utils import find_project_root, AttributeWrapper
-from typedown.core.base.config import TypedownConfig, ScriptConfig
+from typedown.core.base.config import TypedownConfig
 from typedown.core.base.errors import TypedownError, DiagnosticReport
 from typedown.core.base.symbol_table import SymbolTable
 
@@ -30,7 +29,6 @@ from typedown.core.analysis.source_provider import DiskProvider, OverlayProvider
 from typedown.core.services import (
     SourceService,
     ValidationService,
-    ScriptService,
     TestService,
     QueryService,
 )
@@ -54,7 +52,7 @@ class Compiler:
         self.target_files: Set[Path] = set()
         self.symbol_table: SymbolTable = SymbolTable()
         self.model_registry: Dict[str, Any] = {}
-        self.active_script: Optional[ScriptConfig] = None
+        self.active_script: Optional[Any] = None
         self.diagnostics: DiagnosticReport = DiagnosticReport()
         self.dependency_graph: Optional[Any] = None
         self.resources: Dict[str, Any] = {}
@@ -62,9 +60,6 @@ class Compiler:
         # Services
         self.source_svc = SourceService(self.source_provider, self.console)
         self.validation_svc = ValidationService(
-            self.project_root, self.config, self.source_provider, self.console
-        )
-        self.script_svc = ScriptService(
             self.project_root, self.config, self.source_provider, self.console
         )
         self.test_svc = TestService(self.project_root, self.config, self.console)
@@ -119,26 +114,21 @@ class Compiler:
             self.console.print(traceback.format_exc())
             return False
     
-    def _resolve_script(self, script_name: Optional[str]) -> Optional[ScriptConfig]:
-        """Resolve script name to ScriptConfig or handle error."""
+    def _resolve_script(self, script_name: Optional[str]) -> Optional[Any]:
+        """Resolve script name - scripts are deprecated."""
         if not script_name:
             self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for [cyan]{self.target}[/cyan]")
             return None
         
-        if script_name not in self.config.scripts:
-            from typedown.core.base.errors import ErrorCode, ErrorLevel
-            self.diagnostics.add(TypedownError(
-                f"Script '{script_name}' not found",
-                code=ErrorCode.E0903,
-                level=ErrorLevel.ERROR,
-                details={"script": script_name}
-            ))
-            self._print_diagnostics()
-            return None
-        
-        script = self.config.scripts[script_name]
-        self.console.print(f"[bold blue]Typedown Compiler:[/bold blue] Starting pipeline for script [cyan]:{script_name}[/cyan]")
-        return script
+        from typedown.core.base.errors import ErrorCode, ErrorLevel
+        self.diagnostics.add(TypedownError(
+            f"Script '{script_name}' not found - scripts are deprecated",
+            code=ErrorCode.E0903,
+            level=ErrorLevel.ERROR,
+            details={"script": script_name}
+        ))
+        self._print_diagnostics()
+        return None
     
     def recompile(self):
         """Run the full compilation pipeline in-memory."""
@@ -157,38 +147,28 @@ class Compiler:
     
     def lint(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
         """Stage 1: Syntax Check (Scanner only)."""
-        from typedown.core.base.config import ScriptConfig
-        script_config: Optional[ScriptConfig] = None
         if script:
-            script_config = self.config.scripts.get(script)
-            if not script_config:
-                self.console.print(f"[red]Script '{script}' not found[/red]")
-                return False
+            self.console.print(f"[red]Scripts are deprecated, ignoring script '{script}'[/red]")
         passed, self.diagnostics, self.documents = \
-            self.validation_svc.lint(target or self.target, script_config)
+            self.validation_svc.lint(target or self.target, None)
         self._print_diagnostics()
         return passed
     
     def check_structure(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
         """Stage 2: Structure Check (Scanner + Linker + Pydantic instantiation only)."""
-        from typedown.core.base.config import ScriptConfig
-        script_config: Optional[ScriptConfig] = None
         if script:
-            script_config = self.config.scripts.get(script)
-            if not script_config:
-                self.console.print(f"[red]Script '{script}' not found[/red]")
-                return False
+            self.console.print(f"[red]Scripts are deprecated, ignoring script '{script}'[/red]")
         
         # L1 first
         passed, self.diagnostics, self.documents = \
-            self.validation_svc.lint(target or self.target, script_config)
+            self.validation_svc.lint(target or self.target, None)
         if not passed:
             self._print_diagnostics()
             return False
         
         # Stage 2: Linker + Structure (Pydantic instantiation without validators)
         passed, self.diagnostics, self.documents, self.symbol_table, self.model_registry = \
-            self.validation_svc.check_structure(target or self.target, script_config, self.documents)
+            self.validation_svc.check_structure(target or self.target, None, self.documents)
         if passed:
             self._query_svc = None
         self._print_diagnostics()
@@ -196,17 +176,12 @@ class Compiler:
     
     def check_local(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
         """Stage 3: Local Check (all above + Pydantic validators)."""
-        from typedown.core.base.config import ScriptConfig
-        script_config: Optional[ScriptConfig] = None
         if script:
-            script_config = self.config.scripts.get(script)
-            if not script_config:
-                self.console.print(f"[red]Script '{script}' not found[/red]")
-                return False
+            self.console.print(f"[red]Scripts are deprecated, ignoring script '{script}'[/red]")
         
         # L1 + L2 first
         passed, self.diagnostics, self.documents, self.symbol_table, self.model_registry = \
-            self.validation_svc.check(target or self.target, script_config)
+            self.validation_svc.check(target or self.target, None)
         if not passed:
             self._print_diagnostics()
             return False
@@ -234,12 +209,6 @@ class Compiler:
     def update_source(self, path: Path, content: str) -> bool:
         """Lightweight incremental update."""
         return self.source_svc.update_source(path, content, self.documents, self.target_files)
-    
-    # ==================== Script Operations ====================
-    
-    def run_script(self, script_name: str, target_file: Optional[Path] = None, dry_run: bool = False) -> int:
-        """Execute a script with scope-based resolution."""
-        return self.script_svc.run_script(script_name, target_file, self.documents, dry_run)
     
     # ==================== Test Operations ====================
     

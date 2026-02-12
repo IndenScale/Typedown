@@ -64,8 +64,7 @@ class TypedownParser:
         doc = Document(
             path=Path(path_str), 
             raw_content=content,
-            tags=front_matter_data.get('tags', []),
-            scripts=front_matter_data.get('scripts', {})
+            tags=front_matter_data.get('tags', [])
         )
         
         # Initialize Line Navigator for accurate position tracking
