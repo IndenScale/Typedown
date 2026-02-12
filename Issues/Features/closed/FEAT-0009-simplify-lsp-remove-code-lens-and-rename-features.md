@@ -2,8 +2,8 @@
 id: FEAT-0009
 uid: 32d170
 type: feature
-status: open
-stage: review
+status: closed
+stage: done
 title: 'Simplify LSP: Remove Code Lens and Rename features'
 created_at: '2026-02-12T09:13:51'
 updated_at: '2026-02-12T09:15:33'
