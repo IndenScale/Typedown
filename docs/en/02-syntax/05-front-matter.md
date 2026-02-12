@@ -31,7 +31,7 @@ The `scripts` field is used to define operations specific to the file.
 ```yaml
 scripts:
   # Override default validation command
-  validate: 'td validate --strict ${FILE}'
+  validate: 'typedown validate --strict ${FILE}'
 
   # Custom test command
   test-api: 'pytest tests/api_test.py --target ${entity.id}'

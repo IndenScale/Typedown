@@ -60,14 +60,14 @@ role: "admin"
 在终端中运行检查：
 
 ```bash
-td check .
+typedown check .
 ```
 
 你会看到 Typedown 扫描了当前目录，并报告：**No errors found**。🎉
 
 这就是 Typedown 的核心体验：**强类型的 Markdown**。
 
-如果你尝试修改 `alice` 的 `age` (一个未定义的字段)，或者将 `name` 改为数字，`td check` 会立即报错。
+如果你尝试修改 `alice` 的 `age` (一个未定义的字段)，或者将 `name` 改为数字，`typedown check` 会立即报错。
 
 ## 4. 下一步
 

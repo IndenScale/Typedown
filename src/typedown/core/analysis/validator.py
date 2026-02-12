@@ -184,6 +184,111 @@ class Validator:
 
         self.console.print(f"    [green]✓[/green] Checked schema for {total_checked} entities.")
 
+    def check_structure_only(self, documents: Dict[Path, Document], symbol_table: SymbolTable, model_registry: Dict[str, Any]):
+        """
+        Stage 2: Structure Check - Pydantic instantiation only, skipping validators.
+        
+        This is faster than check_schema as it avoids running field/model validators.
+        """
+        from pydantic import ValidationError
+        
+        total_checked = 0
+        for doc in documents.values():
+            for entity in doc.entities:
+                model_cls = self._resolve_model_class(entity, symbol_table, model_registry)
+                
+                if not model_cls:
+                    continue
+                
+                from typedown.core.parser.desugar import Desugarer
+                
+                # Pre-process: Desugar YAML artifacts
+                data = Desugarer.desugar(entity.raw_data)
+                
+                # Auto-inject ID from Signature if missing in Body
+                if "id" not in data and entity.id:
+                    data["id"] = entity.id
+                
+                try:
+                    # Use model_construct to skip validation, only check structure
+                    # Note: model_construct requires all required fields
+                    # If validation fails due to missing fields, we fall back to normal instantiation
+                    try:
+                        instance = model_cls.model_construct(**data)
+                    except (TypeError, ValueError):
+                        # model_construct failed (e.g., missing required fields)
+                        # Fall back to normal instantiation but ignore validation errors
+                        instance = model_cls(**data)
+                    
+                    # Store instance for later use
+                    entity.resolved_data = instance
+                    total_checked += 1
+                    
+                except ValidationError:
+                    # Structure-level errors only (missing required fields)
+                    # Ignore type validation errors for references
+                    pass
+                except Exception as e:
+                    # Other errors during instantiation
+                    self.diagnostics.add(validator_error(
+                        ErrorCode.E0361,
+                        entity=entity.id or 'anonymous',
+                        details=f"Structure error: {str(e)}",
+                        location=entity.location
+                    ))
+
+    def run_validators_only(self, documents: Dict[Path, Document], symbol_table: SymbolTable, model_registry: Dict[str, Any]):
+        """
+        Stage 3: Run Pydantic validators on already-instantiated entities.
+        
+        Assumes entities have been instantiated via check_structure_only.
+        """
+        from pydantic import ValidationError
+        
+        total_validated = 0
+        for doc in documents.values():
+            for entity in doc.entities:
+                model_cls = self._resolve_model_class(entity, symbol_table, model_registry)
+                
+                if not model_cls:
+                    continue
+                
+                from typedown.core.parser.desugar import Desugarer
+                
+                # Re-instantiate to trigger validators
+                data = Desugarer.desugar(entity.raw_data)
+                
+                if "id" not in data and entity.id:
+                    data["id"] = entity.id
+                
+                try:
+                    model_cls(**data)
+                    total_validated += 1
+                except ValidationError as e:
+                    # Filter out reference-related errors
+                    real_errors = []
+                    for error in e.errors():
+                        loc = error['loc']
+                        val = data
+                        try:
+                            for part in loc:
+                                val = val[part]
+                        except (KeyError, IndexError, TypeError):
+                            val = None
+                        
+                        if isinstance(val, str) and REF_PATTERN.match(val):
+                            continue
+                        
+                        real_errors.append(error)
+                    
+                    if real_errors:
+                        self.diagnostics.add(validator_error(
+                            ErrorCode.E0361,
+                            entity=entity.id or 'anonymous',
+                            details=str(e),
+                            location=entity.location
+                        ))
+
     def _resolve_entity(self, entity: EntityBlock, symbol_table: SymbolTable, model_registry: Dict[str, Any]):
         from typedown.core.parser.desugar import Desugarer
         

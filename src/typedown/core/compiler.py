@@ -155,23 +155,79 @@ class Compiler:
     
     # ==================== Validation Operations ====================
     
-    def lint(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
-        """L1: Syntax Check (Scanner only)."""
-        script = self.config.scripts.get(script_name) if script_name else None
+    def lint(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
+        """Stage 1: Syntax Check (Scanner only)."""
+        from typedown.core.base.config import ScriptConfig
+        script_config: Optional[ScriptConfig] = None
+        if script:
+            script_config = self.config.scripts.get(script)
+            if not script_config:
+                self.console.print(f"[red]Script '{script}' not found[/red]")
+                return False
         passed, self.diagnostics, self.documents = \
-            self.validation_svc.lint(target or self.target, script)
+            self.validation_svc.lint(target or self.target, script_config)
         self._print_diagnostics()
         return passed
     
-    def check(self, target: Optional[Path] = None, script_name: Optional[str] = None) -> bool:
-        """L2: Schema Compliance (Scanner + Linker + Pydantic)."""
-        script = self.config.scripts.get(script_name) if script_name else None
+    def check_structure(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
+        """Stage 2: Structure Check (Scanner + Linker + Pydantic instantiation only)."""
+        from typedown.core.base.config import ScriptConfig
+        script_config: Optional[ScriptConfig] = None
+        if script:
+            script_config = self.config.scripts.get(script)
+            if not script_config:
+                self.console.print(f"[red]Script '{script}' not found[/red]")
+                return False
+        
+        # L1 first
+        passed, self.diagnostics, self.documents = \
+            self.validation_svc.lint(target or self.target, script_config)
+        if not passed:
+            self._print_diagnostics()
+            return False
+        
+        # Stage 2: Linker + Structure (Pydantic instantiation without validators)
         passed, self.diagnostics, self.documents, self.symbol_table, self.model_registry = \
-            self.validation_svc.check(target or self.target, script)
+            self.validation_svc.check_structure(target or self.target, script_config, self.documents)
         if passed:
             self._query_svc = None
         self._print_diagnostics()
         return passed
+    
+    def check_local(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
+        """Stage 3: Local Check (all above + Pydantic validators)."""
+        from typedown.core.base.config import ScriptConfig
+        script_config: Optional[ScriptConfig] = None
+        if script:
+            script_config = self.config.scripts.get(script)
+            if not script_config:
+                self.console.print(f"[red]Script '{script}' not found[/red]")
+                return False
+        
+        # L1 + L2 first
+        passed, self.diagnostics, self.documents, self.symbol_table, self.model_registry = \
+            self.validation_svc.check(target or self.target, script_config)
+        if not passed:
+            self._print_diagnostics()
+            return False
+        
+        # Stage 3: Run Pydantic validators (field validators, model validators)
+        passed, self.diagnostics = \
+            self.validation_svc.check_local(self.documents, self.symbol_table, self.model_registry, self.diagnostics)
+        if passed:
+            self._query_svc = None
+        self._print_diagnostics()
+        return passed
+    
+    def check_global(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
+        """Stage 4: Global Check (all above + Reference resolution + Specs)."""
+        # Full compile (L1 + L2 + L3 reference resolution + specs)
+        passed = self.compile(script_name=script, run_specs=True)
+        return passed
+    
+    def check(self, target: Optional[Path] = None, script: Optional[str] = None) -> bool:
+        """Legacy: L2 Schema Compliance (defaults to local stage)."""
+        return self.check_local(target, script)
     
     # ==================== Source Management ====================
     

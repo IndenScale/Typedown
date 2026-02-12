@@ -83,7 +83,7 @@ class ValidationService:
         script: Optional[ScriptConfig] = None
     ) -> tuple[bool, DiagnosticReport, Dict[Path, Document], SymbolTable, Dict[str, Any]]:
         """
-        L2: Schema Compliance (Scanner + Linker + Pydantic).
+        L2: Schema Compliance (Scanner + Linker + Pydantic instantiation + validators).
         
         Args:
             target: Target path to check
@@ -97,7 +97,74 @@ class ValidationService:
         if not lint_passed:
             return False, diagnostics, documents, SymbolTable(), {}
         
-        # Linker (Stage 2)
+        # Stage 2 + 3: Linker + Validation (structure + local)
+        return self._run_validation(documents, diagnostics, run_validators=True)
+    
+    def check_structure(
+        self,
+        target: Path,
+        script: Optional[ScriptConfig] = None,
+        documents: Optional[Dict[Path, Document]] = None
+    ) -> tuple[bool, DiagnosticReport, Dict[Path, Document], SymbolTable, Dict[str, Any]]:
+        """
+        Stage 2: Structure Check (Pydantic instantiation only, no validators).
+        
+        Args:
+            target: Target path (used if documents not provided)
+            script: Optional script configuration
+            documents: Pre-scanned documents (optional)
+            
+        Returns:
+            Tuple of (passed, diagnostics, documents, symbol_table, model_registry)
+        """
+        if documents is None:
+            # First run L1
+            lint_passed, diagnostics, documents = self.lint(target, script)
+            if not lint_passed:
+                return False, diagnostics, documents, SymbolTable(), {}
+        else:
+            diagnostics = DiagnosticReport()
+        
+        # Stage 2 only: Linker + Structure (no validators)
+        return self._run_validation(documents, diagnostics, run_validators=False)
+    
+    def check_local(
+        self,
+        documents: Dict[Path, Document],
+        symbol_table: SymbolTable,
+        model_registry: Dict[str, Any],
+        existing_diagnostics: DiagnosticReport
+    ) -> tuple[bool, DiagnosticReport]:
+        """
+        Stage 3: Local Check - Run Pydantic validators.
+        
+        Args:
+            documents: Scanned and linked documents
+            symbol_table: Linked symbol table
+            model_registry: Model registry
+            existing_diagnostics: Existing diagnostics to extend
+            
+        Returns:
+            Tuple of (passed, diagnostics)
+        """
+        diagnostics = existing_diagnostics
+        
+        # Run validators on already-instantiated entities
+        validator = Validator(self.console)
+        validator.run_validators_only(documents, symbol_table, model_registry)
+        diagnostics.extend(validator.diagnostics.errors)
+        
+        passed = not diagnostics.has_errors()
+        return passed, diagnostics
+    
+    def _run_validation(
+        self,
+        documents: Dict[Path, Document],
+        diagnostics: DiagnosticReport,
+        run_validators: bool = True
+    ) -> tuple[bool, DiagnosticReport, Dict[Path, Document], SymbolTable, Dict[str, Any]]:
+        """Internal: Run linker and validation."""
+        # Linker
         linker = Linker(self.project_root, self.config, self.console)
         linker.link(documents)
         symbol_table = linker.symbol_table
@@ -107,9 +174,12 @@ class ValidationService:
         if diagnostics.has_errors():
             return False, diagnostics, documents, symbol_table, model_registry
         
-        # Validation (Pydantic-only part of Phase 3)
+        # Validation
         validator = Validator(self.console)
-        validator.check_schema(documents, symbol_table, model_registry)
+        if run_validators:
+            validator.check_schema(documents, symbol_table, model_registry)
+        else:
+            validator.check_structure_only(documents, symbol_table, model_registry)
         diagnostics.extend(validator.diagnostics.errors)
         
         passed = not diagnostics.has_errors()

@@ -17,7 +17,7 @@ graph TD
 
 ### L1: Syntax & Format
 
-- **Command**: `td lint`
+- **Command**: `typedown lint`
 - **Timing**: Editing / Pre-commit
 - **Checks**:
   - Markdown AST structure validity.
@@ -26,7 +26,7 @@ graph TD
 
 ### L2: Schema Compliance
 
-- **Command**: `td check`
+- **Command**: `typedown check`
 - **Timing**: Editing / Save
 - **Core Engine**: Pydantic Runtime
 - **Checks**:
@@ -41,7 +41,7 @@ graph TD
 
 ### L3: Business Logic
 
-- **Command**: `td validate` (Defaults to include L1+L2)
+- **Command**: `typedown validate` (Defaults to include L1+L2)
 - **Timing**: Compile time / Before Build
 - **Core Engine**: Typedown Runtime + Spec System
 - **Checks**:
@@ -52,7 +52,7 @@ graph TD
 
 ### L4: External Verification
 
-- **Command**: `td test`
+- **Command**: `typedown test`
 - **Timing**: CI / Release
 - **Core Engine**: Oracles
 - **Checks**:
@@ -72,6 +72,6 @@ To ensure development efficiency and local safety, Typedown strictly enforces **
 
 In addition to the validation hooks above, Typedown defines a `build` hook for artifact generation.
 
-- **Command**: `td build`
+- **Command**: `typedown build`
 - **Responsibility**: Idempotently output JSON Schema, SQL, HTML, and other deliverables.
 - **Precondition**: Usually requires passing L3 (validate) checks.

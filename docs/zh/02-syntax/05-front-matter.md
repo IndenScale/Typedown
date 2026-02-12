@@ -31,7 +31,7 @@ scripts: ...
 ```yaml
 scripts:
   # 覆盖默认的验证命令
-  validate: 'td validate --strict ${FILE}'
+  validate: 'typedown validate --strict ${FILE}'
 
   # 自定义测试命令
   test-api: 'pytest tests/api_test.py --target ${entity.id}'

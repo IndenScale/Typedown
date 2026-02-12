@@ -17,13 +17,13 @@ Scripts are defined in the file's Front Matter.
 # Define actions specific to this file
 scripts:
   # Override standard action: validate current file logic
-  validate: 'td validate --strict ${FILE}'
+  validate: 'typedown validate --strict ${FILE}'
 
   # Custom action: connect to business bureau API to verify data
   verify-business: 'python scripts/oracle_check.py --id ${entity.id}'
 
   # Combined action
-  ci-pass: 'td validate ${FILE} && td run verify-business'
+  ci-pass: 'typedown validate ${FILE} && typedown run verify-business'
 ---
 ```
 
@@ -53,8 +53,8 @@ Users invoke these scripts through a unified interface, without needing to memor
 
 ```bash
 # Execute the validate script of the current file
-$ td run validate user_profile.td
+$ typedown run validate user_profile.td
 
 # Batch execute test scripts for all files in the specs/ directory
-$ td run test specs/
+$ typedown run test specs/
 ```

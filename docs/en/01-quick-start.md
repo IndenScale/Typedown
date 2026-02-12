@@ -60,14 +60,14 @@ Here we used an `entity` block to create an entity of type `User` with the ID `a
 Run the check in your terminal:
 
 ```bash
-td check .
+typedown check .
 ```
 
 You will see Typedown scan the current directory and report: **No errors found**. 🎉
 
 This is the core experience of Typedown: **Strongly Typed Markdown**.
 
-If you try to modify `alice`'s `age` (an undefined field), or change `name` to a number, `td check` will report an error immediately.
+If you try to modify `alice`'s `age` (an undefined field), or change `name` to a number, `typedown check` will report an error immediately.
 
 ## 4. Next Steps
 

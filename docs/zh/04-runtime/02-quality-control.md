@@ -13,7 +13,7 @@ graph TD
 
 ### L1: 语法与格式 (Syntax & Format)
 
-- **对应命令**: `td lint`
+- **对应命令**: `typedown lint`
 - **运行时机**: 编辑时 / Pre-commit
 - **检查内容**:
   - Markdown AST 结构合法性。
@@ -22,7 +22,7 @@ graph TD
 
 ### L2: 数据合规性 (Schema Compliance)
 
-- **对应命令**: `td check`
+- **对应命令**: `typedown check`
 - **运行时机**: 编辑时 / Save
 - **核心引擎**: Pydantic Runtime
 - **检查内容**:
@@ -37,7 +37,7 @@ graph TD
 
 ### L3: 业务逻辑完整性 (Business Logic)
 
-- **对应命令**: `td validate` (默认包含 L1+L2)
+- **对应命令**: `typedown validate` (默认包含 L1+L2)
 - **运行时机**: 编译时 / Build 前
 - **核心引擎**: Typedown Runtime + Spec System (基于 Pytest)
 - **检查内容**:
@@ -52,7 +52,7 @@ graph TD
 
 ### L4: 外部事实核验 (External Verification)
 
-- **对应命令**: `td test`
+- **对应命令**: `typedown test`
 - **运行时机**: CI / Release
 - **核心引擎**: Oracles
 - **检查内容**:
@@ -72,6 +72,6 @@ graph TD
 
 除了上述校验钩子，Typedown 还定义了 `build` 钩子用于产物生成。
 
-- **Command**: `td build`
+- **Command**: `typedown build`
 - **职责**: 幂等地输出 JSON Schema, SQL, HTML 等交付物。
 - **前置条件**: 通常需要通过 L3 (validate) 检查。

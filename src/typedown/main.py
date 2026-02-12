@@ -21,10 +21,8 @@ def main(
 ):
     pass
 
-from typedown.commands.lint import lint as lint_cmd
+# Import unified check command
 from typedown.commands.check import check as check_cmd
-from typedown.commands.validate import validate as validate_cmd
-from typedown.commands.test import test as test_cmd
 from typedown.commands.run import run as run_cmd
 
 # Register 'lsp' command
@@ -33,11 +31,8 @@ app.command(name="lsp")(lsp_cmd)
 # Register 'query' command
 app.command(name="query")(query_cmd)
 
-# Register QC commands
-app.command(name="lint")(lint_cmd)
+# Register unified 'check' command (FEAT-0008)
 app.command(name="check")(check_cmd)
-app.command(name="validate")(validate_cmd)
-app.command(name="test")(test_cmd)
 
 # Register 'run' command (Script System)
 app.command(name="run")(run_cmd)
