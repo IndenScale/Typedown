@@ -2,7 +2,7 @@
 
 > **Progressive Formalization for Markdown**
 
-[**Website**](https://typedown.io) · [**Documentation**](https://typedown.io/docs) · [**Issues**](https://github.com/IndenScale/Typedown/issues)
+[**🚀 Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) · [**Documentation**](https://typedown.io/docs) · [**Issues**](https://github.com/IndenScale/Typedown/issues)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -11,6 +11,8 @@
 > **English** | [简体中文](./README.zh-CN.md)
 
 **Typedown** adds a semantic layer to Markdown, transforming it from loose text into a validated knowledge base.
+
+> 💡 **Typedown files (`.td`) are designed to be experienced in an IDE.** Install the [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) to get real-time validation, intelligent navigation, and semantic highlighting.
 
 ## The Problem: Markdown Doesn't Scale
 
@@ -87,9 +89,21 @@ def check_admin_mfa(user: User):
 ```
 ````
 
-## Installation
+## Quick Start
 
-### CLI (For CI/CD)
+### Option 1: VS Code Extension (Recommended)
+
+The best way to experience Typedown is through the IDE extension, which provides real-time validation, go-to-definition, and semantic highlighting.
+
+1. **Install the [VS Code Extension](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)**
+2. **Clone this repository** and open the `cookbook/01_getting_started/` folder in VS Code
+3. Open any `.td` file to see Typedown in action
+
+> ⚠️ **Note:** Typedown files (`.td`) appear as plain Markdown on GitHub. The full experience requires the VS Code extension.
+
+### Option 2: CLI (For CI/CD)
+
+For validating Typedown files in CI pipelines or automation:
 
 ```bash
 # Using uv (recommended)
@@ -97,33 +111,8 @@ uv tool install typedown
 
 # Using pip
 pip install typedown
-```
 
-### VS Code Extension
-
-- [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
-- [**Open VSX**](https://open-vsx.org/extension/Typedown/typedown-vscode)
-
-## Quick Start
-
-Create a `hello.td` file (Typedown uses `.td` extension, fully compatible with Markdown):
-
-````markdown
-```model:User
-class User(BaseModel):
-    name: str
-    email: str
-```
-
-```entity User: alice
-name: "Alice"
-email: "alice@example.com"
-```
-````
-
-Run validation:
-
-```bash
+# Validate a project
 typedown check .
 ```
 
@@ -148,10 +137,12 @@ typedown check --target User
 
 ## Cookbook
 
-查看 [`cookbook/`](./cookbook/) 目录获取学习资源：
+The [`cookbook/`](./cookbook/) directory contains learning resources designed to be used with the VS Code extension:
 
-- **`cookbook/01_getting_started/`** - 渐进式入门教程（中英文）
-- **`cookbook/02_use_cases/`** - 完整实战用例（评标系统、PMO SaaS、ERP 等）
+- **`cookbook/01_getting_started/`** - Progressive tutorials (English & 中文)
+- **`cookbook/02_use_cases/`** - Real-world examples (bid evaluation, PMO SaaS, ERP)
+
+> 💡 **Tip:** Clone the repo and open it in VS Code with the Typedown extension installed for the best learning experience.
 
 ## License
 

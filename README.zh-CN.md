@@ -2,7 +2,7 @@
 
 > **Markdown 渐进式形式化**
 
-[**官网**](https://typedown.io) · [**文档**](https://typedown.io/docs) · [**问题反馈**](https://github.com/IndenScale/Typedown/issues)
+[**🚀 安装 VS Code 扩展**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) · [**文档**](https://typedown.io/docs) · [**问题反馈**](https://github.com/IndenScale/Typedown/issues)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
@@ -11,6 +11,8 @@
 > [English](./README.md) | **简体中文**
 
 **Typedown** 为 Markdown 添加语义层，将松散的文本转化为可验证的知识库。
+
+> 💡 **Typedown 文件 (`.td`) 专为 IDE 体验设计。** 安装 [VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) 以获得实时验证、智能跳转和语义高亮。
 
 ## 问题：Markdown 难以规模化
 
@@ -87,9 +89,21 @@ def check_admin_mfa(user: User):
 ```
 ````
 
-## 安装
+## 快速开始
 
-### CLI 工具（用于 CI/CD）
+### 方式一：VS Code 扩展（推荐）
+
+体验 Typedown 的最佳方式是通过 IDE 扩展，它提供实时验证、跳转到定义和语义高亮。
+
+1. **安装 [VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)**
+2. **克隆本仓库** 并在 VS Code 中打开 `cookbook/01_getting_started/` 文件夹
+3. 打开任意 `.td` 文件即可体验 Typedown
+
+> ⚠️ **注意：** Typedown 文件 (`.td`) 在 GitHub 上显示为普通 Markdown。完整体验需要 VS Code 扩展。
+
+### 方式二：CLI 工具（用于 CI/CD）
+
+用于在 CI 流水线或自动化中验证 Typedown 文件：
 
 ```bash
 # 使用 uv（推荐）
@@ -97,33 +111,8 @@ uv tool install typedown
 
 # 使用 pip
 pip install typedown
-```
 
-### VS Code 扩展
-
-- [**VS Code Marketplace**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode)
-- [**Open VSX**](https://open-vsx.org/extension/Typedown/typedown-vscode)
-
-## 快速开始
-
-创建 `hello.td` 文件（Typedown 使用 `.td` 扩展名，完全兼容 Markdown）：
-
-````markdown
-```model:User
-class User(BaseModel):
-    name: str
-    email: str
-```
-
-```entity User: alice
-name: "Alice"
-email: "alice@example.com"
-```
-````
-
-运行验证：
-
-```bash
+# 验证项目
 typedown check .
 ```
 
@@ -148,10 +137,12 @@ typedown check --target User
 
 ## 教程与案例
 
-查看 [`cookbook/`](./cookbook/) 目录获取学习资源：
+[`cookbook/`](./cookbook/) 目录包含配合 VS Code 扩展使用的学习资源：
 
 - **`cookbook/01_getting_started/`** - 渐进式入门教程（中英文）
-- **`cookbook/02_use_cases/`** - 完整实战用例（评标系统、PMO SaaS、ERP 等）
+- **`cookbook/02_use_cases/`** - 实战用例（评标系统、PMO SaaS、ERP 等）
+
+> 💡 **提示：** 克隆仓库并在安装 Typedown 扩展的 VS Code 中打开，以获得最佳学习体验。
 
 ## 许可证
 
