@@ -27,31 +27,41 @@ files:
 - docs/04_reference/01_error-codes.md
 - docs/04_reference/02_glossary.md
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: null
 opened_at: '2026-02-12T13:09:20'
 ---
 
 ## FEAT-0011: Create English version of documentation
 
 ## Objective
-<!-- Describe the "Why" and "What" clearly. Focus on value. -->
+
+Create comprehensive English documentation for the project to make it accessible to international users.
 
 ## Acceptance Criteria
-<!-- Define binary conditions for success. -->
-- [ ] Criteria 1
+
+- [x] Getting Started documentation translated to English
+- [x] Core Concepts documentation translated to English
+- [x] Guides and References translated to English
+- [x] Error codes and glossary translated to English
 
 ## Technical Tasks
-<!-- Breakdown into atomic steps. Use nested lists for sub-tasks. -->
 
-<!-- Status Syntax: -->
-<!-- [ ] To Do -->
-<!-- [/] Doing -->
-<!-- [x] Done -->
-<!-- [~] Cancelled -->
-<!-- - [ ] Parent Task -->
-<!--   - [ ] Sub Task -->
-
-- [ ] Task 1
+- [x] Translate Getting Started section
+  - [x] Index page
+  - [x] Tutorial page
+- [x] Translate Concepts section
+  - [x] Model and Entity
+  - [x] Validation
+  - [x] Evolution
+  - [x] Configuration
+- [x] Translate Guides section
+  - [x] References
+  - [x] Scripts
+  - [x] Best Practices
+- [x] Translate Reference section
+  - [x] Error Codes
+  - [x] Glossary
 
 ## Review Comments
-<!-- Required for Review/Done stage. Record review feedback here. -->
+
+Documentation translation completed. All sections have been created with proper structure and content.
