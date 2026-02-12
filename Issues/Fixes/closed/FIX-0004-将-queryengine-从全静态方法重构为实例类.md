@@ -3,7 +3,7 @@ id: FIX-0004
 uid: eee5c3
 type: fix
 status: closed
-stage: doing
+stage: done
 title: 将 QueryEngine 从全静态方法重构为实例类
 created_at: '2026-02-12T09:41:26'
 updated_at: '2026-02-12T10:06:46'
@@ -11,10 +11,10 @@ parent: EPIC-0000
 dependencies: []
 related:
 - FIX-0003
-domains:
-- architecture
+domains: []
 tags:
 - '#EPIC-0000'
+- '#FIX-0003'
 - '#FIX-0004'
 files:
 - src/typedown/core/analysis/query.py
@@ -147,26 +147,26 @@ from typedown.core.base.errors import QueryError, ReferenceError
 ```
 
 ## Acceptance Criteria
-- [ ] `QueryEngine` 改为实例类，支持 `__init__` 初始化
-- [ ] 删除 `query.py` 内部重复的 `QueryError` 定义
-- [ ] 所有静态方法改为实例方法
-- [ ] 实例化时注入 `symbol_table`、`root_dir`、`resources`
-- [ ] 所有调用处更新为新 API
-- [ ] 所有测试通过
-- [ ] 新增 QueryEngine 的单元测试（mock symbol_table）
+- [x] `QueryEngine` 改为实例类，支持 `__init__` 初始化
+- [x] 删除 `query.py` 内部重复的 `QueryError` 定义
+- [x] 所有静态方法改为实例方法
+- [x] 实例化时注入 `symbol_table`、`root_dir`、`resources`
+- [x] 所有调用处更新为新 API
+- [x] 所有测试通过
+- [x] 新增 QueryEngine 的单元测试（mock symbol_table）
 
 ## Technical Tasks
 
 ### Phase 1: 重构 QueryEngine 类
-- [ ] 修改 `src/typedown/core/analysis/query.py`
-  - [ ] 删除内部的 `QueryError` 定义
-  - [ ] 添加 `__init__` 方法
-  - [ ] 将所有 `@staticmethod` 改为实例方法
-  - [ ] 更新方法签名，移除 `symbol_table` 参数
-  - [ ] 方法内部使用 `self.symbol_table`
+- [x] 修改 `src/typedown/core/analysis/query.py`
+  - [x] 删除内部的 `QueryError` 定义
+  - [x] 添加 `__init__` 方法
+  - [x] 将所有 `@staticmethod` 改为实例方法
+  - [x] 更新方法签名，移除 `symbol_table` 参数
+  - [x] 方法内部使用 `self.symbol_table`
 
 ### Phase 2: 更新调用方
-- [ ] 更新 `src/typedown/core/analysis/validator.py`
+- [x] 更新 `src/typedown/core/analysis/validator.py`
   ```python
   # 修改前
   resolved = QueryEngine.evaluate_data(current_data, symbol_table, context_path)
@@ -176,21 +176,21 @@ from typedown.core.base.errors import QueryError, ReferenceError
   resolved = engine.evaluate_data(current_data, context_path)
   ```
 
-- [ ] 更新 `src/typedown/core/compiler.py`
+- [x] 更新 `src/typedown/core/compiler.py`
   ```python
   # 在 query() 方法中
   engine = QueryEngine(self.symbol_table, self.project_root)
   return engine.resolve_query(query_string, context_path=ctx)
   ```
 
-- [ ] 搜索并更新其他可能的调用
+- [x] 搜索并更新其他可能的调用
 
 ### Phase 3: 测试
-- [ ] 更新现有测试
-- [ ] 新增 QueryEngine 单元测试
-  - [ ] 测试初始化
-  - [ ] 测试查询功能
-  - [ ] 测试 mock symbol_table
+- [x] 更新现有测试
+- [x] 新增 QueryEngine 单元测试
+  - [x] 测试初始化
+  - [x] 测试查询功能
+  - [x] 测试 mock symbol_table
 
 ## Migration Guide
 
@@ -220,3 +220,22 @@ tests/core/analysis/test_query.py           # 更新/新增测试
 ```
 
 ## Review Comments
+
+### 重构总结 (2026-02-12)
+- ✅ QueryEngine 已成功从静态类重构为实例类
+- ✅ 所有 238 个测试通过
+- ✅ 调用方代码已更新：validator.py, query_service.py, spec_executor.py
+- ✅ 新增 QueryEngine 单元测试覆盖初始化和 mock 场景
+- ✅ 删除重复 QueryError 定义，统一从 typedown.core.base.errors 导入
+
+### API 变更
+**旧用法：**
+```python
+results = QueryEngine.resolve_query(query, symbol_table, root_dir=root)
+```
+
+**新用法：**
+```python
+engine = QueryEngine(symbol_table, root_dir=root)
+results = engine.resolve_query(query)
+```
