@@ -39,16 +39,6 @@ opened_at: '2026-02-12T09:13:51'
 - [x] 确保剩余 LSP 功能正常工作
 
 ## Technical Tasks
-<!-- Breakdown into atomic steps. Use nested lists for sub-tasks. -->
-
-<!-- Status Syntax: -->
-<!-- [ ] To Do -->
-<!-- [/] Doing -->
-<!-- [x] Done -->
-<!-- [~] Cancelled -->
-<!-- - [ ] Parent Task -->
-<!--   - [ ] Sub Task -->
-
 - [x] 删除 src/typedown/server/features/code_lens.py (239行)
 - [x] 删除 src/typedown/server/features/rename.py (92行)
 - [x] 删除 tests/server/features/test_code_lens.py
@@ -57,4 +47,4 @@ opened_at: '2026-02-12T09:13:51'
 - [x] 运行测试验证 (16 tests passed)
 
 ## Review Comments
-<!-- Required for Review/Done stage. Record review feedback here. -->
+代码已删除，测试全部通过。
