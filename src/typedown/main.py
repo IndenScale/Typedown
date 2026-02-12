@@ -79,6 +79,9 @@ app.command(name="info")(info_cmd)
 from typedown.commands.complete import complete as complete_cmd
 app.command(name="complete")(complete_cmd)
 
+from typedown.commands.setup import setup_cmd
+app.add_typer(setup_cmd, name="setup")
+
 @app.command()
 def init(name: str):
     """

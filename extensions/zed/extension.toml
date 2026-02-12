@@ -5,9 +5,3 @@ schema_version = 1
 authors = ["Typedown Team <hfu7565ytru@gmail.com>"]
 description = "Progressive Formalization for Markdown - Typedown language support"
 repository = "https://github.com/IndenScale/Typedown"
-
-[grammars.markdown]
-repository = "https://github.com/tree-sitter-grammars/tree-sitter-markdown"
-rev = "aca7767"
-
-
