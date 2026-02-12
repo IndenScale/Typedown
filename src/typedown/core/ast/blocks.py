@@ -62,15 +62,11 @@ class EntityBlock(Node):
     # 解析后的完整数据 (Desugared/Merged)
     resolved_data: Dict[str, Any] = Field(default_factory=dict)
     
-    # L2: Slug (Logical ID) - Explicitly defined in body as `id: ...`
-    slug: Optional[str] = None
-
     # L3: UUID - Explicitly defined in body as `uuid: ...`
     uuid: Optional[str] = None
 
     # Evolution Semantics
-    former_ids: List[str] = Field(default_factory=list)  # from `former`
-    derived_from_id: Optional[str] = None  # from `derived_from`
+    former: List[str] = Field(default_factory=list)  # from `former`
     
     # Internal Analysis
     references: List[Reference] = Field(default_factory=list)

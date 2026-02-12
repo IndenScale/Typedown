@@ -7,7 +7,6 @@ sync_targets:
     # Whitelist approach: only these items (and their children) will be synced
     include:
       - 'zh'
-      - 'en'
     # Optional: exclusions within the included paths
     exclude: []
 

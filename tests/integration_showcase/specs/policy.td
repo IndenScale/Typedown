@@ -28,7 +28,7 @@ def check_manager_assigned(project):
     assert manager is not None, f"Project {project.name} has no manager"
     
     # If it is resolved to EntityBlock/AttributeWrapper, we can check allow usage
-    # Note: If it's the Slug string (because QueryEngine didn't resolve it? No, it should), 
+    # Note: If it's a reference string (because QueryEngine didn't resolve it? No, it should), 
     # we need to know. 
     # For now, let's just assert truthiness.
     pass

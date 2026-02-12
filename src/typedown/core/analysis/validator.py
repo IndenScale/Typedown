@@ -64,10 +64,10 @@ class Validator:
                 if not entity.id: continue
                 entities_by_id[entity.id] = entity
                 
-                if entity.former_ids:
-                    # former_ids are stored in AST, but might still contain [[ ]] brackets if they were raw strings
+                if entity.former:
+                    # former are stored in AST, but might still contain [[ ]] brackets if they were raw strings
                     # We should handle them.
-                    for f_id in entity.former_ids:
+                    for f_id in entity.former:
                         target_id = f_id
                         match = REF_PATTERN.match(f_id)
                         if match:

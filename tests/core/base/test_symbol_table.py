@@ -8,11 +8,11 @@ class MockNode:
 
 def test_global_resolution():
     st = SymbolTable()
-    node = MockNode("infra/db-prod")
+    node = MockNode("db_prod")
     st.add(node, Path("/project/config.td"))
     
-    assert st.resolve("infra/db-prod", Path("/project/any.td")) == node
-    assert st.resolve("infra/db-prod", Path("/project/sub/any.td")) == node
+    assert st.resolve("db_prod", Path("/project/any.td")) == node
+    assert st.resolve("db_prod", Path("/project/sub/any.td")) == node
 
 def test_scoped_handle_resolution():
     st = SymbolTable()
@@ -51,16 +51,17 @@ def test_handle_shadowing():
     # Resolve 'alice' from dir2 -> node2
     assert st.resolve("alice", Path("/project/dir2/main.td")) == node2
 
-def test_slug_global_access():
+def test_handle_with_path_characters():
+    """测试 Handle 可以包含路径分隔符"""
     st = SymbolTable()
     
-    # Define global slug in a deep file
-    global_node = MockNode("users/bob")
-    st.add(global_node, Path("/project/deep/nested/file.td"))
+    # ID 包含 / 现在被当作 Handle 解析
+    node = MockNode("users/bob")
+    st.add(node, Path("/project/deep/nested/file.td"))
     
     # Access from completely different path
-    # "users/bob" is parsed as Slug, resolved via resolve_slug (global index)
-    assert st.resolve("users/bob", Path("/project/other/main.td")) == global_node
+    # "users/bob" 被解析为 Handle，通过全局索引解析
+    assert st.resolve("users/bob", Path("/project/other/main.td")) == node
 
 def test_missing_handle_falls_back_to_global():
     st = SymbolTable()

@@ -11,7 +11,6 @@ import pytest
 from typedown.core.base.identifiers import (
     Identifier,
     Handle,
-    Slug,
     Hash,
     UUID,
     GlobalIdentifier,
@@ -34,28 +33,11 @@ class TestIdentifierParsing:
         id2 = Identifier.parse("user_config")
         assert isinstance(id2, Handle)
         assert id2.name == "user_config"
-    
-    def test_parse_slug(self):
-        """测试解析 Slug ID"""
-        # 两段路径
-        id1 = Identifier.parse("users/alice")
-        assert isinstance(id1, Slug)
-        assert id1.path == "users/alice"
-        assert id1.level() == 2
-        assert id1.is_global()
         
-        # 多段路径
-        id2 = Identifier.parse("config/database/prod")
-        assert isinstance(id2, Slug)
-        assert id2.segments == ["config", "database", "prod"]
-        assert id2.namespace == "config/database"
-        assert id2.name == "prod"
-        
-        # 版本化 ID (必须包含 / 才能被识别为 Slug，否则为 Handle)
-        # 修正：之前认为 user-alice-v1 是 Slug，但 parse 逻辑依赖 "/"
-        id3 = Identifier.parse("users/alice-v1")
-        assert isinstance(id3, Slug)
-        assert id3.name == "alice-v1"
+        # 连字符名称（不是路径）
+        id3 = Identifier.parse("user-alice-v1")
+        assert isinstance(id3, Handle)
+        assert id3.name == "user-alice-v1"
     
     def test_parse_hash(self):
         """测试解析内容哈希"""
@@ -91,11 +73,6 @@ class TestIdentifierParsing:
         # 单字符名称
         id2 = Identifier.parse("x")
         assert isinstance(id2, Handle)
-        
-        # 长路径
-        id3 = Identifier.parse("a/b/c/d/e/f")
-        assert isinstance(id3, Slug)
-        assert len(id3.segments) == 6
 
 
 class TestHandleIdentifier:
@@ -121,31 +98,6 @@ class TestHandleIdentifier:
         # 可以作为字典键
         d = {h1: "value1"}
         assert d[h2] == "value1"
-
-
-class TestSlugIdentifier:
-    """测试 Slug 标识符"""
-    
-    def test_slug_path_parsing(self):
-        """测试 Slug 的路径解析"""
-        slug = Slug(raw="users/alice-v1", path="users/alice-v1")
-        assert slug.segments == ["users", "alice-v1"]
-        assert slug.namespace == "users"
-        assert slug.name == "alice-v1"
-    
-    def test_slug_single_segment(self):
-        """测试单段 Slug（虽然不常见）"""
-        # 注意：单段应该被解析为 Handle，但如果强制创建 Slug
-        slug = Slug(raw="alice", path="alice")
-        assert slug.segments == ["alice"]
-        assert slug.namespace == ""
-        assert slug.name == "alice"
-    
-    def test_slug_global_property(self):
-        """测试 Slug 是全局标识符"""
-        slug = Slug(raw="users/alice", path="users/alice")
-        assert slug.is_global()
-        assert slug.level() == 2
 
 
 class TestHashIdentifier:
@@ -199,26 +151,22 @@ class TestIdentifierSpectrum:
     """测试标识符光谱的整体行为"""
     
     def test_level_ordering(self):
-        """测试层级顺序：Hash(0) < Handle(1) < Slug(2) < UUID(3)"""
+        """测试层级顺序：Hash(0) < Handle(1) < UUID(3)"""
         hash_id = Identifier.parse("sha256:abc123")
         handle_id = Identifier.parse("alice")
-        slug_id = Identifier.parse("users/alice")
         uuid_id = Identifier.parse("550e8400-e29b-41d4-a716-446655440000")
         
         assert hash_id.level() == 0
         assert handle_id.level() == 1
-        assert slug_id.level() == 2
         assert uuid_id.level() == 3
     
     def test_global_identifier_constraint(self):
-        """测试全局标识符约束（用于 former/derived_from）"""
+        """测试全局标识符约束（用于 former）"""
         # 全局标识符
         hash_id = Identifier.parse("sha256:abc123")
-        slug_id = Identifier.parse("users/alice")
         uuid_id = Identifier.parse("550e8400-e29b-41d4-a716-446655440000")
         
         assert hash_id.is_global()
-        assert slug_id.is_global()
         assert uuid_id.is_global()
         
         # 非全局标识符
@@ -229,7 +177,6 @@ class TestIdentifierSpectrum:
         """测试字符串表示"""
         identifiers = [
             ("alice", "alice"),
-            ("users/alice", "users/alice"),
             ("sha256:abc123", "sha256:abc123"),
             ("550e8400-e29b-41d4-a716-446655440000", "550e8400-e29b-41d4-a716-446655440000"),
         ]
@@ -273,9 +220,9 @@ class TestIdentifierEdgeCases:
         # 应该被解析为 Handle（因为包含连字符但不是 UUID）
         assert isinstance(id_obj, Handle)
     
-    def test_path_with_trailing_slash(self):
-        """测试带尾部斜杠的路径"""
-        # 这会被解析为 Slug（因为包含 /）
-        id_obj = Identifier.parse("users/")
-        assert isinstance(id_obj, Slug)
-        # 注意：这可能不是理想行为，但测试当前实现
+    def test_path_slash_as_handle(self):
+        """测试路径形式的 ID 现在被解析为 Handle"""
+        # 之前包含 / 的会被解析为 Slug，现在统一为 Handle
+        id_obj = Identifier.parse("users/alice")
+        assert isinstance(id_obj, Handle)
+        assert id_obj.name == "users/alice"

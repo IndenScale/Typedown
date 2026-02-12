@@ -66,7 +66,7 @@ def test_former_cycle_disallowed():
         class_name="TypeA"
     )
     entity_a.id = "users/a"
-    entity_a.former_ids = ["[[users/b]]"] 
+    entity_a.former = ["[[users/b]]"] 
     
     entity_b = EntityBlock(
         header_type="entity", header_args="TypeB: users/b", body_lines=[],
@@ -75,7 +75,7 @@ def test_former_cycle_disallowed():
     )
     entity_b.id = "users/b"
 
-    entity_b.former_ids = ["[[users/a]]"]
+    entity_b.former = ["[[users/a]]"]
     
     doc = Document(path=Path("test_former.td"))
     doc.entities = [entity_a, entity_b]

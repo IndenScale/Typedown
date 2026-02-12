@@ -5,7 +5,7 @@ import json
 import tempfile
 import os
 
-from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
+from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
 
 # Use Any for Node to avoid circular imports, or import strictly if possible.
 # Ideally this should be imported from typedown.core.base assuming Node is there.
@@ -64,11 +64,7 @@ class SymbolTable:
         # 2. Register in Global Index (L1/L2)
         self._global_index[node.id] = node
         
-        # 3. Register Explicit L2 (Slug) & L3 (UUID) identifiers from AST
-        # These are always global.
-        if hasattr(node, "slug") and node.slug:
-            self._global_index[node.slug] = node
-            
+        # 3. Register L3 (UUID) identifiers from AST
         if hasattr(node, "uuid") and node.uuid:
             self._global_index[node.uuid] = node
             
@@ -105,8 +101,6 @@ class SymbolTable:
             return self.resolve_hash(identifier.hash_value)
         elif isinstance(identifier, Handle):
             return self.resolve_handle(identifier.name, context_path)
-        elif isinstance(identifier, Slug):
-            return self.resolve_slug(identifier.path)
         elif isinstance(identifier, UUID):
             return self.resolve_uuid(identifier.uuid_value)
         return None
@@ -148,10 +142,6 @@ class SymbolTable:
         
         # Fallback to global index (handles can refer to slugs if unique)
         return self._global_index.get(name)
-
-    def resolve_slug(self, slug_path: str) -> Optional[Any]:
-        """L2: Resolve by global logical path (Slug ID)."""
-        return self._global_index.get(slug_path)
 
     def resolve_uuid(self, uuid_value: str) -> Optional[Any]:
         """L3: Resolve by global UUID."""

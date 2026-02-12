@@ -48,8 +48,7 @@ def test_validator_former_linkage():
     alice_v1.resolved_data = alice_v1.raw_data 
     
     # alice_v2 points to alice_v1 via former
-    # Using L2 Global Identifier: [[user-alice-v1]]
-    alice_v2 = EntityBlock(id="users/alice-v2", class_name="UserAccount", raw_data={"former": "[[user-alice-v1]]", "age": 31, "name": "Alice V2"}, location=SourceLocation(file_path="v2.td", line_start=0, line_end=0), former_ids=["[[user-alice-v1]]"])
+    alice_v2 = EntityBlock(id="alice-v2", class_name="UserAccount", raw_data={"former": "[[user-alice-v1]]", "age": 31, "name": "Alice V2"}, location=SourceLocation(file_path="v2.td", line_start=0, line_end=0), former=["[[user-alice-v1]]"])
     
     docs = {Path("v1.td"): Document(path=Path("v1.td"), raw_content=""), Path("v2.td"): Document(path=Path("v2.td"), raw_content="")}
     docs[Path("v1.td")].entities.append(alice_v1)
@@ -74,7 +73,7 @@ def test_validator_former_invalid_identifier():
     validator = Validator(console)
     
     # former points to local handle "alice-local"
-    entity = EntityBlock(id="alice-next", class_name="UserAccount", raw_data={"former": "alice-local", "name": "Alice"}, location=SourceLocation(file_path="test.td", line_start=0, line_end=0), former_ids=["alice-local"])
+    entity = EntityBlock(id="alice-next", class_name="UserAccount", raw_data={"former": "alice-local", "name": "Alice"}, location=SourceLocation(file_path="test.td", line_start=0, line_end=0), former=["alice-local"])
     
     docs = {Path("test.td"): Document(path=Path("test.td"), raw_content="")}
     docs[Path("test.td")].entities.append(entity)

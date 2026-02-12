@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Any, Optional
 from typedown.core.analysis.query import QueryEngine, QueryError
 from typedown.core.base.errors import ReferenceError
-from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
+from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
 
 
 class MockSymbolTable:
@@ -27,9 +27,6 @@ class MockSymbolTable:
     # Add explicit typed resolvers to satisfy QueryEngine delegation
     def resolve_handle(self, name: str, context_path: Optional[Path] = None) -> Any:
         return self.data.get(name)
-        
-    def resolve_slug(self, path: str) -> Any:
-        return self.data.get(path)
         
     def resolve_hash(self, hash_value: str) -> Any:
         return self.data.get(f"sha256:{hash_value}")
@@ -62,14 +59,15 @@ class TestQueryEngineIdentifierIntegration:
         result = engine._resolve_symbol_path("alice.name")
         assert result == "Alice"
     
-    def test_resolve_slug(self):
-        """测试解析 Slug 标识符"""
+    def test_resolve_handle_with_path_chars(self):
+        """测试解析包含路径字符的 Handle 标识符"""
         symbol_table = MockSymbolTable()
+        # ID 包含 / 现在被解析为 Handle
         symbol_table.data["users/alice"] = {"name": "Alice", "role": "admin"}
         
         engine = QueryEngine(symbol_table)
         
-        # 直接解析 Slug
+        # 直接解析 Handle
         result = engine._resolve_symbol_path("users/alice")
         assert result == {"name": "Alice", "role": "admin"}
         
@@ -115,7 +113,7 @@ class TestQueryEngineIdentifierIntegration:
         
         # 准备不同类型的标识符
         symbol_table.data["alice"] = "handle_value"
-        symbol_table.data["users/alice"] = "slug_value"
+        symbol_table.data["users/alice"] = "handle_with_slash"
         symbol_table.data["sha256:abc123"] = "hash_value"
         symbol_table.data["550e8400-e29b-41d4-a716-446655440000"] = "uuid_value"
         
@@ -123,7 +121,7 @@ class TestQueryEngineIdentifierIntegration:
         
         # 验证每种类型都被正确分派
         assert engine._resolve_symbol_path("alice") == "handle_value"
-        assert engine._resolve_symbol_path("users/alice") == "slug_value"
+        assert engine._resolve_symbol_path("users/alice") == "handle_with_slash"
         assert engine._resolve_symbol_path("sha256:abc123") == "hash_value"
         assert engine._resolve_symbol_path("550e8400-e29b-41d4-a716-446655440000") == "uuid_value"
     
@@ -153,11 +151,11 @@ class TestQueryEngineIdentifierIntegration:
         engine = QueryEngine(symbol_table)
         
         # 不存在的 Handle
-        with pytest.raises(ReferenceError, match="L2 Fuzzy Match failed"):
+        with pytest.raises(ReferenceError, match="L1 Match failed"):
             engine._resolve_symbol_path("nonexistent")
         
-        # 不存在的 Slug
-        with pytest.raises(ReferenceError, match="L1 Exact Match failed"):
+        # 不存在的 Handle（包含 /）
+        with pytest.raises(ReferenceError, match="L1 Match failed"):
             engine._resolve_symbol_path("users/nonexistent")
         
         # 不存在的属性
@@ -188,7 +186,7 @@ class TestQueryEngineWithReference:
     
     def test_reference_identifier_parsing(self):
         """测试 Reference 节点自动解析 identifier"""
-        from typedown.core.ast.document import Reference
+        from typedown.core.ast.blocks import Reference
         from typedown.core.ast.base import SourceLocation
         
         # 创建 Reference 节点
@@ -204,7 +202,7 @@ class TestQueryEngineWithReference:
     
     def test_reference_with_property_access(self):
         """测试带属性访问的 Reference"""
-        from typedown.core.ast.document import Reference
+        from typedown.core.ast.blocks import Reference
         from typedown.core.ast.base import SourceLocation
         
         # 创建带属性访问的 Reference
@@ -213,14 +211,14 @@ class TestQueryEngineWithReference:
             location=SourceLocation(file_path="test.td", line_start=1, line_end=1, col_start=0, col_end=16)
         )
         
-        # 验证只解析基础标识符
+        # 验证只解析基础标识符（现在被解析为 Handle）
         assert ref.identifier is not None
-        assert isinstance(ref.identifier, Slug)
-        assert ref.identifier.path == "users/alice"
+        assert isinstance(ref.identifier, Handle)
+        assert ref.identifier.name == "users/alice"
     
     def test_reference_with_hash(self):
         """测试 Hash 类型的 Reference"""
-        from typedown.core.ast.document import Reference
+        from typedown.core.ast.blocks import Reference
         from typedown.core.ast.base import SourceLocation
         
         hash_value = "a3b2c1d4e5f6789012345678901234567890123456789012345678901234"
@@ -244,7 +242,7 @@ class TestIdentifierSystemBenefits:
         
         identifiers = [
             ("alice", Handle),
-            ("users/alice", Slug),
+            ("users/alice", Handle),  # 现在也是 Handle
             ("sha256:abc123", Hash),
             ("550e8400-e29b-41d4-a716-446655440000", UUID),
         ]
@@ -258,11 +256,12 @@ class TestIdentifierSystemBenefits:
         """验证类型安全性"""
         # 不同类型的标识符不能混淆
         handle = Identifier.parse("alice")
-        slug = Identifier.parse("users/alice")
+        handle2 = Identifier.parse("users/alice")  # 现在也是 Handle
         
-        assert type(handle) != type(slug)
-        assert handle.level() != slug.level()
-        assert handle.is_global() != slug.is_global()
+        # 两者现在都是 Handle
+        assert type(handle) == type(handle2)
+        assert handle.level() == handle2.level()
+        assert handle.is_global() == handle2.is_global()
     
     def test_parsing_resolution_decoupling(self):
         """验证 Parsing 与 Resolution 的解耦"""

@@ -12,7 +12,7 @@ except ImportError:
 
 from typedown.core.ast import EntityBlock
 from typedown.core.base.errors import ReferenceError, QueryError
-from typedown.core.base.identifiers import Identifier, Handle, Slug, Hash, UUID
+from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
 
 console = Console()
 REF_PATTERN = re.compile(r'\[\[(.*?)\]\]')
@@ -337,11 +337,7 @@ class QueryEngine:
                 return val
             elif isinstance(identifier, Handle):
                 val = self.symbol_table.resolve_handle(identifier.name, context_path)
-                if val is None: raise ReferenceError(f"L2 Fuzzy Match failed: Handle '{identifier}' not found in current context.")
-                return val
-            elif isinstance(identifier, Slug):
-                val = self.symbol_table.resolve_slug(identifier.path)
-                if val is None: raise ReferenceError(f"L1 Exact Match failed: System ID '{identifier}' not found in global index.")
+                if val is None: raise ReferenceError(f"L1 Match failed: Handle '{identifier}' not found in current context.")
                 return val
             elif isinstance(identifier, UUID):
                 val = self.symbol_table.resolve_uuid(identifier.uuid_value)

@@ -236,10 +236,8 @@ class TypedownParser:
                                     id=entity_id,
                                     class_name=type_name,
                                     raw_data=data,
-                                    slug=None, # Deprecated: Body 'id' is no longer used as slug. Signature ID is the System ID.
                                     uuid=str(data.get('uuid')) if data.get('uuid') else None,
-                                    former_ids=self._unbox_former(data.get('former')),
-                                    derived_from_id=str(data.get('derived_from')) if data.get('derived_from') else None,
+                                    former=self._unbox_former(data.get('former')),
                                     location=loc,
                                     references=block_refs # To be filled
                                 ))
@@ -319,9 +317,9 @@ class TypedownParser:
     def _unbox_former(self, raw_value: Any) -> List[str]:
         """
         Unbox former field which might be:
-        - "slug" (Str)
-        - ["slug"] (List[Str])
-        - [["slug"]] (List[List[Str]] - Ref Sugar)
+        - "id" (Str)
+        - ["id"] (List[Str])
+        - [["id"]] (List[List[Str]] - Ref Sugar)
         """
         if not raw_value:
             return []
@@ -335,7 +333,7 @@ class TypedownParser:
                 if isinstance(item, str):
                     result.append(item)
                 elif isinstance(item, list):
-                    # Try to unbox ['slug']
+                    # Try to unbox ['id']
                     if len(item) == 1 and isinstance(item[0], str):
                         result.append(item[0])
             return result

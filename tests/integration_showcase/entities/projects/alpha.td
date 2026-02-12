@@ -5,7 +5,7 @@ name: "Alpha Infrastructure Upgrade"
 code: "INFRA-2026-001"
 status: "Execution"
 
-# Cross-module reference using Slug
+# Cross-module reference
 manager: [[employee-alice]]
 
 # Embedded Value Object (Money)

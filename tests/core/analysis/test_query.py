@@ -112,9 +112,6 @@ def test_query_engine_with_mock_symbol_table():
         def resolve_handle(self, name, context_path=None):
             return self._data.get(name)
         
-        def resolve_slug(self, path):
-            return self._data.get(path)
-        
         def resolve_hash(self, hash_value):
             for v in self._data.values():
                 if hasattr(v, 'hash') and v.hash == hash_value:

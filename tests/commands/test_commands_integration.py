@@ -28,21 +28,6 @@ version = "0.1.0"
     return tmp_path
 
 
-class TestLintCommand:
-    """Tests for lint command."""
-    
-    def test_lint_help(self):
-        """Test lint command shows help."""
-        result = runner.invoke(app, ["lint", "--help"])
-        assert result.exit_code == 0
-        assert "--json" in result.output
-    
-    def test_lint_accepts_json_flag(self):
-        """Test lint command accepts --json flag."""
-        result = runner.invoke(app, ["lint", "--help"])
-        assert "--json" in result.output
-
-
 class TestCheckCommand:
     """Tests for check command."""
     
@@ -56,36 +41,6 @@ class TestCheckCommand:
         """Test check command accepts --json flag."""
         result = runner.invoke(app, ["check", "--help"])
         assert "--json" in result.output
-
-
-class TestValidateCommand:
-    """Tests for validate command."""
-    
-    def test_validate_help(self):
-        """Test validate command shows help."""
-        result = runner.invoke(app, ["validate", "--help"])
-        assert result.exit_code == 0
-        assert "--json" in result.output
-    
-    def test_validate_accepts_json_flag(self):
-        """Test validate command accepts --json flag."""
-        result = runner.invoke(app, ["validate", "--help"])
-        assert "--json" in result.output
-
-
-class TestTestCommand:
-    """Tests for test command."""
-    
-    def test_test_help(self):
-        """Test test command shows help."""
-        result = runner.invoke(app, ["test", "--help"])
-        assert result.exit_code == 0
-        assert "--json" in result.output
-    
-    def test_test_accepts_tags(self):
-        """Test test command accepts --tags option."""
-        result = runner.invoke(app, ["test", "--help"])
-        assert "--tags" in result.output
 
 
 class TestInfoCommand:
@@ -157,7 +112,7 @@ class TestCommandConsistency:
     
     def test_all_commands_have_help(self):
         """Test that all main commands have help text."""
-        commands = ["lint", "check", "validate", "test", "info", "query", "run"]
+        commands = ["check", "info", "query", "run", "complete"]
         
         for cmd in commands:
             result = runner.invoke(app, [cmd, "--help"])
@@ -167,7 +122,7 @@ class TestCommandConsistency:
     def test_common_options_available(self):
         """Test that common options are available across commands."""
         # Check that --json is available in all main output commands
-        json_commands = ["lint", "check", "validate", "test", "info", "query", "run", "complete"]
+        json_commands = ["check", "info", "query", "run", "complete"]
         
         for cmd in json_commands:
             result = runner.invoke(app, [cmd, "--help"])

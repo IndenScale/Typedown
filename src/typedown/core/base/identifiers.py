@@ -1,10 +1,9 @@
 """
 Typedown Identifier System - 标识符体系
 
-实现文档中定义的四层标识符光谱 (Identifier Spectrum):
+实现文档中定义的三层标识符光谱 (Identifier Spectrum):
 - L0: Hash (sha256:...) - 内容寻址，绝对鲁棒
 - L1: Handle (alice) - 局部句柄，开发体验优先
-- L2: Slug (user-alice-v1) - 逻辑 ID，跨系统版本控制
 - L3: UUID (550e84...) - 全局唯一标识符
 
 核心设计原则：
@@ -58,8 +57,7 @@ class Identifier(BaseModel, ABC):
         解析规则：
         1. sha256:... -> Hash (L0)
         2. UUID 格式 -> UUID (L3)
-        3. 包含 / -> Slug (L2)
-        4. 其他 -> Handle (L1)
+        3. 其他 -> Handle (L1)
         
         Args:
             raw: 原始标识符字符串
@@ -77,11 +75,7 @@ class Identifier(BaseModel, ABC):
         if _is_uuid(raw):
             return UUID(raw=raw, uuid_value=raw)
         
-        # L2: Slug - Logical ID with Path Structure
-        if "/" in raw:
-            return Slug(raw=raw, path=raw)
-        
-        # L1: Handle - Local Reference
+        # L1: Handle - Local Reference (路径形式已废弃)
         return Handle(raw=raw, name=raw)
 
 
@@ -104,43 +98,6 @@ class Handle(Identifier):
     
     def is_global(self) -> bool:
         return False
-
-
-class Slug(Identifier):
-    """
-    L2: 逻辑 ID (Slug ID)
-    
-    特性：
-    - 路径结构，支持命名空间
-    - 跨系统版本控制
-    - 可用于 former/derived_from
-    
-    示例: user-alice-v1, config/database/prod, models/user-account
-    """
-    
-    path: str = Field(description="路径形式的 ID")
-    
-    def level(self) -> int:
-        return 2
-    
-    def is_global(self) -> bool:
-        return True
-    
-    @property
-    def segments(self) -> list[str]:
-        """返回路径分段"""
-        return self.path.split("/")
-    
-    @property
-    def namespace(self) -> str:
-        """返回命名空间（最后一段之前的部分）"""
-        parts = self.segments
-        return "/".join(parts[:-1]) if len(parts) > 1 else ""
-    
-    @property
-    def name(self) -> str:
-        """返回名称（最后一段）"""
-        return self.segments[-1]
 
 
 class Hash(Identifier):
@@ -216,5 +173,5 @@ def _is_uuid(s: str) -> bool:
 # Type Aliases
 # ============================================================================
 
-AnyIdentifier = Union[Handle, Slug, Hash, UUID]
-GlobalIdentifier = Union[Slug, Hash, UUID]  # 可用于 former/derived_from 的标识符
+AnyIdentifier = Union[Handle, Hash, UUID]
+GlobalIdentifier = Union[Hash, UUID]  # 可用于 former/derived_from 的标识符
