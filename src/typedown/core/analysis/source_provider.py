@@ -47,14 +47,26 @@ class DiskProvider(SourceProvider):
                      yield root
             return
 
+        # Resolve root for consistent comparison
+        root_resolved = root.resolve()
+
         for dirpath, dirnames, filenames in os.walk(root):
+            current_root = Path(dirpath)
+            current_resolved = current_root.resolve()
+
+            # Check for .tdproject boundary (except for the starting root)
+            if current_resolved != root_resolved:
+                if (current_root / ".tdproject").exists():
+                    # Found a project boundary, skip this entire directory
+                    dirnames.clear()
+                    continue
+
             # Prune ignored directories in-place
             if ignore_matcher:
                 # We need to reconstruct full path for checking ignores
                 # os.walk yields dirnames as list of strings.
                 # We want to remove ignored ones.
                 # Note: modifying dirnames in-place affects subsequent recursion.
-                current_root = Path(dirpath)
                 
                 # Filter dirnames
                 # We iterate copy to safe modify original
@@ -67,7 +79,6 @@ class DiskProvider(SourceProvider):
                 for d in to_remove:
                     dirnames.remove(d)
 
-            current_root = Path(dirpath)
             for f in filenames:
                 file_path = current_root / f
                 if file_path.suffix in extensions:
