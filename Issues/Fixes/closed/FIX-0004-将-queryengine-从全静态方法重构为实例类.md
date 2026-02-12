@@ -2,7 +2,7 @@
 id: FIX-0004
 uid: eee5c3
 type: fix
-status: open
+status: closed
 stage: doing
 title: 将 QueryEngine 从全静态方法重构为实例类
 created_at: '2026-02-12T09:41:26'
