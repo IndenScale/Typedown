@@ -94,30 +94,43 @@ class IgnoreMatcher:
 def find_project_root(path: Path) -> Path:
     """
     Ascend from path to find the project root.
-    Markers: .tdignore, pyproject.toml, .git, GEMINI.md
+    
+    Strong Boundary Markers (stop immediately, treat as root):
+        .tdproject - Explicit project boundary marker
+    
+    Weak Boundary Markers (stop if no strong boundary found):
+        typedown.toml, .tdignore, pyproject.toml, .git, GEMINI.md
     """
     path = path.resolve()
     if path.is_file():
         path = path.parent
         
     current = path
+    last_weak_boundary = path
+    
     # Stop at system root
     while current != current.parent:
+        # Strong Boundary: .tdproject is explicit project boundary
+        # Stop immediately and return current directory
+        if (current / ".tdproject").exists():
+            return current
+        
+        # Track weak boundaries as fallback
         if (current / "typedown.toml").exists():
-            return current
-        if (current / ".tdignore").exists():
-            return current
-        if (current / "pyproject.toml").exists():
-            return current
-        if (current / ".git").exists():
-            return current
-        if (current / "GEMINI.md").exists():
-            return current
+            last_weak_boundary = current
+        elif (current / ".tdignore").exists():
+            last_weak_boundary = current
+        elif (current / "pyproject.toml").exists():
+            last_weak_boundary = current
+        elif (current / ".git").exists():
+            last_weak_boundary = current
+        elif (current / "GEMINI.md").exists():
+            last_weak_boundary = current
             
         current = current.parent
-        
-    # Fallback: Just use the initial path
-    return path
+    
+    # Return the deepest weak boundary found, or initial path
+    return last_weak_boundary
 
 class AttributeWrapper:
     """Helper to allow accessing dictionary keys as attributes."""

@@ -1,0 +1,4 @@
+# Typedown Project Boundary Marker
+
+This file marks the boundary of an isolated Typedown project.
+Files within this directory are compiled independently from other projects.
