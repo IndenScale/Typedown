@@ -2,8 +2,8 @@
 id: FEAT-0011
 uid: c91b88
 type: feature
-status: open
-stage: review
+status: closed
+stage: done
 title: 创建英文版文档 / Create English version of documentation
 created_at: '2026-02-12T13:09:20'
 updated_at: '2026-02-12T13:12:29'
@@ -27,7 +27,7 @@ files:
 - docs/04_reference/01_error-codes.md
 - docs/04_reference/02_glossary.md
 criticality: medium
-solution: null # implemented, cancelled, wontfix, duplicate
+solution: implemented # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T13:09:20'
 ---
 
