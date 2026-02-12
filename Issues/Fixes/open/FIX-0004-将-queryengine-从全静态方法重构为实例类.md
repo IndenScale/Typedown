@@ -3,10 +3,10 @@ id: FIX-0004
 uid: eee5c3
 type: fix
 status: open
-stage: draft
+stage: doing
 title: 将 QueryEngine 从全静态方法重构为实例类
 created_at: '2026-02-12T09:41:26'
-updated_at: '2026-02-12T09:41:26'
+updated_at: '2026-02-12T10:06:46'
 parent: EPIC-0000
 dependencies: []
 related:
@@ -19,7 +19,7 @@ tags:
 files:
 - src/typedown/core/analysis/query.py
 criticality: high
-solution: null
+solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-12T09:41:26'
 ---
 
