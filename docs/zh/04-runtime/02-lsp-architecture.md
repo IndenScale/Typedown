@@ -32,18 +32,18 @@ LSP 不应仅仅是一个语法高亮器（Syntax Highlighter）。它必须是�
 
 为了保证响应速度与数据新鲜度，LSP 采用双重驱动模式：
 
-1.  **Editor Events (Fast path)**: 响应 `textDocument/didChange`。用户在编辑器中的每一次击键，都会更新内存中的 AST。这用于毫秒级的补全和语法检查。
-2.  **Filesystem Watcher (Truth Path)**: 响应 `FileModified` 事件。通过 `watchdog` 监听整个项目目录。这是为了捕获外部变更（如 `git pull`、脚本生成代码），确保 LSP 的世界观与磁盘对齐。
+1. **Editor Events (Fast path)**: 响应 `textDocument/didChange`。用户在编辑器中的每一次击键，都会更新内存中的 AST。这用于毫秒级的补全和语法检查。
+2. **Filesystem Watcher (Truth Path)**: 响应 `FileModified` 事件。通过 `watchdog` 监听整个项目目录。这是为了捕获外部变更（如 `git pull`、脚本生成代码），确保 LSP 的世界观与磁盘对齐。
 
 ## 2. 功能矩阵
 
-| 功能         | 方法 (LSP Method)                 | 实现策略                                                   | 依赖核心组件                 |
-| :----------- | :-------------------------------- | :--------------------------------------------------------- | :--------------------------- |
-| **实时诊断** | `textDocument/publishDiagnostics` | 用户停止输入 300ms 后触发全量验证 (Validator)              | `Validator`, `Parser`        |
-| **定义跳转** | `textDocument/definition`         | 基于 `EntityBlock.raw_data` 中的引用 -> 查找 `SymbolTable` | `SymbolTable`, `QueryEngine` |
-| **智能补全** | `textDocument/completion`         | 识别当前 AST 节点上下文 -> 过滤可用 ID                     | `SymbolTable`                |
-| **悬停提示** | `textDocument/hover`              | 渲染被引用实体的 Markdown 摘要                             | `EntityBlock.data`           |
-| **引用查找** | `textDocument/references`         | 反向查询依赖图 (`DependencyGraph`)                         | `DependencyGraph`            |
+| 功能 | 方法 (LSP Method) | 实现策略 | 依赖核心组件 |
+| :-- | :-- | :-- | :-- |
+| **实时诊断** | `textDocument/publishDiagnostics` | 用户停止输入 300ms 后触发全量验证 (Validator) | `Validator`, `Parser` |
+| **定义跳转** | `textDocument/definition` | 基于 `EntityBlock.raw_data` 中的引用 -> 查找 `SymbolTable` | `SymbolTable`, `QueryEngine` |
+| **智能补全** | `textDocument/completion` | 识别当前 AST 节点上下文 -> 过滤可用 ID | `SymbolTable` |
+| **悬停提示** | `textDocument/hover` | 渲染被引用实体的 Markdown 摘要 | `EntityBlock.data` |
+| **引用查找** | `textDocument/references` | 反向查询依赖图 (`DependencyGraph`) | `DependencyGraph` |
 
 ## 3. 实现细节
 
@@ -59,9 +59,9 @@ LSP 维护一份 `Workspace` 实例，其中包含：
 
 为了性能，我们不应在每次击键时重编整个项目。
 
-1.  **单文件更新**: `didChange` 仅触发当前文件的 `Parser.parse()`。
-2.  **局部重连**: 仅重新计算受影响文件的符号表和连接。
-3.  **防抖**: 昂贵的 `Validator` (引用解析检查) 应防抖执行。
+1. **单文件更新**: `didChange` 仅触发当前文件的 `Parser.parse()`。
+2. **局部重连**: 仅重新计算受影响文件的符号表和连接。
+3. **防抖**: 昂贵的 `Validator` (引用解析检查) 应防抖执行。
 
 ### 3.3 外部（Project-Level）监听
 

@@ -6,6 +6,14 @@ repos:
         args: [--fix]
       - id: ruff-format
 
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v3.1.0
+    hooks:
+      - id: prettier
+        types_or: [markdown, json, yaml, javascript, typescript]
+        additional_dependencies:
+          - prettier@3.2.5
+
   - repo: local
     hooks:
       # 1. Python Test Suite (Core Logic)

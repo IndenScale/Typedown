@@ -29,17 +29,19 @@ Typedown 采用**词法作用域 (Lexical Scoping)**。解析器按照以下顺�
    - `typedown.yaml` 定义的全局配置。
    - **运行时内置符号 (Built-ins)**:
      - ~~`query()`~~: **(已弃用)** 全局符号查找（支持 ID 和 属性路径）。请使用列表推导式替代：
-       ```python
-       # 替代方案：使用列表推导式进行符号查询
-       # 查找所有以 "db_" 开头的符号
-       [s for s in symbols if s.id.startswith("db_")]
-       
-       # 按类型和名称过滤
-       [s for s in symbols if s.type == "Model" and s.name == target]
-       
-       # 从 context.ids 字典查询
-       [v for k, v in context.ids.items() if k.startswith("prefix")]
-       ```
+
+     ```python
+      # 替代方案：使用列表推导式进行符号查询
+      # 查找所有以 "db_" 开头的符号
+      [s for s in symbols if s.id.startswith("db_")]
+
+      # 按类型和名称过滤
+      [s for s in symbols if s.type == "Model" and s.name == target]
+
+      # 从 context.ids 字典查询
+      [v for k, v in context.ids.items() if k.startswith("prefix")]
+     ```
+
      - `sql()`: (仅限 Spec 块) 基于 DuckDB 的全域 SQL 查询。
      - `blame()`: (仅限 Spec 块) 诊断错误归因。
 
@@ -66,7 +68,7 @@ graph BT
 为了支持环境隔离和多态配置，Typedown 区分**作用域内 ID**与**全局 ID**。
 
 | 概念 | 示例 | 作用域 | 职责 |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | **Scoped ID** | `db_primary` | **Lexical** (随文件位置变化) | **依赖注入 (DI)**。允许代码引用抽象的名字，而非具体实例。 |
 | **Global ID** | `infra/db-prod-v1` | **Global** (全局唯一) | **版本控制**。指向特定的、不可变的实体。 |
 
@@ -103,6 +105,7 @@ workspace/
 ```
 
 **边界规则**:
+
 - **文件扫描**: 遇到 `.tdproject` 停止向子目录递归扫描
 - **作用域继承**: `.tdproject` 所在目录作为项目根，阻断向上继承父目录的 `config.td`
 - **多项目安全**: 允许在同一工作区中独立开发多个项目，无需担心 ID 冲突

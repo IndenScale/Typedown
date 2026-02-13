@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.venv/
+
+# Build outputs
+dist/
+build/
+
+# Lock files
+package-lock.json
+uv.lock
+
+# Generated files
+.DS_Store
+
+# Test artifacts
+.pytest_cache/
+.ruff_cache/
+
+# Large directories
+website/node_modules/
+extensions/vscode/node_modules/
+extensions/vscode/out/
