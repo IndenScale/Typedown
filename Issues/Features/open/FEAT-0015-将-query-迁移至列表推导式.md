@@ -63,3 +63,16 @@ results = query("db_*")  # 查找所有以 db_ 开头的符号
 
 ## Review Comments
 
+### Self Review
+
+- **变更范围**: 仅更新文档，不涉及代码逻辑变更
+- **兼容性**: 标记为弃用而非删除，保持向后兼容
+- **文档质量**: 提供了3种常见场景的列表推导式示例
+- **双语同步**: 英文文档已同步更新
+
+### Migration Path
+
+对于现有使用 `query()` 的用户，建议迁移路径：
+1. 简单前缀匹配: `query("prefix*")` → `[s for s in symbols if s.id.startswith("prefix")]`
+2. 属性路径查询: `query("obj.prop")` → `[getattr(s, 'prop', None) for s in symbols if hasattr(s, 'prop')]`
+3. 复杂条件: 利用列表推导式的完整 Python 表达式能力
