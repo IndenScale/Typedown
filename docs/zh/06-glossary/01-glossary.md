@@ -15,12 +15,12 @@ title: 术语表
 
 ### Entity (实体)
 
-- **Block Signature**: ` ```entity <Type>: <Identifier> ``` `
+- **Block Signature**: ` ```entity <Type>: <ID> ``` `
 - **定义**: Typedown 中的基本数据单元。它是 Model 的一个具体实例（Instance），包含符合 Schema 定义的 YAML 数据。
 
 ### Spec (规格说明)
 
-- **Block Signature**: ` ```spec:<Identifier> ``` `
+- **Block Signature**: ` ```spec:<ID> ``` `
 - **定义**: 基于 Pytest 编写的测试用例，用于描述需要访问**全局符号表**的复杂逻辑约束。Spec 通过 `tags` 与 Entity 进行绑定，验证实体在整个知识图谱中的一致性。
 
 ### Model Schema (模型架构)
@@ -44,31 +44,29 @@ _(尚未实现)_ Typedown 系统外部提供可信陈述的信息来源（如 ER
 
 在文档中使用 `[[target]]` 语法指向另一个实体的行为。引用是构建知识图谱（Graph）的基础。
 
-### System ID (系统标识)
+### ID (标识符)
 
-**L1 标识符**。实体的全局唯一名称，通常反映其在文件系统中的位置或逻辑路径。用于版本控制和持久化引用。
+实体的名称。ID 在作用域内唯一，用于引用实体。
 
-### Handle (句柄)
+- **格式**: 任何不以 `sha256:` 开头的字符串。
+- **示例**: `alice`, `user-alice-v1`, `users/alice`
 
-**L2 标识符**。在特定作用域（Scope）内使用的别名。用于依赖注入（Dependency Injection）和多态配置，允许在不同环境中使用相同的名字指向不同的实体。
+### Content Hash (内容哈希)
+
+基于实体内容计算的 SHA-256 哈希值，用于内容寻址。
+
+- **格式**: `sha256:` 前缀 + 64 位十六进制字符串。
+- **用途**: 不可变引用、版本锁定、历史追踪。
 
 ### Slug
 
-一种 URL 友好的字符串标识符格式，通常用作 System ID。
-
-### 三重解析 (Triple Resolution)
-
-编译器解析引用时的查找机制，优先级从高到低：
-
-1. **L0: Content Hash (内容哈希)**: 基于内容的不可变寻址（如 `sha256:...`）。
-2. **L1: System ID (系统 ID)**: 全局唯一的、版本化的标识符（如 `infra/db-prod-v1`）。
-3. **L2: Handle (句柄)**: 上下文相关的、可变的名字（如 `db_primary`）。
+一种 URL 友好的字符串标识符格式，通常用作 ID。
 
 ## 3. 运行时与作用域 (Runtime & Scoping)
 
 ### Context (上下文)
 
-解析特定文件时可见的符号（Symbols）集合，包括可用的 Models、Handles 和 Variables。
+解析特定文件时可见的符号（Symbols）集合，包括可用的 Models、IDs 和 Variables。
 
 ### Scope (作用域)
 

@@ -36,7 +36,7 @@ class User(BaseModel):
 
 ### 2. 空间 (Graph)
 
-使用 **内容哈希 (L0)**、**句柄 (L1)** 或 **全局 ID (L2)** 来解析链接。
+使用 **ID** 或 **内容哈希** 来解析链接。
 
 ```markdown
 这份报告由 [[users/alice]] 撰写。

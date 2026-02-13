@@ -41,7 +41,7 @@ LSP 不应仅仅是一个语法高亮器（Syntax Highlighter）。它必须是�
 | :----------- | :-------------------------------- | :--------------------------------------------------------- | :--------------------------- |
 | **实时诊断** | `textDocument/publishDiagnostics` | 用户停止输入 300ms 后触发全量验证 (Validator)              | `Validator`, `Parser`        |
 | **定义跳转** | `textDocument/definition`         | 基于 `EntityBlock.raw_data` 中的引用 -> 查找 `SymbolTable` | `SymbolTable`, `QueryEngine` |
-| **智能补全** | `textDocument/completion`         | 识别当前 AST 节点上下文 -> 过滤可用 Handle/ID              | `SymbolTable`                |
+| **智能补全** | `textDocument/completion`         | 识别当前 AST 节点上下文 -> 过滤可用 ID                     | `SymbolTable`                |
 | **悬停提示** | `textDocument/hover`              | 渲染被引用实体的 Markdown 摘要                             | `EntityBlock.data`           |
 | **引用查找** | `textDocument/references`         | 反向查询依赖图 (`DependencyGraph`)                         | `DependencyGraph`            |
 
@@ -61,7 +61,7 @@ LSP 维护一份 `Workspace` 实例，其中包含：
 
 1.  **单文件更新**: `didChange` 仅触发当前文件的 `Parser.parse()`。
 2.  **局部重连**: 仅重新计算受影响文件的符号表和连接。
-3.  **防抖**: 昂贵的 `Validator` (L3 Check) 应防抖执行。
+3.  **防抖**: 昂贵的 `Validator` (引用解析检查) 应防抖执行。
 
 ### 3.3 外部（Project-Level）监听
 

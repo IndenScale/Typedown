@@ -17,7 +17,7 @@ SEMANTIC_LEGEND = SemanticTokensLegend(
 def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
     """
     Provide semantic tokens for references [[...]] with context awareness.
-    - Inside Entity Blocks: Enforce STRICT pattern (L0/L1 identifiers only).
+    - Inside Entity Blocks: Enforce STRICT pattern (Hash/ID identifiers only).
     - Outside (Free Text): Allow LOOSE pattern (Query strings).
     """
     if not ls.is_ready:
@@ -86,7 +86,7 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
             
             # 3. Apply Context-Specific Rules
             if in_entity_block:
-                # STRICT RULE: Must match L0/L1 pattern
+                # STRICT RULE: Must match Hash/ID pattern
                 if not strict_content_pattern.match(ref_content):
                     continue # Ignore invalid refs inside Entity Block (let them be plain text)
             
@@ -103,7 +103,7 @@ def semantic_tokens(ls: TypedownLanguageServer, params: SemanticTokensParams):
             
             # Resolve Type (if compiler available)
             if ls.compiler.symbol_table and ref_content in ls.compiler.symbol_table:
-                # Use resolve_handle to support local context LOOKUP if needed, 
+                # Use resolve_id to support local context LOOKUP if needed, 
                 # but map index is by name/ID usually.
                 # Assuming symbol_table keys are IDs or Handles.
                 entity = ls.compiler.symbol_table.get(ref_content, None)

@@ -89,13 +89,13 @@ class CompletionService:
         """Complete for [[entity: scope - show all known Entities."""
         items = []
         for key, entity in self.compiler.symbol_table.items():
-            # Determine System ID (L1) vs Handle (L2)
+            # Get entity ID
             system_id = getattr(entity, 'id', key)
             
             # Check if it's a HandleWrapper pointing to an Entity
             if hasattr(entity, 'value') and hasattr(entity.value, 'id'):
                 system_id = entity.value.id
-                detail_text = f"Handle -> {system_id}"
+                detail_text = f"Scoped -> {system_id}"
             else:
                 detail_text = getattr(entity, 'class_name', "Entity")
             
@@ -142,13 +142,13 @@ class CompletionService:
         
         # 2. Entities (Icon: Class/Struct)
         for key, entity in self.compiler.symbol_table.items():
-            # Determine System ID (L1) vs Handle (L2)
+            # Get entity ID
             system_id = getattr(entity, 'id', key)
             
             # Check if it's a HandleWrapper pointing to an Entity
             if hasattr(entity, 'value') and hasattr(entity.value, 'id'):
                 system_id = entity.value.id
-                detail_text = f"Handle -> {system_id}"
+                detail_text = f"Scoped -> {system_id}"
             else:
                 detail_text = getattr(entity, 'class_name', "Entity")
             

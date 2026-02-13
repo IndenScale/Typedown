@@ -41,7 +41,7 @@ To ensure response speed and data freshness, LSP adopts a dual-drive mode:
 | :------------------------ | :-------------------------------- | :------------------------------------------------------------------- | :--------------------------- |
 | **Real-time Diagnostics** | `textDocument/publishDiagnostics` | Trigger full validation (Validator) 300ms after user stops typing    | `Validator`, `Parser`        |
 | **Jump to Definition**    | `textDocument/definition`         | Based on reference in `EntityBlock.raw_data` -> Lookup `SymbolTable` | `SymbolTable`, `QueryEngine` |
-| **Smart Completion**      | `textDocument/completion`         | Identify current AST node context -> Filter available Handle/ID      | `SymbolTable`                |
+| **Smart Completion**      | `textDocument/completion`         | Identify current AST node context -> Filter available ID             | `SymbolTable`                |
 | **Hover Tooltip**         | `textDocument/hover`              | Render Markdown summary of the referenced entity                     | `EntityBlock.data`           |
 | **Find References**       | `textDocument/references`         | Reverse lookup dependency graph (`DependencyGraph`)                  | `DependencyGraph`            |
 
@@ -61,7 +61,7 @@ For performance, we should not recompile the entire project on every keystroke.
 
 1.  **Single File Update**: `didChange` only triggers `Parser.parse()` for the current file.
 2.  **Partial Reconnection**: Only recalculate symbol tables and connections for affected files.
-3.  **Debounce**: Expensive `Validator` (L3 Check) should be debounced.
+3.  **Debounce**: Expensive `Validator` (reference resolution check) should be debounced.
 
 ### 3.3 External (Project-Level) Listening
 

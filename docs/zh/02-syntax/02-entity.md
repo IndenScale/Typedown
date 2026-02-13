@@ -5,19 +5,19 @@
 ## 语法签名 (Block Signature)
 
 ````typedown
-```entity <TypeName>: <SystemID>
+```entity <TypeName>: <ID>
 <YAML Body>
 ```
 ````
 
 - **关键字**: `entity`
 - **类型**: `<TypeName>` 必须是当前上下文中已定义的一个 Model 类名。
-- **标识符**: `<SystemID>` 是该实体的全局唯一标识符（L1 ID）。
-- **空格不敏感**: 关键字、冒号与标识符之间的空格不再敏感。例如 `entity User:alice` 与 `entity User : alice` 等效。
+- **ID**: `<ID>` 是该实体的标识符，在作用域内唯一。
+- **空格不敏感**: 关键字、冒号与 ID 之间的空格不再敏感。例如 `entity User:alice` 与 `entity User : alice` 等效。
 
-## 标识符规则
+## ID 规则
 
-System ID 是实体的**主键**，在 v0.2.13+ 中遵循以下严格限制：
+ID 是实体的**主键**，在 v0.2.13+ 中遵循以下严格限制：
 
 - **字符限制**: 标识符仅允许包含字母、数字、下划线 `_` 和连字符 `-`（正则表达式：`[a-zA-Z0-9_\-]+`）。不再支持点 `.` 符号。
 - **命名风格**: 推荐使用 `slug-style` (例如 `user-alice-v1`)。

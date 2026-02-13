@@ -11,7 +11,7 @@ except ImportError:
     HAS_DUCKDB = False
 
 from typedown.core.base.errors import ReferenceError, QueryError
-from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
+from typedown.core.base.identifiers import Identifier, ID, Hash
 
 console = Console()
 REF_PATTERN = re.compile(r'\[\[(.*?)\]\]')
@@ -200,7 +200,7 @@ class QueryEngine:
         Args:
             query: The query string (e.g., "User.alice", "assets/image.png", "sha256:...").
             scope: Optional directory limit for resolution.
-            context_path: The file path where the query originates (for Triple Resolution).
+            context_path: The file path where the query originates (for Identifier Resolution).
 
         Returns:
             List of matching blocks/objects. If ambiguous, returns multiple.
@@ -273,7 +273,7 @@ class QueryEngine:
         """
         Resolve symbol path using Identifier separation.
         Steps:
-        1. Identify Root Identifier (Handle/Slug/Hash/UUID).
+        1. Identify Root Identifier (ID/Hash).
         2. Resolve Root Object.
         3. Traverse Property Path (if any).
         """
@@ -287,14 +287,14 @@ class QueryEngine:
         # But let's support "ID.property".
         
         # NOTE: Slug IDs can contain slashes, but NOT dots (usually).
-        # Handles generally don't contain dots.
+        # IDs generally don't contain dots.
         # So splitting by first dot is a reasonable default, BUT:
         # What if ID is "v1.2/config"? (Slug with dot).
         # Our Identifier parser is context-free.
         
         # Strategy:
         # Try to parse the WHOLE string as identifier first?
-        # If "User.name" is parsed as Handle("User.name"), we fail to find it, then what?
+        # If "User.name" is parsed as ID("User.name"), we fail to find it, then what?
         # This is the "Dot ambiguity" problem.
         # Simplest approach: Assume "." starts property path unless part of known pattern.
         
@@ -303,7 +303,7 @@ class QueryEngine:
         # But let's support "ID.property".
         
         # NOTE: Slug IDs can contain slashes, but NOT dots (usually).
-        # Handles generally don't contain dots.
+        # IDs generally don't contain dots.
         # So splitting by first dot is a reasonable default.
         
         if "." in query:
@@ -329,21 +329,16 @@ class QueryEngine:
     def _resolve_by_identifier(self, identifier: Identifier, context_path: Optional[Path] = None) -> Any:
         """Dispatch resolution based on Identifier type."""
         # Use SymbolTable's specific methods if available (Preferred)
-        if hasattr(self.symbol_table, "resolve_handle"):
+        if hasattr(self.symbol_table, "resolve_id"):
             if isinstance(identifier, Hash):
                 val = self.symbol_table.resolve_hash(identifier.hash_value)
                 if val is None:
                     raise ReferenceError(f"Hash not found: {identifier}")
                 return val
-            elif isinstance(identifier, Handle):
-                val = self.symbol_table.resolve_handle(identifier.name, context_path)
+            elif isinstance(identifier, ID):
+                val = self.symbol_table.resolve_id(identifier.name, context_path)
                 if val is None:
-                    raise ReferenceError(f"L1 Match failed: Handle '{identifier}' not found in current context.")
-                return val
-            elif isinstance(identifier, UUID):
-                val = self.symbol_table.resolve_uuid(identifier.uuid_value)
-                if val is None:
-                    raise ReferenceError(f"UUID not found: {identifier}")
+                    raise ReferenceError(f"ID resolution failed: '{identifier}' not found in current context.")
                 return val
 
         # Fallback to generic resolve or dict lookup (Legacy/Testing)
@@ -368,7 +363,7 @@ class QueryEngine:
         - Array indexing: items[0]
         - Wildcard: User.* (returns the entire object)
         """
-        # Unwrap Variable Handles at the start
+        # Unwrap Variable wrappers at the start
         if hasattr(current_data, "type") and getattr(current_data, "type") == "variable" and hasattr(current_data, "value"):
             current_data = current_data.value
         

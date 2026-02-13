@@ -71,7 +71,7 @@ def check(
     
        The [[...]] syntax in entities is type-checked and validated during the
        global stage. References must point to existing entities with valid
-       L1 IDs (alphanumeric, dots, dashes, underscores).
+       IDs (alphanumeric, dots, dashes, underscores).
     
     3. Statistical Constraints:
     

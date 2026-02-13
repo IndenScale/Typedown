@@ -2,41 +2,62 @@
 title: Identifiers
 ---
 
-# Identifier System (Identifiers)
+# Identifier System
 
-Typedown uses identifiers of varying precision at different stages.
+Typedown supports two identifier forms: **ID** and **Content Hash**.
 
-## Identifier Types
+## ID
 
-We define identifiers as three different **Resolution States**:
+An ID is the name of an entity, used to reference entities within a scope.
 
-| Level  | Strategy | Stage    | Characteristics                              |
-| :----- | :------- | :------- | :------------------------------------------- |
-| **L0** | Hash     | Runtime  | **Absolute**. Content-based hash validation. |
-| **L1** | Exact    | Compiler | **Precise**. Unique string indexing.         |
-| **L2** | Fuzzy    | Editing  | **Inference**. Context-based derivation.     |
+### Format
 
-> **Tip**: The essential difference between L2 (Handle) and L1 (System ID) is **whether fuzzy matching is allowed**.
->
-> - During **IDE Input**, you type `alice` (L2), and the completion tool recognizes it as `user-alice-v1`.
-> - During **File Save**, it must be solidified as `user-alice-v1` (L1) in the code for precise parsing by the compiler.
+- Any string that doesn't start with `sha256:`
+- Allowed characters: letters, numbers, underscores `_`, hyphens `-`
+- Not allowed: spaces, slashes `/`, dots `.`
 
-### System ID Styles
+### Styles
 
-For the compiler kernel, **Name, Slug, and UUID are essentially no different**; they are all string keys for **L1 System ID**. The choice of style depends purely on project conventions:
+| Style | Example | Use Case |
+| :---- | :------ | :------- |
+| **Simple Name** | `alice` | Small projects, local scope |
+| **Slug Style** | `user-alice-v1` | Recommended, namespace clear, globally unique |
 
-- **Name Style**: `alice` (Short, but prone to conflicts in large projects)
-- **Slug Style**: `user-alice-v1` (Recommended, clear namespace)
-- **UUID Style**: `550e84...` (Machine-generated, no semantics)
+### Scoping
 
-Whichever style is chosen, as long as it is globally unique and precisely referenced, it is an **L1 System ID**.
+ID lookup follows lexical scoping rules:
+1. Current file
+2. Current directory (`config.td`)
+3. Parent directories (recursively upward)
+4. Global index
 
-## Identifier Resolution Priority
+## Content Hash
 
-When a reference `[[target]]` occurs, the parser strictly follows the **L0 -> L1 -> L2** order:
+Content Hash is a SHA-256 hash computed from the entity's content, used for content addressing.
 
-1. **L0 Check (Hash)**: Checks if it matches `sha256:...` format. If so, proceeds with content addressing directly.
-2. **L1 Check (ID)**: Exact lookup for corresponding `id` or `uuid` in the global index.
-3. **L2 Check (Handle)**: Fuzzy match lookup for Handle in the local context.
+### Format
 
-> **Design Intent**: Precision over fuzziness, global over local. This ensures the determinism of references while preserving the flexibility of the development experience.
+```
+sha256:<64-character hexadecimal string>
+```
+
+### Calculation
+
+```
+SHA-256( Trim( YAML_Content ) )
+```
+
+### Usage
+
+- **Immutable References**: Lock specific versions of content
+- **Integrity Verification**: Verify content has not been tampered with
+- **History Tracking**: Reference historical versions in `former` field
+
+## Resolution Priority
+
+When a reference `[[target]]` occurs, the resolver processes it in the following order:
+
+1. **Hash Check**: Check if it matches `sha256:...` format. If so, use content addressing directly.
+2. **ID Lookup**: Lookup by name in the current scope chain, fallback to global index if not found.
+
+> **Design Intent**: Precise (Hash) beats fuzzy (ID), ensuring reference determinism.

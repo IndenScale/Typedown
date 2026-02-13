@@ -64,7 +64,7 @@ class EntityBlock(Node):
     # Fully parsed data (Desugared/Merged)
     resolved_data: Dict[str, Any] = Field(default_factory=dict)
     
-    # L3: UUID - Explicitly defined in body as `uuid: ...`
+    # UUID - Explicitly defined in body as `uuid: ...`
     uuid: Optional[str] = None
 
     # Evolution Semantics
@@ -83,7 +83,7 @@ class EntityBlock(Node):
         # Use raw_data for hashing as resolved_data depends on external factors
         # Sort keys to ensure deterministic hash
         content = json.dumps(self.raw_data, sort_keys=True, ensure_ascii=False, default=str)
-        # Optimization from TODOS: class_name + Handle/ID + Canonical YAML
+        # Optimization from TODOS: class_name + ID + Canonical YAML
         canonical = f"{self.class_name}:{self.id}:{content}"
         return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 

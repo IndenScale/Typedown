@@ -1,23 +1,28 @@
 """
 Typedown Identifier System
 
-Implements the three-level Identifier Spectrum defined in the documentation:
-- L0: Hash (sha256:...) - Content addressing, absolutely robust
-- L1: Handle (alice) - Local handle, developer experience first
-- L3: UUID (550e84...) - Globally unique identifier
+Implements the two-type reference system:
+- Hash (sha256:...) - Content addressing, immutable reference, globally stable
+- ID - Local identifier, scoped reference, developer experience first
 
 Core Design Principles:
 1. **No naked strings**: Elevate identifiers from strings to strongly-typed objects
 2. **Decouple Parsing from Resolution**:
    - Parsing (Context-Free): Identify identifier type
    - Resolution (Context-Aware): Lookup the entity the identifier points to
-3. **Type Safety**: Prevent confusion between different identifier levels via the type system
+3. **Type Safety**: Prevent confusion between different identifier types via the type system
 """
 
-import uuid
-from abc import ABC, abstractmethod
+from abc import ABC
+from enum import Enum, auto
 from typing import Union
 from pydantic import BaseModel, Field
+
+
+class ReferenceType(Enum):
+    """Enumeration of reference types in Typedown."""
+    ID = auto()      # Local scoped identifier
+    HASH = auto()    # Content hash for immutable addressing
 
 
 class Identifier(BaseModel, ABC):
@@ -32,15 +37,10 @@ class Identifier(BaseModel, ABC):
     
     raw: str = Field(description="Raw string representation")
     
-    @abstractmethod
-    def level(self) -> int:
-        """Returns the level of the identifier in the spectrum (0-3)."""
-        pass
-    
-    @abstractmethod
-    def is_global(self) -> bool:
-        """Whether this is a globally stable identifier (can be used for former/derived_from)."""
-        pass
+    @property
+    def ref_type(self) -> ReferenceType:
+        """Returns the type of this reference."""
+        raise NotImplementedError
     
     def __str__(self) -> str:
         return self.raw
@@ -54,9 +54,8 @@ class Identifier(BaseModel, ABC):
         Factory method: Parse a raw string into a concrete Identifier type.
         
         Parsing rules:
-        1. sha256:... -> Hash (L0)
-        2. UUID format -> UUID (L3)
-        3. Others -> Handle (L1)
+        1. sha256:... -> Hash
+        2. Others -> ID
         
         Args:
             raw: Raw identifier string
@@ -66,42 +65,34 @@ class Identifier(BaseModel, ABC):
         """
         raw = raw.strip()
         
-        # L0: Hash - Content Addressing
         if raw.startswith("sha256:"):
             return Hash(raw=raw, hash_value=raw[7:])
         
-        # L3: UUID - Global Unique Identifier
-        if _is_uuid(raw):
-            return UUID(raw=raw, uuid_value=raw)
-        
-        # L1: Handle - Local Reference (path format is deprecated)
-        return Handle(raw=raw, name=raw)
+        return ID(raw=raw, name=raw)
 
 
-class Handle(Identifier):
+class ID(Identifier):
     """
-    L1: Local Handle
+    Local identifier for scoped references.
     
     Characteristics:
     - Only valid within the current file or directory scope
     - Developer experience first, simple and easy to use
     - Cannot be used for former/derived_from (not globally stable)
     
-    Examples: alice, user_config, temp_data
+    Examples: alice, user_config, temp_data, user-alice-v1
     """
     
-    name: str = Field(description="Handle name")
+    name: str = Field(description="ID name")
     
-    def level(self) -> int:
-        return 1
-    
-    def is_global(self) -> bool:
-        return False
+    @property
+    def ref_type(self) -> ReferenceType:
+        return ReferenceType.ID
 
 
 class Hash(Identifier):
     """
-    L0: Content Hash
+    Content Hash for immutable content addressing.
     
     Characteristics:
     - Content addressing, absolutely robust
@@ -113,11 +104,9 @@ class Hash(Identifier):
     
     hash_value: str = Field(description="SHA256 hash value (without prefix)")
     
-    def level(self) -> int:
-        return 0
-    
-    def is_global(self) -> bool:
-        return True
+    @property
+    def ref_type(self) -> ReferenceType:
+        return ReferenceType.HASH
     
     @property
     def algorithm(self) -> str:
@@ -130,47 +119,8 @@ class Hash(Identifier):
         return self.hash_value[:8]
 
 
-class UUID(Identifier):
-    """
-    L3: Universally Unique Identifier (UUID)
-    
-    Characteristics:
-    - Globally unique without central coordination
-    - Can be used for former/derived_from
-    - Suitable for distributed systems
-    
-    Examples: 550e8400-e29b-41d4-a716-446655440000
-    """
-    
-    uuid_value: str = Field(description="UUID string")
-    
-    def level(self) -> int:
-        return 3
-    
-    def is_global(self) -> bool:
-        return True
-    
-    def as_uuid(self) -> uuid.UUID:
-        """Convert to Python UUID object."""
-        return uuid.UUID(self.uuid_value)
-
-
-# ============================================================================
-# Helper Functions
-# ============================================================================
-
-def _is_uuid(s: str) -> bool:
-    """Check if the string is a valid UUID format."""
-    try:
-        uuid.UUID(s)
-        return True
-    except (ValueError, AttributeError):
-        return False
-
-
 # ============================================================================
 # Type Aliases
 # ============================================================================
 
-AnyIdentifier = Union[Handle, Hash, UUID]
-GlobalIdentifier = Union[Hash, UUID]  # Identifiers that can be used for former/derived_from
+AnyIdentifier = Union[ID, Hash]

@@ -29,7 +29,7 @@ class Validator:
         if entity.location and entity.location.file_path:
             context_path = Path(entity.location.file_path)
             # Linker registers models as AttributeWrapper in SymbolTable
-            wrapper = symbol_table.resolve_handle(entity.class_name, context_path)
+            wrapper = symbol_table.resolve_id(entity.class_name, context_path)
             
             if wrapper and isinstance(wrapper, AttributeWrapper):
                 val = wrapper.value
@@ -294,7 +294,7 @@ class Validator:
         # Desugar standard YAML artifacts like [['ref']] back to "[[ref]]"
         current_data = Desugarer.desugar(entity.raw_data)
 
-        # Determine context path for Triple Resolution / Evolution
+        # Determine context path for Identifier Resolution / Evolution
         context_path = Path(entity.location.file_path) if entity.location else None
 
         # Handle Evolution (former only)

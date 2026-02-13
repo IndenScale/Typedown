@@ -28,25 +28,22 @@ This skill provides expert knowledge for writing **Typedown** files (`.td`). Typ
 4. **Entity Blocks & Identifiers**:
 
 - Every Entity MUST have a unique identity.
-- **Syntax**: `entity <Type>: <Identifier>`
-- **The Identifier**:
-  - The string after the colon is the **System ID (L1)**.
-  - **Styles**: Can be a simple name (`alice`), a slug (`user-alice-v1`) or a UUID (`550e84...`).
+- **Syntax**: `entity <Type>: <ID>`
+- **The ID**:
+  - The string after the colon is the entity identifier.
+  - **Styles**: Can be a simple name (`alice`) or a slug (`user-alice-v1`).
 - **Content**: Valid YAML matching the Pydantic model.
-  - **Reference Rule**: When referencing other entities within an entity block, you **MUST** use the `[[Identifier]]` (Wiki Link) syntax.
+  - **Reference Rule**: When referencing other entities within an entity block, you **MUST** use the `[[ID]]` (Wiki Link) syntax.
 
 5. **References (`[[...]]`)**:
 
-- Typedown resolves references using a **Three-Layer String Matching** strategy (L0 → L2).
-- **Matching Priority**:
-  1. **L0 (Cryptographic Truth)**: `[[sha256:...]]`
-     - Matches content hash exactly. Immutable and absolute.
-  2. **L1 (Exact System ID)**: `[[<ID>]]`
-     - Matches the defined System ID exactly (e.g., `[[user-alice-v1]]` or `[[alice]]`).
-     - **Recommendation**: Always use **Slug Style** for stable, long-term L1 references.
-  3. **L2 (Contextual Handle)**: `[[<Handle>]]`
-     - Matches the System ID via **Fuzzy Lookup** in the current scope.
-     - Example: `[[alice]]` might resolve to `user-alice-v1` if configured in `config.td`.
+- Typedown supports two reference forms:
+  1. **ID Reference**: `[[id]]`
+     - Lookup by name in the current scope or global index.
+     - Examples: `[[alice]]`, `[[users/alice]]`
+  2. **Hash Reference**: `[[sha256:...]]`
+     - Match content hash exactly for immutable references.
+     - Used for version locking and history tracking.
 
 6. **Evolution Semantics (`former`)**:
 
@@ -54,7 +51,7 @@ When tracking object changes over time:
 
 - **Syntax**: `former: [[<Identifier>]]`
 - **Rule**: You **MUST** use the reference syntax `[[]]` for the `former` field.
-- **Rule**: Prefer using **Global Identifiers (L1)** or **Hashes (L0)** for `former` pointers to ensure historical stability. Do NOT use fleeting Local Handles (L2) for history.
+- **Rule**: Prefer using **Content Hash** for `former` pointers to ensure historical stability. Globally unique IDs are also acceptable.
 
 7. **Spec Blocks (`spec`)**:
 

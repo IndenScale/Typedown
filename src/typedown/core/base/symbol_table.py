@@ -4,7 +4,7 @@ import json
 import tempfile
 import os
 
-from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
+from typedown.core.base.identifiers import Identifier, ID, Hash
 
 # Use Any for Node to avoid circular imports, or import strictly if possible.
 # Ideally this should be imported from typedown.core.base assuming Node is there.
@@ -12,7 +12,7 @@ from typedown.core.base.identifiers import Identifier, Handle, Hash, UUID
 
 class SymbolTable:
     """
-    A Path-Aware Symbol Table supporting Typedown's Triple Resolution strategy.
+    A Path-Aware Symbol Table supporting Typedown's Identifier Resolution strategy.
     
     Structure:
     1. Global Index: Flat map of Logical IDs (globally unique).
@@ -29,7 +29,7 @@ class SymbolTable:
         # Scoped Registry: Path("/app/src") -> { "db": Node }
         self._scoped_index: Dict[Path, Dict[str, Any]] = {}
 
-        # Hash Registry: "sha256:..." -> Node (L0 Cache)
+        # Hash Registry: "sha256:..." -> Node
         self._hash_index: Dict[str, Any] = {}
 
         # Type Index: "User" -> [Node, Node]
@@ -47,7 +47,7 @@ class SymbolTable:
             scope_path: The file path where this node is defined. 
                         The scope is associated with the file's PARENT directory.
         """
-        # 1. Register by Hash (L0)
+        # 1. Register by Hash
         if hasattr(node, "content_hash"):
              # For property access, we might need to handle NotImplementedError
              try:
@@ -60,7 +60,7 @@ class SymbolTable:
         if not hasattr(node, "id") or not node.id:
             return
 
-        # 2. Check for duplicate ID in Global Index (L1/L2)
+        # 2. Check for duplicate ID in Global Index
         # Allow re-adding the same object (update), but reject different objects with same ID
         if node.id in self._global_index:
             existing = self._global_index[node.id]
@@ -69,10 +69,10 @@ class SymbolTable:
             # Same object, just return without re-adding
             return
 
-        # 3. Register in Global Index (L1/L2)
+        # 3. Register in Global Index
         self._global_index[node.id] = node
         
-        # 3. Register L3 (UUID) identifiers from AST
+        # 4. Register UUID identifiers from AST
         if hasattr(node, "uuid") and node.uuid:
             self._global_index[node.uuid] = node
             
@@ -100,29 +100,27 @@ class SymbolTable:
 
     def resolve(self, query: str, context_path: Optional[Path] = None) -> Optional[Any]:
         """
-        Execute Triple Resolution using Identifier System.
+        Execute Identifier Resolution using the Identifier System.
         Delegates to specific resolution methods based on Identifier type.
         """
         identifier = Identifier.parse(query)
         
         if isinstance(identifier, Hash):
             return self.resolve_hash(identifier.hash_value)
-        elif isinstance(identifier, Handle):
-            return self.resolve_handle(identifier.name, context_path)
-        elif isinstance(identifier, UUID):
-            return self.resolve_uuid(identifier.uuid_value)
+        elif isinstance(identifier, ID):
+            return self.resolve_id(identifier.name, context_path)
         return None
 
     def resolve_hash(self, hash_value: str) -> Optional[Any]:
-        """L0: Resolve by content hash."""
+        """Resolve by content hash."""
         # Check standard sha256 prefix key
         key = f"sha256:{hash_value}"
         if key in self._hash_index:
             return self._hash_index[key]
         return None
 
-    def resolve_handle(self, name: str, context_path: Optional[Path] = None) -> Optional[Any]:
-        """L1: Resolve local handle by walking up the scope chain."""
+    def resolve_id(self, name: str, context_path: Optional[Path] = None) -> Optional[Any]:
+        """Resolve ID by walking up the scope chain."""
         if not context_path:
             # Fallback to global index if no context provided (legacy behavior support)
             return self._global_index.get(name)
@@ -151,9 +149,8 @@ class SymbolTable:
         # Fallback to global index (handles can refer to slugs if unique)
         return self._global_index.get(name)
 
-    def resolve_uuid(self, uuid_value: str) -> Optional[Any]:
-        """L3: Resolve by global UUID."""
-        # UUIDs are stored in the global index
+    def resolve_by_uuid(self, uuid_value: str) -> Optional[Any]:
+        """Resolve by UUID (stored in global index)."""
         return self._global_index.get(uuid_value)
 
     # --- Dict Compatibility Layer ---

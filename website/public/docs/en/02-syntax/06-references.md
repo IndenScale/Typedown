@@ -12,28 +12,32 @@ Typedown uses double brackets `[[ ]]` as the unified reference syntax.
 
 When using `[[alice]]`, the compiler looks for the best matching target in the current context. This mechanism supports **progressive development**:
 
-- In early drafts, you can use fuzzy Handles (`[[alice]]`).
-- The compiler resolves them into precise entities via **Triple Resolution**.
+- In early drafts, you can use simple IDs (`[[alice]]`).
+- The compiler resolves them into precise entities via name resolution.
 
-If absolute precision is needed, you should lock specific versions via **Content Hash** instead of relying on opaque UUIDs.
+If absolute precision is needed, you should lock specific versions via **Content Hash**.
 
 ## 2. Reference Forms
 
-Typedown supports three reference forms, and the compiler automatically infers your intent based on context.
+Typedown supports two reference forms, and the compiler automatically infers your intent based on context.
 
-- **Slug (Logical ID)**: `[[user-alice-v1]]`
-  - **Semantics**: Points to a specific entity in the global index.
-  - **Recommended Scenario**: Cross-file references, formal documentation links. This is the most common human-readable anchor.
+### ID Reference
 
-- **Handle (Local Handle)**: `[[alice]]`
-  - **Semantics**: Points to a temporary variable name defined in the current file or current code block (Scope).
-  - **Recommended Scenario**: Rapid prototyping, dependency injection within modules.
+`[[id]]` references an entity by name.
 
-- **Hash (Content Fingerprint)**: `[[sha256:8f4b...]]`
-  - **Semantics**: Points to an absolute snapshot of content.
-  - **Recommended Scenario**: System-level locking, releasing Immutable Packages. It is safer than human-named IDs and better than randomly generated UUIDs.
+- **Semantics**: Look up matching entities in the current scope or global index.
+- **Format**: Any string that doesn't start with `sha256:`.
+- **Examples**: `[[alice]]`, `[[user-alice-v1]]`, `[[users/alice]]`
+- **Recommended Scenario**: Daily development, cross-file references, dependency injection.
 
-> See [Identifiers](./identifiers) for full definitions of identifier types.
+### Hash Reference (Content Fingerprint)
+
+`[[sha256:...]]` references an entity by content hash.
+
+- **Semantics**: Points to an absolute snapshot of content.
+- **Format**: `sha256:` prefix + 64-character hexadecimal hash.
+- **Example**: `[[sha256:8f4b2c1d...]]`
+- **Recommended Scenario**: System-level locking, releasing immutable packages, historical version tracking.
 
 ## 3. Content Addressing
 
@@ -45,7 +49,7 @@ The hash value is calculated from the **Canonical Body** of the Entity code bloc
 
 > Algorithm: `SHA-256( Trim( YAML_Content ) )`
 
-This means: as long as the effective data content of two blocks is identical (excluding Handles, comments, or formatting differences), their Hash is identical.
+This means: as long as the effective data content of two blocks is identical (excluding ID, comments, or formatting differences), their Hash is identical.
 
 ### Syntax Example
 

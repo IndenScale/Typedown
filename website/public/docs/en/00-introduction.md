@@ -36,7 +36,7 @@ class User(BaseModel):
 
 ### 2. Space (Graph)
 
-Resolve links using **Content Hash (L0)**, **Handle (L1)**, or **Global ID (L2)**.
+Resolve links using **ID** or **Content Hash**.
 
 ```markdown
 This report was written by [[users/alice]].

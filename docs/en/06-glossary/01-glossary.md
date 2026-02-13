@@ -15,12 +15,12 @@ This document summarizes core terms and definitions in the Typedown ecosystem.
 
 ### Entity
 
-- **Block Signature**: ` ```entity <Type>: <Identifier> ``` `
+- **Block Signature**: ` ```entity <Type>: <ID> ``` `
 - **Definition**: The basic data unit in Typedown. It is a concrete instance of a Model, containing YAML data that conforms to the Schema definition.
 
 ### Spec
 
-- **Block Signature**: ` ```spec:<Identifier> ``` `
+- **Block Signature**: ` ```spec:<ID> ``` `
 - **Definition**: Test cases written based on Pytest, used to describe complex logical constraints that require access to the **global symbol table**. Specs are bound to Entities via `tags` to verify the consistency of the entity within the entire knowledge graph.
 
 ### Model Schema
@@ -44,31 +44,29 @@ _(Not yet implemented)_ Sources of information external to the Typedown system t
 
 The act of pointing to another entity using `[[target]]` syntax within documentation. References are the foundation for building the Knowledge Graph.
 
-### System ID
+### ID
 
-**L1 Identifier**. The globally unique name of an entity, usually reflecting its location in the file system or logical path. Used for version control and persistent references.
+The name of an entity. IDs are unique within their scope and are used to reference entities.
 
-### Handle
+- **Format**: Any string that doesn't start with `sha256:`.
+- **Examples**: `alice`, `user-alice-v1`, `users/alice`
 
-**L2 Identifier**. An alias used within a specific Scope. Used for Dependency Injection (DI) and polymorphic configuration, allowing the same name to point to different entities in different environments.
+### Content Hash
+
+A SHA-256 hash computed from the entity's content, used for content addressing.
+
+- **Format**: `sha256:` prefix + 64-character hexadecimal string.
+- **Usage**: Immutable references, version locking, history tracking.
 
 ### Slug
 
-A URL-friendly string identifier format, typically used as a System ID.
-
-### Triple Resolution
-
-The lookup mechanism used by the compiler when resolving references, with priority from high to low:
-
-1. **L0: Content Hash**: Immutable addressing based on content (e.g., `sha256:...`).
-2. **L1: System ID**: Globally unique, versioned identifier (e.g., `infra/db-prod-v1`).
-3. **L2: Handle**: Context-dependent, mutable name (e.g., `db_primary`).
+A URL-friendly string identifier format, typically used as an ID.
 
 ## 3. Runtime & Scoping
 
 ### Context
 
-The set of symbols visible when parsing a specific file, including available Models, Handles, and Variables.
+The set of symbols visible when parsing a specific file, including available Models, IDs, and Variables.
 
 ### Scope
 

@@ -20,7 +20,7 @@ tags: [python, ast, core]
 
 - **Parser**: 负责将 Markdown/YAML 文本解析为 AST。
 - **AST (Abstract Syntax Tree)**: 定义 `Model`, `Entity`, `Spec` 等节点结构。
-- **Compiler**: 执行 Triple Resolution (L0/L1/L2) 和 Reference 解构。
+- **Compiler**: 执行引用解析（ID 和 Hash）和 Reference 解构。
 - **Runtime**: 提供轻量级执行环境 (如 Spec 校验)。
 
 ## 3. Principles (原则)

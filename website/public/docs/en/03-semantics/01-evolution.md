@@ -11,13 +11,12 @@ Typedown does not treat data as a static artifact, but as a timeline that is con
 The `former` keyword links a new entity state to its previous version.
 
 - **Syntax**: Use `former: [[QueryString]]` in the entity body.
-- **Constraints**: **Must use Global Addressing**.
-  - 🚫 **Prohibited**: Local Handles (e.g., `alice`). Evolution relationships must remain stable across files and contexts.
-  - 🚫 **Prohibited**: Pure String IDs (e.g., `"slug-id"`). According to the latest Typedown specification, explicit reference syntax must be used.
+- **Constraints**: **Must use Stable Addressing**.
+  - 🚫 **Prohibited**: Pure String IDs (e.g., `"slug-id"`). Explicit reference syntax `[[]]` must be used.
+  - ✅ **Recommended**:
+    - **Content Hash**: `[[sha256:8f4b...]]` (Content-based hash, most precise and stable)
   - ✅ **Allowed**:
-    - **Slug ID Reference**: `[[user-alice-v1]]` (Most common)
-    - **UUID Reference**: `[[550e84...]]` (Machine-generated unique identifier)
-    - **Block Fingerprint**: `[[sha256:8f4b...]]` (Content-based hash, most precise)
+    - **Global ID**: `[[user-alice-v1]]` (Globally unique ID)
 - **Semantics**:
   - **Identity Consistency**: The new entity logically represents different points in time of the same object.
   - **Pure Pointer**: `former` exists only as a metadata link to build the timeline. The compiler **does not** perform data merging.

@@ -20,9 +20,9 @@ class TypedownParser:
         )
         # Wiki link pattern: [[Target]]
         self.wiki_link_pattern = re.compile(r'\[\[(.*?)\]\]')
-        # Strict Reference Pattern (L0 Hash | L1 System ID)
-        # L0: sha256:...
-        # L1: Alphanumeric, dots, dashes, underscores (no spaces)
+        # Strict Reference Pattern (Hash | ID)
+        # Hash: sha256:...
+        # ID: Alphanumeric, dots, dashes, underscores (no spaces)
         # Strict ID pattern: letters, digits, underscores, hyphens, and dots
         # Note: Documentation has inconsistency - references.md allows dots, model-and-entity.md doesn't
         # Following the references.md specification which is more permissive
@@ -119,7 +119,7 @@ class TypedownParser:
             # Check Entities
             for ent in doc.entities:
                 if ent.location and self._is_loc_contained(ref.location, ent.location):
-                    # Strict validation for Entity Blocks: Only L0/L1 allowed
+                    # Strict validation for Entity Blocks: Only Hash/ID allowed
                     if self.strict_ref_pattern.match(ref.target):
                         ent.references.append(ref)
                     # Else: Ignore loose query refs inside Entity Blocks (treat as text)
