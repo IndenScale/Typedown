@@ -6,7 +6,7 @@ status: open
 stage: doing
 title: 将 query() 迁移至列表推导式
 created_at: '2026-02-13T11:00:27'
-updated_at: '2026-02-13T11:00:32'
+updated_at: '2026-02-13T11:01:31'
 parent: EPIC-0000
 dependencies: []
 related: []
@@ -15,9 +15,10 @@ tags:
 - '#EPIC-0000'
 - '#FEAT-0015'
 files:
+- docs/en/03-semantics/02-context-and-scope.md
 - docs/zh/03-semantics/02-context-and-scope.md
 criticality: medium
-solution: null
+solution: null # implemented, cancelled, wontfix, duplicate
 opened_at: '2026-02-13T11:00:27'
 ---
 
