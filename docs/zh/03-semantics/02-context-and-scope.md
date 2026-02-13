@@ -22,12 +22,24 @@ Typedown 采用**词法作用域 (Lexical Scoping)**。解析器按照以下顺�
 2. **Directory Scope (当前目录)**:
    - `config.td` 导出的符号。
 3. **Parent Scopes (父级目录)**:
-   - 向上递归直到根目录的 `config.td`。
+   - 向上递归直到项目根目录或文件系统根目录的 `config.td`。
+   - **项目边界 (Project Boundary)**: `.tdproject` 文件标记项目边界，阻断向上继承。
    - _Shadowing_: 子目录定义的 ID 会遮蔽父目录的同名 ID。
 4. **Global Scope (全局预设)**:
    - `typedown.yaml` 定义的全局配置。
    - **运行时内置符号 (Built-ins)**:
-     - `query()`: 全局符号查找（支持 ID 和 属性路径）。
+     - ~~`query()`~~: **(已弃用)** 全局符号查找（支持 ID 和 属性路径）。请使用列表推导式替代：
+       ```python
+       # 替代方案：使用列表推导式进行符号查询
+       # 查找所有以 "db_" 开头的符号
+       [s for s in symbols if s.id.startswith("db_")]
+       
+       # 按类型和名称过滤
+       [s for s in symbols if s.type == "Model" and s.name == target]
+       
+       # 从 context.ids 字典查询
+       [v for k, v in context.ids.items() if k.startswith("prefix")]
+       ```
      - `sql()`: (仅限 Spec 块) 基于 DuckDB 的全域 SQL 查询。
      - `blame()`: (仅限 Spec 块) 诊断错误归因。
 
@@ -35,7 +47,8 @@ Typedown 采用**词法作用域 (Lexical Scoping)**。解析器按照以下顺�
 graph BT
     Global[Global Scope (typedown.yaml)]
     Parent[Parent Directory (config.td)] -->|Inherits| Global
-    Dir[Current Directory (config.td)] -->|Overrides| Parent
+    Boundary[.tdproject Boundary] -->|Blocks| Parent
+    Dir[Current Directory (config.td)] -->|Overrides| Boundary
     Local[Local File] -->|Extends| Dir
 ```
 
@@ -72,6 +85,29 @@ graph BT
 - 在 `/app.td` 中，`[[db]]` 解析为生产库。
 - 在 `/staging/app.td` 中，`[[db]]` 解析为测试库。
 - **无需修改代码**，只需改变运行上下文。
+
+### 场景：项目边界隔离 (Project Boundary Isolation)
+
+使用 `.tdproject` 文件实现多项目共存，解决全局命名空间冲突。
+
+```text
+workspace/
+├── project-a/
+│   ├── .tdproject     # 项目边界标记
+│   ├── config.td
+│   └── models.td      -> entity User: alice
+└── project-b/
+    ├── .tdproject     # 项目边界标记
+    ├── config.td
+    └── models.td      -> entity User: bob  # 同名 ID 不会冲突
+```
+
+**边界规则**:
+- **文件扫描**: 遇到 `.tdproject` 停止向子目录递归扫描
+- **作用域继承**: `.tdproject` 所在目录作为项目根，阻断向上继承父目录的 `config.td`
+- **多项目安全**: 允许在同一工作区中独立开发多个项目，无需担心 ID 冲突
+
+**典型用例**: cookbook 案例、monorepo 中的多个服务、多语言（en/zh）同名示例。
 
 ## 5. 可观测性与对齐 (Observability & Alignment)
 

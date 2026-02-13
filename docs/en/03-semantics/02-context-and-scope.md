@@ -26,17 +26,22 @@ Typedown adopts **Lexical Scoping**. The parser looks up symbols in the followin
 2. **Directory Scope (Current Directory)**:
    - Symbols exported by `config.td`.
 3. **Parent Scopes (Parent Directories)**:
-   - Recursive up to the root directory's `config.td`.
+   - Recursive up to the project root or filesystem root's `config.td`.
+   - **Project Boundary**: `.tdproject` file marks the project boundary, blocking upward inheritance.
    - _Shadowing_: IDs defined in subdirectories shadow IDs with the same name in parent directories.
 4. **Global Scope (Global Preset)**:
    - Global configuration defined in `typedown.yaml`.
-   - Runtime built-in symbols (Built-ins).
+   - **Runtime built-in symbols (Built-ins)**:
+     - `query()`: Global symbol lookup (supports ID and property paths).
+     - `sql()`: (Spec blocks only) DuckDB-based global SQL queries.
+     - `blame()`: (Spec blocks only) Diagnostic error attribution.
 
 ```mermaid
 graph BT
     Global[Global Scope (typedown.yaml)]
     Parent[Parent Directory (config.td)] -->|Inherits| Global
-    Dir[Current Directory (config.td)] -->|Overrides| Parent
+    Boundary[.tdproject Boundary] -->|Blocks| Parent
+    Dir[Current Directory (config.td)] -->|Overrides| Boundary
     Local[Local File] -->|Extends| Dir
 ```
 
@@ -73,6 +78,29 @@ By defining different `config.td` in different directories, we can reuse the sam
 - In `/app.td`, `[[db]]` resolves to the production DB.
 - In `/staging/app.td`, `[[db]]` resolves to the testing DB.
 - **No code modification required**, just changing the running context.
+
+### Scenario: Project Boundary Isolation
+
+Use `.tdproject` files to enable multi-project coexistence and resolve global namespace conflicts.
+
+```text
+workspace/
+├── project-a/
+│   ├── .tdproject     # Project boundary marker
+│   ├── config.td
+│   └── models.td      -> entity User: alice
+└── project-b/
+    ├── .tdproject     # Project boundary marker
+    ├── config.td
+    └── models.td      -> entity User: bob  # Same ID, no conflict
+```
+
+**Boundary Rules**:
+- **File Scanning**: Recursion stops when `.tdproject` is encountered in subdirectories
+- **Scope Inheritance**: The directory containing `.tdproject` serves as project root, blocking upward inheritance of parent `config.td`
+- **Multi-project Safety**: Allows independent development of multiple projects in the same workspace without ID conflicts
+
+**Typical Use Cases**: cookbook examples, multiple services in a monorepo, multi-language (en/zh) examples with identical IDs.
 
 ## 5. Observability & Alignment
 
