@@ -53,7 +53,7 @@ Typedown 支持基于内容的哈希引用。这使得引用可以指向一个**
 
 ### 语法示例
 
-```markdown
+```typedown
 # 引用特定版本的配置快照，无惧原 ID 被修改
 
 base_config: [[sha256:a1b2c3d4...]]
@@ -75,7 +75,7 @@ manager: [[leader]]
 
 这是最显著的语法优化。你不需要编写繁琐的嵌套列表结构。
 
-````markdown
+````typedown
 ```entity Project: death_star
 # 推荐写法 (Block Style)
 contributors:
@@ -90,22 +90,22 @@ reviewers: [ [[emperor]], [[thrawn]] ]
 **底层逻辑**:
 
 1. YAML Parser 读取为 `[['vader'], ['tarkin']]`。
-2. Typedown Validate 发现字段定义为 `List[Reference[T]]`。
+2. Typedown Validate 发现字段定义为 `List[Ref[T]]`。
 3. 自动执行 Flatten 操作，转换为 `[Ref('vader'), Ref('tarkin')]`。
 
-## 5. 类型安全 (`Reference[T]`)
+## 5. 类型安全 (`Ref[T]`)
 
-在 Pydantic 模型中，使用 `Reference` 泛型来强制类型约束。
+在 Pydantic 模型中，使用 `Ref` 泛型来强制类型约束。
 
 ```python
-from typedown.types import Reference
+from typedown.core.base.types import Ref
 
 class Task(BaseModel):
     title: str
     # 约束: assignee 必须引用一个 User 类型的实体
-    assignee: Reference["User"]
+    assignee: Ref["User"]
     # 约束: 也可以是多种类型之一
-    subscribers: List[Reference["User", "Team"]]
+    subscribers: List[Ref["User", "Team"]]
 ```
 
 ### 编译时检查

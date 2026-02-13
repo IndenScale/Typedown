@@ -32,7 +32,7 @@ pip install typedown
 
 在 `hello.td` 中输入以下内容：
 
-````markdown
+````typedown
 ```model:User
 class User(BaseModel):
     name: str
@@ -46,7 +46,7 @@ class User(BaseModel):
 
 有了模型，我们就可以实例化数据了。在同一个文件中添加：
 
-````markdown
+````typedown
 ```entity User: alice
 name: "Alice"
 role: "admin"

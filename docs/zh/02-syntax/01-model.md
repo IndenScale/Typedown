@@ -13,11 +13,9 @@ class <ClassName>(BaseModel):
 
 ### 签名严格化要求
 
-在 v0.2.13+ 版本中，Typedown 强化了块签名的校验逻辑：
-
 - **命名一致性 (Signature Consistency)**: **Block ID** (`ClassName`) 必须与块内 Python 代码定义的第一行 Pydantic 类名**完全一致**。这确保了文档结构与代码逻辑的强绑定。
 - **ID 字符限制**: 标识符仅允许包含字母、数字、下划线 `_` 和连字符 `-`（正则表达式：`[a-zA-Z0-9_\-]+`）。
-- **空格不敏感**: 关键字 `model` 与冒号 `:` 之间、冒号与 ID 之间的空格不再敏感。例如 `model:User`、`model : User`、`model: User` 均被视为等效合规。
+- **空格不敏感**: 关键字 `model` 与冒号 `:` 之间、冒号与 ID 之间的空格不敏感。例如 `model:User`、`model : User`、`model: User` 均被视为等效合规。
 
 - **关键字**: `model`
 - **标识符**: `<ClassName>` 必须与代码块内部定义的 Pydantic 类名完全一致。
@@ -57,14 +55,14 @@ class Order(BaseModel):
 
 ## 引用类型 (Reference)
 
-Typedown 引入了特殊的泛型 `Reference[T]` 来处理实体间的链接。这是构建知识图谱的关键。
+Typedown 引入了特殊的泛型 `Ref[T]` 来处理实体间的链接。这是构建知识图谱的关键。
 
 ### 单一类型引用
 
 ```python
 class Task(BaseModel):
     # assignee 必须指向一个 User 类型的实体
-    assignee: Reference["User"]
+    assignee: Ref["User"]
 ```
 
 ### 多态引用 (Union Reference)
@@ -72,14 +70,14 @@ class Task(BaseModel):
 ```python
 class AccessLog(BaseModel):
     # subject 可以是 User 或 ServiceAccount
-    subject: Reference["User", "ServiceAccount"]
+    subject: Ref["User", "ServiceAccount"]
 ```
 
 ### 自身引用 (Self Reference)
 
 ```python
 class Node(BaseModel):
-    parent: Optional[Reference["Node"]] = None
+    parent: Optional[Ref["Node"]] = None
 ```
 
 > **注意**: 在定义 Reference 时，如果目标类型尚未定义（或定义在后文），请使用字符串形式的 Forward Reference（如 `"User"`）。

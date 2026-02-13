@@ -10,7 +10,7 @@ title: 术语表
 
 ### Model (模型)
 
-- **Block Signature**: ` ```model:<Type> ``` `
+- **Block Signature**: ` ```model:<Type>``` `
 - **定义**: 数据结构的蓝图，对应一个 Pydantic 类。它是所有实体的模板，定义了数据的形状（Schema）和内在逻辑。
 
 ### Entity (实体)
@@ -27,16 +27,19 @@ title: 术语表
 
 定义数据形状（Shape）的规范。它规定了实体必须包含哪些字段以及字段的类型。
 
+### Field Validator (字段验证器)
+
+定义在 Model Schema 内部、针对单个字段值的校验逻辑。
+
+- **用途**: 单个字段的格式检查与转换（如：邮箱格式、日期解析、字符串规范化）。
+- **示例**: 确保邮箱为小写、验证手机号格式。
+
 ### Model Validator (模型验证器)
 
-定义在 Model Schema 内部的校验逻辑，用于确保单体数据的完整性（不依赖外部上下文）。
+定义在 Model Schema 内部的跨字段校验逻辑，用于验证模型实例多字段间的一致性。
 
-- **Field Validator (字段验证器)**: 针对单个字段值的校验（如：邮箱格式检查）。
-- **Model Validator (整体验证器)**: 针对模型实例多字段间的联合校验（如：`end_time` 必须晚于 `start_time`）。
-
-### Oracle (预言机)
-
-_(尚未实现)_ Typedown 系统外部提供可信陈述的信息来源（如 ERP、政务数据接口）。它们作为真理的参考系，用于验证文档内容与现实世界的一致性。
+- **用途**: 局部逻辑校验，确保单体数据完整性（不依赖外部上下文）。
+- **示例**: `end_time` 必须晚于 `start_time`、总金额等于各子项之和。
 
 ## 2. 标识符与引用 (Identifiers & References)
 
@@ -74,8 +77,9 @@ _(尚未实现)_ Typedown 系统外部提供可信陈述的信息来源（如 ER
 
 1. **Local Scope**: 当前文件。
 2. **Directory Scope**: 当前目录（由 `config.td` 定义）。
-3. **Parent Scopes**: 父级目录递归。
-4. **Global Scope**: 项目全局配置 (`typedown.yaml`)。
+3. **Parent Scopes**: 父级目录递归向上查找，直到遇到项目边界或文件系统根目录。
+4. **Project Boundary**: `.tdproject` 文件标记项目边界，阻断向上继承父目录的 `config.td`。
+5. **Global Scope**: 项目全局配置 (`typedown.yaml`) 和运行时内置符号。
 
 ### Config Block (配置块)
 

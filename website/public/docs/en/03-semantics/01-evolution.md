@@ -25,7 +25,7 @@ The `former` keyword links a new entity state to its previous version.
 
 Example
 
-````markdown
+````typedown
 ## Version 1
 
 ```entity Feature: id=login_v1

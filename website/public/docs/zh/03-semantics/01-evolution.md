@@ -25,7 +25,7 @@ Typedown 不将数据视为静态产物，而是一个不断进化的时间线�
 
 示例
 
-````markdown
+````typedown
 ## 版本 1
 
 ```entity Feature: id=login_v1

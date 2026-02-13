@@ -8,7 +8,7 @@ The `config` block is used to configure the compiler's runtime environment. It i
 
 ## Syntax Signature
 
-````markdown
+````typedown
 ```config python
 <Setup Script>
 ```

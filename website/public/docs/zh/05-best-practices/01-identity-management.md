@@ -11,7 +11,7 @@ title: 身份管理
 Typedown 支持两种标识符形式：**ID** 和 **Content Hash**。
 
 | 形式 | 示例 | 性质 | 职责 |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | **ID** | `user-alice-v1` | **稳定** | **系统身份**。全局唯一的逻辑标识。用于日常开发和跨实体引用。 |
 | **Content Hash** | `sha256:8f4b...` | **不可变** | **完整性锚点**。基于内容计算的确定性指纹。用于版本锁定和历史追踪。 |
 
@@ -37,7 +37,7 @@ base_policy: [[sha256:e3b0c442...]]
 
 开发者使用简短的 ID 快速编写草稿。
 
-````markdown
+````typedown
 ```entity User: alice
 name: "Alice"
 ```
@@ -45,10 +45,9 @@ name: "Alice"
 
 ### Phase 2: 固化期 (Hardening)
 
-当实体的结构稳定，或者需要被外部引用时，应该**使用更明确的 ID**。
-IDE 插件应当提供 `Fix ID` 功能，自动生成 Slug 风格的 ID。
+当实体的结构稳定，或者需要被外部引用时，应该**使用更明确的 ID**。IDE 插件应当提供 `Fix ID` 功能，自动生成 Slug 风格的 ID。
 
-````markdown
+````typedown
 ```entity User: user-alice-v1
 name: "Alice"
 ```
@@ -58,7 +57,7 @@ name: "Alice"
 
 当需要修改实体时，通过 `former` 链接旧版本。
 
-````markdown
+````typedown
 ```entity User: users-alice-v2
 former: "user-alice-v1"
 name: "Alice (Updated)"
@@ -86,7 +85,7 @@ name: "Alice (Updated)"
 # Body:
 # 使用专门的扩展字段存储物理 ID
 meta:
-  db_uuid: '550e8400-e29b-41d4-a716-446655440000'
+  db_uuid: "550e8400-e29b-41d4-a716-446655440000"
 ```
 
 这样保持了 Typedown 文件的可读性，同时维持了与物理世界的锚点。

@@ -4,9 +4,7 @@
 
 [**🚀 安装 VS Code 扩展**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) · [**文档**](https://typedown.io/docs) · [**问题反馈**](https://github.com/IndenScale/Typedown/issues)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
 
 > [English](./README.md) | **简体中文**
 
@@ -19,7 +17,7 @@
 Markdown 是技术文档的通用标准。但当仓库从 10 个文件增长到 10,000 个时，它变成了"只写"的坟场：
 
 | 问题 | 描述 | Typedown 解决方案 |
-|------|------|-------------------|
+| --- | --- | --- |
 | **Schema 错误** | 数据不一致：`Status: Active` vs `status: active`，缺少必填字段 | **Model** - 使用 Pydantic 定义结构，编译时验证 |
 | **引用失效** | 移动文件后链接断裂：`[[./old-path]]` 指向不存在的位置 | **Reference** - 基于内容哈希的寻址，自动追踪实体变更 |
 | **约束违反** | 规则被打破：管理员未启用 MFA，库存总量超标 | **Spec** - 可执行的业务规则，验证复杂约束 |
@@ -30,7 +28,7 @@ Markdown 是技术文档的通用标准。但当仓库从 10 个文件增长到 
 
 使用 Pydantic 定义数据结构：
 
-````markdown
+````typedown
 ```model:User
 class User(BaseModel):
     name: str
@@ -43,7 +41,7 @@ class User(BaseModel):
 
 使用严格 YAML 实例化数据：
 
-````markdown
+````typedown
 ```entity User: user-alice-v1
 name: "Alice"
 role: "admin"
@@ -55,7 +53,7 @@ mfa_enabled: true
 
 使用 `[[...]]` 语法建立实体链接：
 
-```markdown
+```typedown
 此任务分配给 [[user-alice-v1]]。
 ```
 
@@ -65,7 +63,7 @@ mfa_enabled: true
 
 三层验证机制：
 
-````markdown
+````typedown
 # 1. 字段级 - @field_validator
 class User(BaseModel):
     @field_validator('email')

@@ -32,7 +32,7 @@ In Typedown, everything starts with a **Model**. We need to tell the system what
 
 Enter the following content in `hello.td`:
 
-````markdown
+````typedown
 ```model:User
 class User(BaseModel):
     name: str
@@ -46,7 +46,7 @@ Here we used a `model` block to define a simple `User` class using Pydantic styl
 
 With the model defined, we can now instantiate data. Add the following to the same file:
 
-````markdown
+````typedown
 ```entity User: alice
 name: "Alice"
 role: "admin"

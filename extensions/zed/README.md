@@ -25,6 +25,7 @@ typedown setup zed
 ```
 
 This command will:
+
 - ✅ Configure Typedown LSP server in Zed
 - ✅ Associate `.td` files with Markdown
 - ✅ Enable wiki link navigation and diagnostics
@@ -34,12 +35,14 @@ Then restart Zed and open any `.td` file!
 ### Method 1: Dev Extension (Better Syntax Highlighting)
 
 1. **Clone the repository:**
+
    ```bash
    git clone https://github.com/IndenScale/Typedown.git
    cd Typedown/extensions/zed
    ```
 
 2. **Install in Zed:**
+
    ```bash
    # In the zed extension directory
    zed: install dev extension .
@@ -101,17 +104,17 @@ For project-specific settings, create `.zed/settings.json`:
 
 ### Wiki Link Navigation
 
-```markdown
+```typedown
 This task is assigned to [[user-alice-v1]].
                               ^
                               └─ Press 'gd' or Cmd+Click to jump
 ```
 
-| Key | Action |
-|-----|--------|
-| `gd` | Go to definition |
-| `gr` | Find references |
-| `Ctrl+o` | Jump back |
+| Key      | Action           |
+| -------- | ---------------- |
+| `gd`     | Go to definition |
+| `gr`     | Find references  |
+| `Ctrl+o` | Jump back        |
 
 ### Available LSP Features
 
@@ -127,11 +130,13 @@ This task is assigned to [[user-alice-v1]].
 ### LSP Server Not Starting
 
 1. Check Typedown is installed:
+
    ```bash
    typedown --version
    ```
 
 2. Test LSP manually:
+
    ```bash
    typedown lsp
    # Should start without errors
@@ -151,6 +156,7 @@ This task is assigned to [[user-alice-v1]].
 To modify this extension:
 
 1. **Build the Rust extension:**
+
    ```bash
    cd extensions/zed
    cargo build --release

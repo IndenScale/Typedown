@@ -4,9 +4,7 @@
 
 [**🚀 Install VS Code Extension**](https://marketplace.visualstudio.com/items?itemName=Typedown.typedown-vscode) · [**Documentation**](https://typedown.io/docs) · [**Issues**](https://github.com/IndenScale/Typedown/issues)
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![PyPI](https://img.shields.io/pypi/v/typedown.svg)](https://pypi.org/project/typedown/)
 
 > **English** | [简体中文](./README.zh-CN.md)
 
@@ -19,7 +17,7 @@
 Markdown is the universal standard for technical documentation. But as your repository grows from 10 to 10,000 files, it becomes a "write-only" graveyard:
 
 | Problem | Description | Typedown Solution |
-|---------|-------------|-------------------|
+| --- | --- | --- |
 | **Schema Errors** | Inconsistent data: `Status: Active` vs `status: active`, missing required fields | **Model** - Define structure with Pydantic, validate at compile time |
 | **Broken References** | Links break after moving files: `[[./old-path]]` points nowhere | **Reference** - Content-addressed links that auto-track entity changes |
 | **Constraint Violations** | Rules are broken: admins without MFA, inventory over limit | **Spec** - Executable business rules for complex constraints |
@@ -30,7 +28,7 @@ Markdown is the universal standard for technical documentation. But as your repo
 
 Define data structures using Pydantic:
 
-````markdown
+````typedown
 ```model:User
 class User(BaseModel):
     name: str
@@ -43,7 +41,7 @@ class User(BaseModel):
 
 Instantiate data with strict YAML:
 
-````markdown
+````typedown
 ```entity User: user-alice-v1
 name: "Alice"
 role: "admin"
@@ -55,7 +53,7 @@ mfa_enabled: true
 
 Link entities with `[[...]]` syntax:
 
-```markdown
+```typedown
 This task is assigned to [[user-alice-v1]].
 ```
 
@@ -65,7 +63,7 @@ Supports **ID references** (`[[entity-id]]`) and **content hash** (`[[sha256:...
 
 Three layers of validation:
 
-````markdown
+````typedown
 # 1. Field-level - @field_validator
 class User(BaseModel):
     @field_validator('email')

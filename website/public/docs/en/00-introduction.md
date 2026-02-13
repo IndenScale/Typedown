@@ -4,9 +4,7 @@ title: Introduction
 
 # <picture><source media="(prefers-color-scheme: dark)" srcset="/logo-dark.svg"><img alt="Typedown Logo" src="/logo-light.svg" height="30"></picture> Typedown
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 > **English** | [简体中文](/zh/docs/introduction)
 
@@ -22,7 +20,7 @@ Typedown addresses these issues by adding a semantic layer to Markdown:
 
 Define data structures using Python (Pydantic).
 
-````markdown
+````typedown
 <!-- Defined in a code block -->
 
 ```model:User
@@ -38,7 +36,7 @@ class User(BaseModel):
 
 Resolve links using **ID** or **Content Hash**.
 
-```markdown
+```typedown
 This report was written by [[users/alice]].
 ````
 
@@ -46,7 +44,7 @@ This report was written by [[users/alice]].
 
 Enforce schema rules within documentation.
 
-````markdown
+````typedown
 ```spec
 def check_admin_policy(user: User):
     if user.role == "admin":

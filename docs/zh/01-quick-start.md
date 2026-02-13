@@ -15,7 +15,8 @@ Typedown 提供了命令行工具 (CLI) 和 VS Code 插件。
 需要 Python 3.12+。
 
 ```bash
-pip install typedown
+# 使用 uv 安装
+uv tool install typedown
 ```
 
 ### 安装 VS Code 插件
@@ -32,7 +33,7 @@ pip install typedown
 
 在 `hello.td` 中输入以下内容：
 
-````markdown
+````typedown
 ```model:User
 class User(BaseModel):
     name: str
@@ -46,7 +47,7 @@ class User(BaseModel):
 
 有了模型，我们就可以实例化数据了。在同一个文件中添加：
 
-````markdown
+````typedown
 ```entity User: alice
 name: "Alice"
 role: "admin"
@@ -60,10 +61,14 @@ role: "admin"
 在终端中运行检查：
 
 ```bash
-typedown check .
+# 检查当前目录
+typedown check
+
+# 或指定路径
+typedown check --path ./hello.td
 ```
 
-你会看到 Typedown 扫描了当前目录，并报告：**No errors found**。🎉
+你会看到 Typedown 扫描了项目，并报告：**✓ Check passed**。🎉
 
 这就是 Typedown 的核心体验：**强类型的 Markdown**。
 
@@ -73,11 +78,11 @@ typedown check .
 
 你已经掌握了 Typedown 的核心循环：**定义模型 -> 创建实体 -> 校验反馈**。
 
-👉 前往 [语法基础](/zh/docs/syntax/code-blocks) 深入了解更多细节。
+👉 前往 [模型定义](./syntax/model) 深入了解更多细节。
 
 ## 5. 学习路线 (Learning Path)
 
-我们为你精心编排了一套**渐进式教程**，位于项目根目录的 `examples/` 文件夹中。建议按照以下顺序阅读和运行：
+我们为你精心编排了一套**渐进式教程**，位于项目根目录的 `cookbook/01_getting_started/zh/` 文件夹中。建议按照以下顺序阅读和运行：
 
 | 目录                     | 核心概念                               |
 | ------------------------ | -------------------------------------- |

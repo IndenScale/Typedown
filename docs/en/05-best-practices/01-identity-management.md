@@ -11,7 +11,7 @@ Clear **identity strategy** is key to managing complexity in Typedown projects.
 Typedown supports two identifier forms: **ID** and **Content Hash**.
 
 | Form | Example | Nature | Responsibility |
-| :--- | :--- | :--- | :--- |
+| :-- | :-- | :-- | :-- |
 | **ID** | `user-alice-v1` | **Stable** | **System Identity**. Globally unique logical identifier. Used for daily development and cross-entity references. |
 | **Content Hash** | `sha256:8f4b...` | **Immutable** | **Integrity Anchor**. Deterministic fingerprint calculated based on content. Used for version locking and history tracking. |
 
@@ -37,7 +37,7 @@ This **Deterministic Algorithm** ensures that references never point to tampered
 
 Developers use short IDs to quickly write drafts.
 
-````markdown
+````typedown
 ```entity User: alice
 name: "Alice"
 ```
@@ -45,10 +45,9 @@ name: "Alice"
 
 ### Phase 2: Hardening
 
-When the entity's structure stabilizes, or it needs to be referenced externally, **use a more explicit ID**.
-IDE plugins should provide a `Fix ID` feature to automatically generate Slug-style IDs.
+When the entity's structure stabilizes, or it needs to be referenced externally, **use a more explicit ID**. IDE plugins should provide a `Fix ID` feature to automatically generate Slug-style IDs.
 
-````markdown
+````typedown
 ```entity User: user-alice-v1
 name: "Alice"
 ```
@@ -58,7 +57,7 @@ name: "Alice"
 
 When modifying an entity, link to the old version via `former`.
 
-````markdown
+````typedown
 ```entity User: users-alice-v2
 former: "user-alice-v1"
 name: "Alice (Updated)"
@@ -86,7 +85,7 @@ If Typedown serves as a configuration source for an existing SQL database, datab
 # Body:
 # Use a dedicated extension field to store physical ID
 meta:
-  db_uuid: '550e8400-e29b-41d4-a716-446655440000'
+  db_uuid: "550e8400-e29b-41d4-a716-446655440000"
 ```
 
 This maintains the readability of Typedown files while maintaining an anchor to the physical world.

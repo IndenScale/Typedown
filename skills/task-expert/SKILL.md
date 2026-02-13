@@ -37,7 +37,7 @@ When a task status changes to `done` or `cancelled`:
 
 Task files must use the following structure:
 
-```markdown
+```typedown
 ---
 id: TASK-XXXX
 type: task

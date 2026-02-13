@@ -53,7 +53,7 @@ This means: as long as the effective data content of two blocks is identical (ex
 
 ### Syntax Example
 
-```markdown
+```typedown
 # Reference a specific version snapshot of configuration, fearless of original ID modification
 
 base_config: [[sha256:a1b2c3d4...]]
@@ -75,7 +75,7 @@ manager: [[leader]]
 
 This is the most significant syntax optimization. You don't need to write cumbersome nested list structures.
 
-````markdown
+````typedown
 ```entity Project: death_star
 # Recommended (Block Style)
 contributors:

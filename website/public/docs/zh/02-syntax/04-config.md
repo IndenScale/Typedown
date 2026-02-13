@@ -8,7 +8,7 @@ title: 环境配置
 
 ## 语法签名
 
-````markdown
+````typedown
 ```config python
 <Setup Script>
 ```
@@ -20,8 +20,7 @@ title: 环境配置
 
 ## 作用域
 
-`config` 块在**目录级**生效。
-在 `config.td` 中定义的配置，会应用于该目录及其子目录下的所有文件（除非被子目录的 `config.td` 覆盖）。
+`config` 块在**目录级**生效。在 `config.td` 中定义的配置，会应用于该目录及其子目录下的所有文件（除非被子目录的 `config.td` 覆盖）。
 
 ## 常见用途
 

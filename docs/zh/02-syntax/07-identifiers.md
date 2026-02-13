@@ -26,10 +26,11 @@ ID 是实体的名称，用于在作用域内引用实体。
 ### 作用域
 
 ID 的查找遵循词法作用域规则：
-1. 当前文件
-2. 当前目录 (`config.td`)
-3. 父级目录（递归向上）
-4. 全局索引
+1. **Local Scope**: 当前文件
+2. **Directory Scope**: 当前目录 (`config.td`)
+3. **Parent Scopes**: 父级目录递归向上查找
+4. **Project Boundary**: `.tdproject` 文件标记项目边界，阻断向上继承
+5. **Global Index**: 全局索引
 
 ## Content Hash (内容哈希)
 

@@ -1,6 +1,6 @@
 ---
 name: task-expert
-description: '‘任务即代码’ (Task as Code) 管理专家。负责维护 todos/ 目录下的任务文件，确保任务 ID 连续、状态清晰且符合规范。'
+description: "‘任务即代码’ (Task as Code) 管理专家。负责维护 todos/ 目录下的任务文件，确保任务 ID 连续、状态清晰且符合规范。"
 ---
 
 # 任务管理专家 (Task Expert)
@@ -37,7 +37,7 @@ description: '‘任务即代码’ (Task as Code) 管理专家。负责维护 t
 
 任务文件必须使用以下结构：
 
-```markdown
+```typedown
 ---
 id: TASK-XXXX
 type: task

@@ -14,11 +14,9 @@ def <TestID>(subject):
 
 ### 签名严格化要求
 
-在 v0.2.13+ 版本中，Typedown 强化了块签名的校验逻辑：
-
 - **命名一致性 (Signature Consistency)**: **Block ID** (`TestID`) 必须与块内 Python 代码定义的校验函数名**完全一致**。这确保了文档结构与代码逻辑的强绑定。
 - **ID 字符限制**: 标识符仅允许包含字母、数字、下划线 `_` 和连字符 `-`（正则表达式：`[a-zA-Z0-9_\-]+`）。
-- **空格不敏感**: 关键字 `spec` 与冒号 `:` 之间、冒号与 ID 之间的空格不再敏感。例如 `spec:my_test`、`spec : my_test` 均被视为等效合规。
+- **空格不敏感**: 关键字 `spec` 与冒号 `:` 之间、冒号与 ID 之间的空格不敏感。例如 `spec:my_test`、`spec : my_test` 均被视为等效合规。
 
 - **关键字**: `spec`
 - **标识符**: `<TestID>` 是该测试用例的唯一名称。
@@ -56,30 +54,6 @@ def check_admin_mfa(subject: User):
 ## 访问上下文 (Context Access)
 
 Spec 环境通过注入强大的内置函数来打破“数据孤岛”：
-
-### `query(selector)`
-
-用于简单查询或基于 ID 的访问。支持 ID 引用、属性路径等。
-
-- **参数**: `selector` (字符串)，支持：
-  - **ID 引用**: `"user-alice"`, `"[[user-alice]]"`
-  - **属性路径**: `"user-alice.profile.email"`
-  - **文件路径**: `"assets/logo.png"`
-- **返回**: 匹配的对象（Entity, Resource 或属性值）。如果未找到，抛出异常。
-
-```python
-@target(type="User")
-def check_manager_relationship(subject):
-    # 获取 Manager 的 ID (假设 subject.manager 存储的是 "users/bob" 这样的引用字符串)
-    manager_id = subject.manager
-
-    # 使用 query() 查找 Manager 实体
-    # 注意：如果 Reference 已经由 Linker 解析，subject.manager 可能已经是实体对象了。
-    # 但如果它是原始字符串，或者你需要反向查找，query() 非常有用。
-
-    manager = query(manager_id)
-    assert manager.department == subject.department
-```
 
 ### `sql(query_string)`
 
@@ -130,7 +104,7 @@ def check_weight_limit(subject):
 
 ## 最佳实践
 
-- **优先使用 SQL**: 对于涉及多个实体的统计、过滤，`sql()` 比循环调用 `query()` 效率更高。
+- **优先使用 SQL**: 对于涉及多个实体的统计、过滤，`sql()` 是首选方式。
 - **合理使用 Global Scope**: 聚合规则务必声明 `scope="global"`，避免重复执行 N 次导致的性能浪费。
 - **善用 Blame**: 在聚合校验中，如果不调用 `blame`，错误可能会广播给所有匹配的实体；使用 `blame` 可以显著降低干扰，提升用户体验。
 - **保持 Read-only**: 严禁在 Spec 中修改 `subject` 的属性或进行任何具有副作用的操作。

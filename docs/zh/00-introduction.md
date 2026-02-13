@@ -4,9 +4,7 @@ title: 项目介绍
 
 # <picture><source media="(prefers-color-scheme: dark)" srcset="/logo-dark.svg"><img alt="Typedown Logo" src="/logo-light.svg" height="30"></picture> Typedown
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
-[![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/) [![Linter: Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
 > [English](/en/docs/introduction) | **简体中文**
 
@@ -22,7 +20,7 @@ Typedown 通过为 Markdown 添加语义层来解决这些问题：
 
 使用 Python (Pydantic) 定义数据结构。
 
-````markdown
+````typedown
 <!-- 定义在代码块中 -->
 
 ```model:User
@@ -32,28 +30,24 @@ class User(BaseModel):
 ```
 ````
 
-````
-
 ### 2. 空间 (Graph)
 
 使用 **ID** 或 **内容哈希** 来解析链接。
 
-```markdown
+```typedown
 这份报告由 [[users/alice]] 撰写。
-````
+```
 
 ### 3. 逻辑 (Validation)
 
 在文档中强制执行架构规则。
 
-````markdown
+````typedown
 ```spec
 def check_admin_policy(user: User):
     if user.role == "admin":
         assert user.has_mfa, "管理员必须开启 MFA"
 ```
-````
-
 ````
 
 ## 安装
@@ -71,7 +65,7 @@ uvx typedown check
 
 # 全局安装
 uv tool install typedown
-````
+```
 
 ### 3. 对于贡献者
 

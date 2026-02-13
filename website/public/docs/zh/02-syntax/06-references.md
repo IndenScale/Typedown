@@ -53,7 +53,7 @@ Typedown 支持基于内容的哈希引用。这使得引用可以指向一个**
 
 ### 语法示例
 
-```markdown
+```typedown
 # 引用特定版本的配置快照，无惧原 ID 被修改
 
 base_config: [[sha256:a1b2c3d4...]]
@@ -75,7 +75,7 @@ manager: [[leader]]
 
 这是最显著的语法优化。你不需要编写繁琐的嵌套列表结构。
 
-````markdown
+````typedown
 ```entity Project: death_star
 # 推荐写法 (Block Style)
 contributors:
