@@ -3,10 +3,10 @@ id: FEAT-0015
 uid: f6f29f
 type: feature
 status: open
-stage: doing
+stage: review
 title: 将 query() 迁移至列表推导式
 created_at: '2026-02-13T11:00:27'
-updated_at: '2026-02-13T11:01:31'
+updated_at: '2026-02-13T11:01:43'
 parent: EPIC-0000
 dependencies: []
 related: []
