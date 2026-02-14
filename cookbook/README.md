@@ -4,7 +4,7 @@
 
 ## 目录结构
 
-```
+```text
 cookbook/
 ├── 01_getting_started/     # 入门教程
 │   ├── en/                 # 英文版

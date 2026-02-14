@@ -37,13 +37,13 @@ Content Hash is a SHA-256 hash computed from the entity's content, used for cont
 
 ### Format
 
-```
+```text
 sha256:<64-character hexadecimal string>
 ```
 
 ### Calculation
 
-```
+```text
 SHA-256( Trim( YAML_Content ) )
 ```
 

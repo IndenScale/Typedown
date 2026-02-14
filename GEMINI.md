@@ -70,7 +70,7 @@ monoco doc-extractor delete <hash_prefix> [--force]
 
 ##### Storage Structure
 
-```
+```text
 ~/.monoco/blobs/
 ├── index.yaml              # Global metadata index
 └── {sha256_hash}/          # Content-addressed directory
